@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "com.hedera.hashgraph.stablecoin.proto";
+option java_multiple_files = true;
+
+import "ConstructTransactionData.proto";
+import "MintTransactionData.proto";
+import "TransferTransactionData.proto";
+
+message TransactionBody {
+    bytes caller = 1;
+
+    // FIXME: we need a way to prevent repeat attacks
+    //        1) add a validUntil timestamp
+    //        2) require validUntil to be within ~1 minute
+    //        3) add a nonce which is a random 8-byte value
+    //        4) keep track of nonces within the last minute so they don't get retried
+
+    oneof data {
+        ConstructTransactionData construct = 2;
+        MintTransactionData mint = 3;
+        TransferTransactionData transfer = 4;
+    }
+}

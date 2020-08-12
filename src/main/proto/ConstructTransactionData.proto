@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "com.hedera.hashgraph.stablecoin.proto";
+option java_multiple_files = true;
+
+message ConstructTransactionData {
+    string tokenName = 1;
+    string tokenSymbol = 2;
+    bytes tokenDecimal = 3;
+    bytes totalSupply = 4;
+    bytes supplyManager = 5;
+    bytes assetProtectionManager = 6;
+}
