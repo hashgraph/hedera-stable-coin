@@ -9,3 +9,6 @@ build/
 
 # generated code
 gen/
+
+# local environment
+.env
