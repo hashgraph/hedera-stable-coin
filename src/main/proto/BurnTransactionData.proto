@@ -5,6 +5,7 @@ package proto;
 option java_package = "com.hedera.hashgraph.stablecoin.proto";
 option java_multiple_files = true;
 
-message MintTransactionData {
+message BurnTransactionData {
     bytes value = 1; // BigInteger
 }
+
