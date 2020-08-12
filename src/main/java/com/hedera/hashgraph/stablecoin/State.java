@@ -4,8 +4,8 @@ import com.hedera.hashgraph.sdk.PublicKey;
 
 import java.math.BigInteger;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class State {
     /**
@@ -36,13 +36,13 @@ public final class State {
 
     private BigInteger totalSupply;
 
-    private ConcurrentMap<PublicKey, BigInteger> balances = new ConcurrentHashMap<>();
+    private Map<PublicKey, BigInteger> balances = new HashMap<>();
 
-    private ConcurrentMap<PublicKey, Boolean> frozen = new ConcurrentHashMap<>();
+    private Map<PublicKey, Boolean> frozen = new HashMap<>();
 
-    private ConcurrentMap<PublicKey, Boolean> kycPassed = new ConcurrentHashMap<>();
+    private Map<PublicKey, Boolean> kycPassed = new HashMap<>();
 
-    private ConcurrentMap<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new ConcurrentHashMap<>();
+    private Map<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new HashMap<>();
 
     State() {
     }
