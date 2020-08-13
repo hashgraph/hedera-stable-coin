@@ -144,8 +144,6 @@ public final class State {
      * May only be called once (during construct).
      */
     public void setTokenName(String tokenName) {
-        // this should not be being called more than once
-        assert this.tokenName.isEmpty();
         assert !tokenName.isEmpty();
 
         this.tokenName = tokenName;
@@ -156,17 +154,12 @@ public final class State {
      * May only be called once (during construct).
      */
     public void setTokenSymbol(String tokenSymbol) {
-        // this should not be being called more than once
-        assert this.tokenSymbol.isEmpty();
         assert !tokenSymbol.isEmpty();
 
         this.tokenSymbol = tokenSymbol;
     }
 
     public void setTokenDecimal(BigInteger tokenDecimal) {
-        // this should not be being called more than once
-        assert this.tokenDecimal == null;
-
         this.tokenDecimal = tokenDecimal;
     }
 
