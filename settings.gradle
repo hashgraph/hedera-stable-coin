@@ -1,1 +1,2 @@
-rootProject.name = 'stable-coin'
+include 'generator'
+include 'stable-coin'

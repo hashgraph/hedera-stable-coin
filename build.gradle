@@ -2,10 +2,6 @@ plugins {
 	id 'java'
 	id 'application'
 	id "idea"
-	id "net.ltgt.errorprone" version "1.2.1"
-	id 'com.github.johnrengelman.shadow' version '6.0.0'
-	id "com.github.ben-manes.versions" version "0.29.0"
-	id "com.google.protobuf" version "0.8.12"
 }
 
 sourceCompatibility = 14
@@ -16,75 +12,6 @@ repositories {
 }
 
 dependencies {
-	compileOnly "com.google.errorprone:error_prone_annotations:2.3.4"
-
-	implementation 'io.github.cdimascio:java-dotenv:5.2.1'
-
-	implementation "com.google.protobuf:protobuf-javalite:3.12.4"
-
-	implementation 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
-	implementation 'io.grpc:grpc-netty-shaded:1.30.2'
-
-	implementation "io.vertx:vertx-web:3.9.2"
-
-	// TODO: will probably only need this for testing
-	implementation "io.vertx:vertx-web-client:3.9.2"
-
-	// https://github.com/google/error-prone
-	// https://errorprone.info/
-	errorprone "com.google.errorprone:error_prone_core:2.3.4"
-
-	// https://github.com/uber/NullAway
-	errorprone "com.uber.nullaway:nullaway:0.7.9"
-
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
-
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
-}
-
-protobuf {
-	generatedFilesBaseDir = "$projectDir/gen"
-	protoc {
-		artifact = "com.google.protobuf:protoc:3.12.4"
-	}
-	generateProtoTasks {
-		all().each { task ->
-			task.builtins {
-				java {
-					option "lite"
-				}
-			}
-		}
-	}
-}
-
-tasks.withType(JavaCompile).configureEach {
-	options.encoding = "UTF-8"
-
-	options.errorprone {
-		// https://github.com/uber/NullAway
-		warn("NullAway")
-		option("NullAway:AnnotatedPackages", "com.hedera.hashgraph.stablecoin")
-		option("NullAway:TreatGeneratedAsUnannotated", "true")
-
-		// Enable _all_ error prone checks then selectively disble
-		// Checks that are default-disabled are enabled as warnings
-		allDisabledChecksAsWarnings = true
-		disable("Java7ApiChecker")
-		disable("AndroidJdkLibsChecker")
-//		disable("TryFailRefactoring")
-//		disable("ThrowSpecificExceptions")
-//		disable("FutureReturnValueIgnored")
-//		disable("ReturnMissingNullable")
-//		disable("FieldCanBeFinal")
-//		disable("Finally")
-//		disable("BooleanParameter")
-//		disable("ThreadJoinLoop")
-
-		// Ignore generated and protobuf code
-		disableWarningsInGeneratedCode = true
-		excludedPaths = ".*gen.*"
-	}
 }
 
 application {
@@ -95,10 +22,6 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
 	}
-}
-
-clean {
-	delete protobuf.generatedFilesBaseDir
 }
 
 test {
