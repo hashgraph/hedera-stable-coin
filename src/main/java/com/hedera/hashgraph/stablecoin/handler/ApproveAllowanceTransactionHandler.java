@@ -31,6 +31,7 @@ public final class ApproveAllowanceTransactionHandler extends TransactionHandler
 
     @Override
     protected void updateState(State state, Address caller, ApproveAllowanceTransactionArguments args) {
+        // i. Allowances[caller][spender] = value
         state.setAllowance(caller, args.spender, args.value);
     }
 }

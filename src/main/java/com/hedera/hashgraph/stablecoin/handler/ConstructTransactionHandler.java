@@ -37,16 +37,42 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
 
     @Override
     protected void updateState(State state, Address caller, ConstructTransactionArguments args) {
+        // i. TokenName = tokenName
         state.setTokenName(args.tokenName);
+
+        // ii. TokenSymbol = tokenSymbol
         state.setTokenSymbol(args.tokenSymbol);
+
+        // iii. TokenDecimal = tokenDecimal
         state.setTokenDecimal(args.tokenDecimal);
+
+        // iv. TotalSupply = totalSupply
         state.setTotalSupply(args.totalSupply);
+
+        // v. Owner = caller
         state.setOwner(caller);
+
+        // vi. SupplyManager = supplyManager
         state.setSupplyManager(args.supplyManager);
+
+        // vii. AssetProtectionManager = assetProtectionManager
         state.setAssetProtectionManager(args.assetProtectionManager);
-        state.increaseBalanceOf(args.supplyManager, args.totalSupply);
-        state.setKycPassed(caller, true);
-        state.setKycPassed(args.supplyManager, true);
-        state.setKycPassed(args.assetProtectionManager, true);
+
+        // viii. Balances = { SupplyManager->TotalSupply } // SupplyManager gets the TotalSupply of tokens
+        state.increaseBalanceOf(state.getSupplyManager(), state.getTotalSupply());
+        
+        // ix. Allowances = {}
+        // This happens by default. `State.allowances` is an empty map already.
+
+        // x. Frozen = {} // no account is frozen by default
+        // This happens by default. `State.frozen` is an empty map already.
+
+        // xi. KycPassed = { Owner->true, SupplyManager->true ,AssetProtectionManager->true }
+        state.setKycPassed(state.getOwner(), true);
+        state.setKycPassed(state.getSupplyManager(), true);
+        state.setKycPassed(state.getAssetProtectionManager(), true);
+
+        // xii. ProposedOwner = 0x
+        // This happens by default. `State.proposedOwner` is the empty address already.
     }
 }
