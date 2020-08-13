@@ -346,7 +346,7 @@ public enum Status {
     DECREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * DecreaseAllowanceTransaction called with value that exceeds caller to spender allowance.
+     * DecreaseAllowance transation called with value that exceeds caller to spender allowance.
      */
     DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE
 }
