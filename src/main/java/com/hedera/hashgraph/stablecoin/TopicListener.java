@@ -5,8 +5,22 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.SubscriptionHandle;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageQuery;
+import com.hedera.hashgraph.stablecoin.handler.ApproveAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.BurnTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ChangeAssetProtectionManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ChangeSupplyManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ClaimOwnershipTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.DecreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.FreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.IncreaseAllowanceTransactionHandler;
 import com.hedera.hashgraph.stablecoin.handler.MintTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ProposeOwnerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.SetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.TransferFromTransactionHandler;
 import com.hedera.hashgraph.stablecoin.handler.TransferTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.UnfreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.UnsetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.WipeTransactionHandler;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
@@ -36,10 +50,26 @@ public final class TopicListener {
         this.client = client;
         this.topicId = topicId;
 
-        transactionHandlers = new HashMap<>();
-        transactionHandlers.put(DataCase.CONSTRUCT, new ConstructTransactionHandler());
-        transactionHandlers.put(DataCase.TRANSFER, new TransferTransactionHandler());
-        transactionHandlers.put(DataCase.MINT, new MintTransactionHandler());
+        transactionHandlers = new HashMap<>() {{
+            put(DataCase.CONSTRUCT, new ConstructTransactionHandler());
+            put(DataCase.APPROVE, new ApproveAllowanceTransactionHandler());
+            put(DataCase.MINT, new MintTransactionHandler());
+            put(DataCase.BURN, new BurnTransactionHandler());
+            put(DataCase.TRANSFER, new TransferTransactionHandler());
+            put(DataCase.TRANSFERFROM, new TransferFromTransactionHandler());
+            put(DataCase.PROPOSEOWNER, new ProposeOwnerTransactionHandler());
+            put(DataCase.CLAIMOWNERSHIP, new ClaimOwnershipTransactionHandler());
+            put(DataCase.CHANGESUPPLYMANAGER, new ChangeSupplyManagerTransactionHandler());
+            put(DataCase.CHANGEASSETPROTECTIONMANAGER, new ChangeAssetProtectionManagerTransactionHandler());
+            put(DataCase.FREEZE, new FreezeTransactionHandler());
+            put(DataCase.UNFREEZE, new UnfreezeTransactionHandler());
+            put(DataCase.WIPE, new WipeTransactionHandler());
+            put(DataCase.SETKYCPASSED, new SetKycPassedTransactionHandler());
+            put(DataCase.UNSETKYCPASSED, new UnsetKycPassedTransactionHandler());
+            put(DataCase.INCREASEALLOWANCE, new IncreaseAllowanceTransactionHandler());
+            put(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler());
+        }};
+
     }
 
     public void startListening() {
