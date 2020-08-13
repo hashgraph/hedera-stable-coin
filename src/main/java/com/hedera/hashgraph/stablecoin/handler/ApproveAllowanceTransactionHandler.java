@@ -3,20 +3,19 @@ package com.hedera.hashgraph.stablecoin.handler;
 import com.hedera.hashgraph.stablecoin.Address;
 import com.hedera.hashgraph.stablecoin.State;
 import com.hedera.hashgraph.stablecoin.Status;
-import com.hedera.hashgraph.stablecoin.handler.arguments.ApproveTransactionArguments;
-import com.hedera.hashgraph.stablecoin.handler.arguments.ConstructTransactionArguments;
+import com.hedera.hashgraph.stablecoin.handler.arguments.ApproveAllowanceTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 import java.math.BigInteger;
 
-public final class ApproveTransactionHandler extends TransactionHandler<ApproveTransactionArguments> {
+public final class ApproveAllowanceTransactionHandler extends TransactionHandler<ApproveAllowanceTransactionArguments> {
     @Override
-    protected ApproveTransactionArguments parseArguments(TransactionBody transactionBody) {
-        return new ApproveTransactionArguments(transactionBody);
+    protected ApproveAllowanceTransactionArguments parseArguments(TransactionBody transactionBody) {
+        return new ApproveAllowanceTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, ApproveTransactionArguments args) {
+    protected void validatePre(State state, Address caller, ApproveAllowanceTransactionArguments args) {
         // i. Owner != 0x
         ensure(!state.hasOwner(), Status.APPROVE_OWNER_NOT_SET);
 
@@ -31,13 +30,7 @@ public final class ApproveTransactionHandler extends TransactionHandler<ApproveT
     }
 
     @Override
-    protected void validatePost(State state, Address caller, ApproveTransactionArguments args) {
-        // i. Allowances[caller][spender] = value
-        assert state.getAllowance(caller, args.spender).equals(args.value);
-    }
-
-    @Override
-    protected void updateState(State state, Address caller, ApproveTransactionArguments args) {
+    protected void updateState(State state, Address caller, ApproveAllowanceTransactionArguments args) {
         state.setAllowance(caller, args.spender, args.value);
     }
 }

@@ -9,6 +9,13 @@ import java.util.Map;
 
 public final class State {
     /**
+     * Maximum allowed integer value
+     */
+    public static final BigInteger MAX_INT = new BigInteger(
+        "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16
+    );
+
+    /**
      * Display name of the stable coin (ex., Hbar, Ether).
      */
     private String tokenName;
@@ -91,6 +98,10 @@ public final class State {
         return proposedOwner;
     }
 
+    public boolean getKycPassed(Address address) {
+        return kycPassed.get(address.publicKey);
+    }
+
     public boolean isFrozen(Address address) {
         return frozen.getOrDefault(address.publicKey, false);
     }
@@ -105,6 +116,12 @@ public final class State {
 
     public boolean isFrozenEmpty() {
         return frozen.isEmpty();
+    }
+
+    public boolean isPrivilegedRole(Address address) {
+        return address.equals(getOwner()) ||
+            address.equals(getSupplyManager()) ||
+            address.equals(getAssetProtectionManager());
     }
 
     public void setOwner(Address owner) {
@@ -155,8 +172,20 @@ public final class State {
         this.assetProtectionManager = assetProtectionManager;
     }
 
+    public void setBalance(Address address, BigInteger balance) {
+        balances.put(address.publicKey, balance);
+    }
+
     public void setKycPassed(Address address, boolean passed) {
         kycPassed.put(address.publicKey, passed);
+    }
+
+    public void setFreeze(Address address, boolean freeze) {
+        frozen.put(address.publicKey, freeze);
+    }
+
+    public void setProposeOwner(Address address) {
+        proposedOwner = address;
     }
 
     public void setAllowance(Address caller, Address spender, BigInteger value) {

@@ -10,8 +10,6 @@ public abstract class TransactionHandler<ArgumentsT> {
 
     protected abstract void validatePre(State state, Address caller, ArgumentsT args);
 
-    protected abstract void validatePost(State state, Address caller, ArgumentsT args);
-
     protected abstract void updateState(State state, Address caller, ArgumentsT args);
 
     protected void ensure(boolean condition, Status status) {
@@ -19,10 +17,6 @@ public abstract class TransactionHandler<ArgumentsT> {
         if (!condition) {
             throw new IllegalStateException("pre-condition failed with status " + status);
         }
-    }
-
-    protected void ensureTransferAllowed(State state, Address address) {
-        // TODO: ensure(!state.isFrozen(address) && state.isKycPassed(address), Status.TRANSFER_NOT_ALLOWED);
     }
 
     public void handle(State state, Address caller, TransactionBody transactionBody) {
@@ -34,10 +28,5 @@ public abstract class TransactionHandler<ArgumentsT> {
 
         // now update our state, this should not be able to fail
         updateState(state, caller, arguments);
-
-        // check post-conditions
-        // if these fail, terminate the process
-        // these should only be a development aid
-        validatePost(state, caller, arguments);
     }
 }

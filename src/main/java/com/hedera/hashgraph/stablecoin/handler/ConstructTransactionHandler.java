@@ -26,54 +26,13 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
         ensure(args.totalSupply.compareTo(BigInteger.ZERO) >= 0, Status.CONSTRUCTOR_TOTAL_SUPPLY_LESS_THAN_ZERO);
 
         // iv. caller != 0x
-        ensure(!caller.isZero(), Status.CALLER_ZERO);
+        ensure(!caller.isZero(), Status.CONSTRUCTOR_CALLER_ZERO);
 
         // v. supplyManager != 0x
         ensure(!args.supplyManager.isZero(), Status.CONSTRUCTOR_SUPPLY_MANAGER_ZERO);
 
         // vi. assetProtectionManager != 0x
         ensure(!args.assetProtectionManager.isZero(), Status.CONSTRUCTOR_ASSET_PROTECTION_MANAGER_ZERO);
-    }
-
-    @Override
-    protected void validatePost(State state, Address caller, ConstructTransactionArguments args) {
-        // i. TokenName = tokenName
-        assert state.getTokenName().equals(args.tokenName);
-
-        // ii. TokenSymbol = tokenSymbol
-        assert state.getTokenSymbol().equals(args.tokenSymbol);
-
-        // iii. TokenDecimal = tokenDecimal
-        assert state.getTokenDecimal().equals(args.tokenDecimal);
-
-        // iv. TotalSupply = totalSupply
-        assert state.getTotalSupply().equals(args.totalSupply);
-
-        // v. Owner = caller
-        assert state.getOwner().equals(caller);
-
-        // vi. SupplyManager = supplyManager
-        assert state.getSupplyManager().equals(args.supplyManager);
-
-        // vii. AssetProtectionManager = assetProtectionManager
-        assert state.getAssetProtectionManager().equals(args.assetProtectionManager);
-
-        // viii. Balances = { SupplyManager->TotalSupply } // SupplyManager gets theTotalSupply of tokens
-        assert state.getBalanceOf(state.getSupplyManager()).equals(args.totalSupply);
-
-        // ix. Allowances = {}
-        assert state.isAllowancesEmpty();
-
-        // x. Frozen = {} // no account is frozen by default
-        assert state.isFrozenEmpty();
-
-        // xi. KycPassed = { Owner->true, SupplyManager->true,AssetProtectionManager->true }
-        assert state.isKycPassed(state.getOwner());
-        assert state.isKycPassed(state.getSupplyManager());
-        assert state.isKycPassed(state.getAssetProtectionManager());
-
-        // xii. ProposedOwner = 0x
-        assert state.getProposedOwner().equals(Address.ZERO);
     }
 
     @Override

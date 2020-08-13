@@ -16,16 +16,25 @@ public final class MintTransactionHandler extends TransactionHandler<MintTransac
 
     @Override
     protected void validatePre(State state, Address caller, MintTransactionArguments args) {
-        // todo: pre-conditions
-    }
+        // i. Owner != 0x
+        ensure(state.hasOwner(), Status.MINT_OWNER_NOT_SET);
 
-    @Override
-    protected void validatePost(State state, Address caller, MintTransactionArguments args) {
-        // fixme: not sure how to solve this? maybe save the previous balance as an instance variable?
+        // ii. caller = SupplyManager || caller = Owner
+        ensure(
+            caller.equals(state.getSupplyManager()) || caller.equals(state.getOwner()),
+            Status.MINT_NOT_AUTHORIZED
+        );
 
-        // todo: i. Balances[caller]' = Balances[caller] - value
+        // iii. value >= 0
+        ensure(args.value.compareTo(BigInteger.ZERO) >= 0, Status.MINT_VALUE_LESS_THAN_ZERO);
 
-        // todo: ii. Balances[to]' = Balances[to] + value
+        // iv. TotalSupply + value <= MAX_INT // prevents overflow
+
+        // v. TotalSupply >= Balances[SupplyManager]
+        ensure(
+            state.getTotalSupply().compareTo(state.getBalanceOf(state.getSupplyManager())) >= 0,
+            Status.MINT_INSUFFICENT_TOTAL_SUPPLY
+        );
     }
 
     @Override

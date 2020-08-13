@@ -16,7 +16,7 @@ public final class DecreaseAllowanceTransaction extends Transaction {
     ) {
         super(caller, TransactionBody.newBuilder()
             .setDecreaseAllowance(DecreaseAllowanceTransactionData.newBuilder()
-                .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))
+                .setSpender(ByteString.copyFrom(address.publicKey.toBytes()))
                 .setValue(ByteString.copyFrom(amount.toByteArray()))));
     }
 }

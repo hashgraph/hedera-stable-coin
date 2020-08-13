@@ -22,4 +22,13 @@ public final class Address {
     public boolean isZero() {
         return this == ZERO || Arrays.equals(publicKey.toBytes(), ZERO.publicKey.toBytes());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Address)) {
+            return false;
+        }
+
+        return this.publicKey.equals(((Address)o).publicKey);
+    }
 }
