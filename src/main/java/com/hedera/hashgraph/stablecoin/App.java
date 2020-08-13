@@ -7,6 +7,7 @@ import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.MintTransaction;
+import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -33,6 +34,8 @@ public class App {
         client.setOperator(operatorId, operatorKey);
 
         var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
+
+        var operatorAddress = new Address(operatorKey.getPublicKey());
 
         if (maybeTopicId.isEmpty()) {
             // if we were not given a topic ID
@@ -75,8 +78,8 @@ public class App {
                 tokenDecimal,
                 totalSupply,
                 // fixme: allow these to be configured
-                new Address(operatorKey.getPublicKey()),
-                new Address(operatorKey.getPublicKey())
+                operatorAddress,
+                operatorAddress
             ).toByteArray();
 
             // and finally submit it
@@ -106,22 +109,42 @@ public class App {
 
         // wait while the APIs and the topic listener run in the background
         // todo: listen to SIGINT/SIGTERM
-        while (true) Thread.sleep(0);
+//        while (true) Thread.sleep(0);
 
         // mint a lot
-//        new TopicMessageSubmitTransaction()
-//            .setTopicId(topicId)
-//            .setMessage(new MintTransaction(operatorKey, new BigInteger("1000000000000000000000")).toByteArray())
-//            .execute(client);
+        new TopicMessageSubmitTransaction()
+            .setTopicId(topicId)
+            .setMessage(new MintTransaction(operatorKey, new BigInteger("1000000000000000000000")).toByteArray())
+            .execute(client);
+
+        System.out.println("Sent <Mint> transaction to topic " + maybeTopicId.get());
+
+        // create second account to transfer to
+        var accountToTransferTo = new Address(PrivateKey.generate().getPublicKey());
+
+        new TopicMessageSubmitTransaction()
+            .setTopicId(topicId)
+            .setMessage(new SetKycPassedTransaction(operatorKey, accountToTransferTo).toByteArray())
+            .execute(client);
+
+        System.out.println("Sent <SetKycPassed> transaction to topic " + maybeTopicId.get());
+
+        // sleep to wait for listener to catch up
+        Thread.sleep(500);
 
         // generate many, many transfers
-//        while (true) {
-//            new TopicMessageSubmitTransaction()
-//                .setTopicId(topicId)
-//                .setMessage(TransferTransaction.generate(operatorKey).toByteArray())
-//                .execute(client);
-//
-//            Thread.sleep(50);
-//        }
+        while (true) {
+            new TopicMessageSubmitTransaction()
+                .setTopicId(topicId)
+                .setMessage(new TransferTransaction(operatorKey, accountToTransferTo, BigInteger.ONE).toByteArray())
+                .execute(client);
+
+            System.out.println("Sent <Transfer> transaction to topic " + maybeTopicId.get());
+
+            Thread.sleep(1000);
+
+            System.out.println("Owner Balance: " + state.getBalanceOf(operatorAddress).toString());
+            System.out.println("New Account Balance: " + state.getBalanceOf(accountToTransferTo).toString());
+        }
     }
 }
