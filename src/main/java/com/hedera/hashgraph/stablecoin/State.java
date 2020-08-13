@@ -54,6 +54,12 @@ public final class State {
     private Map<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new HashMap<>();
 
     State() {
+        this.tokenName = "";
+        this.tokenSymbol = "";
+        this.tokenDecimal = BigInteger.ZERO;
+        this.totalSupply = BigInteger.ZERO;
+        this.owner = Address.ZERO;
+        this.proposedOwner = Address.ZERO;
     }
 
     public boolean hasOwner() {
@@ -87,7 +93,7 @@ public final class State {
     }
 
     public BigInteger getAllowance(Address caller, Address spender) {
-        return allowances.get(new SimpleImmutableEntry<>(caller.publicKey, spender.publicKey));
+        return allowances.getOrDefault(new SimpleImmutableEntry<>(caller.publicKey, spender.publicKey), BigInteger.ZERO);
     }
 
     public BigInteger getBalanceOf(Address address) {
