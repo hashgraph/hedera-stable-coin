@@ -43,16 +43,51 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
         // ii. TokenSymbol = tokenSymbol
         assert state.getTokenSymbol().equals(args.tokenSymbol);
 
-        // TODO: Fill-in post-conditions
+        // iii. TokenDecimal = tokenDecimal
+        assert state.getTokenDecimal().equals(args.tokenDecimal);
+
+        // iv. TotalSupply = totalSupply
+        assert state.getTotalSupply().equals(args.totalSupply);
+
+        // v. Owner = caller
+        assert state.getOwner().equals(caller);
+
+        // vi. SupplyManager = supplyManager
+        assert state.getSupplyManager().equals(args.supplyManager);
+
+        // vii. AssetProtectionManager = assetProtectionManager
+        assert state.getAssetProtectionManager().equals(args.assetProtectionManager);
+
+        // viii. Balances = { SupplyManager->TotalSupply } // SupplyManager gets theTotalSupply of tokens
+        assert state.getBalanceOf(state.getSupplyManager()).equals(args.totalSupply);
+
+        // ix. Allowances = {}
+        assert state.isAllowancesEmpty();
+
+        // x. Frozen = {} // no account is frozen by default
+        assert state.isFrozenEmpty();
+
+        // xi. KycPassed = { Owner->true, SupplyManager->true,AssetProtectionManager->true }
+        assert state.isKycPassed(state.getOwner());
+        assert state.isKycPassed(state.getSupplyManager());
+        assert state.isKycPassed(state.getAssetProtectionManager());
+
+        // xii. ProposedOwner = 0x
+        assert state.getProposedOwner().equals(Address.ZERO);
     }
 
     @Override
     protected void updateState(State state, Address caller, ConstructTransactionArguments args) {
         state.setTokenName(args.tokenName);
         state.setTokenSymbol(args.tokenSymbol);
+        state.setTokenDecimal(args.tokenDecimal);
+        state.setTotalSupply(args.totalSupply);
         state.setOwner(caller);
         state.setSupplyManager(args.supplyManager);
-
-        // TODO: Fill-in state modifications
+        state.setAssetProtectionManager(args.assetProtectionManager);
+        state.increaseBalanceOf(args.supplyManager, args.totalSupply);
+        state.setKycPassed(caller, true);
+        state.setKycPassed(args.supplyManager, true);
+        state.setKycPassed(args.assetProtectionManager, true);
     }
 }
