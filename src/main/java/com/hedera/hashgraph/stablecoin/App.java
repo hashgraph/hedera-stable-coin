@@ -110,36 +110,5 @@ public class App {
         // wait while the APIs and the topic listener run in the background
         // todo: listen to SIGINT/SIGTERM
         while (true) Thread.sleep(0);
-
-        // mint a lot
-//        new TopicMessageSubmitTransaction()
-//            .setTopicId(topicId)
-//            .setMessage(new MintTransaction(operatorKey, new BigInteger("1000000000000000000000")).toByteArray())
-//            .execute(client);
-//
-//        System.out.println("Sent <Mint> transaction to topic " + maybeTopicId.get());
-
-        // create second account to transfer to
-//        var accountToTransferTo = new Address(PrivateKey.generate().getPublicKey());
-//
-//        new TopicMessageSubmitTransaction()
-//            .setTopicId(topicId)
-//            .setMessage(new SetKycPassedTransaction(operatorKey, accountToTransferTo).toByteArray())
-//            .execute(client);
-//
-//        System.out.println("Sent <SetKycPassed> transaction to topic " + maybeTopicId.get());
-
-        // generate many, many transfers
-//        while (true) {
-//            new TopicMessageSubmitTransaction()
-//                .setTopicId(topicId)
-//                .setMessage(new TransferTransaction(operatorKey, accountToTransferTo, BigInteger.ONE).toByteArray())
-//                .execute(client);
-//
-//            System.out.println("Sent <Transfer> transaction to topic " + maybeTopicId.get());
-//
-//            System.out.println("Owner Balance: " + state.getBalanceOf(operatorAddress).toString());
-//            System.out.println("New Account Balance: " + state.getBalanceOf(accountToTransferTo).toString());
-//        }
-//    }
+    }
 }
