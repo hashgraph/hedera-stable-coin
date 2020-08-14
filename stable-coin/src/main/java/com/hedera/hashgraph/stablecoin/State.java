@@ -1,11 +1,21 @@
 package com.hedera.hashgraph.stablecoin;
 
+import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.sdk.PublicKey;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class State {
     private final Map<PublicKey, BigInteger> balances = new HashMap<>();
@@ -43,15 +53,13 @@ public final class State {
 
     private BigInteger totalSupply = BigInteger.ZERO;
 
+    private Instant timestamp = Instant.EPOCH;
+
     State() {
     }
 
     public Address getOwner() {
         return owner;
-    }
-
-    public void setOwner(Address owner) {
-        this.owner = owner;
     }
 
     public String getTokenName() {
@@ -94,6 +102,10 @@ public final class State {
         return totalSupply;
     }
 
+    public void setTotalSupply(BigInteger totalSupply) {
+        this.totalSupply = totalSupply;
+    }
+
     public Address getSupplyManager() {
         return supplyManager;
     }
@@ -124,6 +136,10 @@ public final class State {
 
     public void setProposedOwner(Address address) {
         proposedOwner = address;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
     }
 
     public boolean getKycPassed(Address address) {
@@ -158,6 +174,15 @@ public final class State {
 
     public void setBalance(Address address, BigInteger balance) {
         balances.put(address.publicKey, balance);
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setOwner(Address owner) {
+        this.owner = owner;
+        this.kycPassed.put(owner.publicKey, true);
     }
 
     public void setKycPassed(Address address) {
@@ -220,5 +245,115 @@ public final class State {
 
     public boolean checkTransferAllowed(Address address) {
         return !getOwner().isZero() && !isFrozen(address) && isKycPassed(address);
+    }
+
+    public com.hedera.hashgraph.stablecoin.proto.State toProtobuf() {
+        var state = com.hedera.hashgraph.stablecoin.proto.State.newBuilder()
+            .setTimestamp(timestamp.getEpochSecond())
+            .setTokenName(tokenName)
+            .setTokenSymbol(tokenSymbol)
+            .setTokenDecimal(ByteString.copyFrom(tokenDecimal.toByteArray()))
+            .setTotalSupply(ByteString.copyFrom(totalSupply.toByteArray()))
+            .setOwner(ByteString.copyFrom(owner.publicKey.toBytes()))
+            .setSupplyManager(ByteString.copyFrom(supplyManager.publicKey.toBytes()))
+            .setAssetProtectionManager(ByteString.copyFrom(assetProtectionManager.publicKey.toBytes()))
+            .setProposedOwner(ByteString.copyFrom(proposedOwner.publicKey.toBytes()));
+
+        for (var entry : balances.entrySet()) {
+            state.addBalances(com.hedera.hashgraph.stablecoin.proto.Balance.newBuilder()
+                .setKey(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setValue(ByteString.copyFrom(entry.getValue().toByteArray()))
+                .build());
+        }
+
+        for (var entry : allowances.entrySet()) {
+            state.addAllowances(com.hedera.hashgraph.stablecoin.proto.Allowance.newBuilder()
+                .setFrom(ByteString.copyFrom(entry.getKey().getKey().toBytes()))
+                .setTo(ByteString.copyFrom(entry.getKey().getValue().toBytes()))
+                .setValue(ByteString.copyFrom(entry.getValue().toByteArray()))
+                .build());
+        }
+
+        for (var entry : frozen.entrySet()) {
+            state.addFrozen(com.hedera.hashgraph.stablecoin.proto.Frozen.newBuilder()
+                .setKey(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setValue(entry.getValue())
+                .build());
+        }
+
+        for (var entry : kycPassed.entrySet()) {
+            state.addKycPassed(com.hedera.hashgraph.stablecoin.proto.KycPassed.newBuilder()
+                .setKey(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setValue(entry.getValue())
+                .build());
+        }
+
+        return state.build();
+    }
+
+    public static State fromProtobuf(com.hedera.hashgraph.stablecoin.proto.State proto) {
+        var state = new State();
+
+        state.setTimestamp(Instant.ofEpochSecond(proto.getTimestamp()));
+        state.setTokenName(proto.getTokenName());
+        state.setTokenSymbol(proto.getTokenSymbol());
+        state.setTokenDecimal(new BigInteger(proto.getTokenDecimal().toByteArray()));
+        state.setTotalSupply(new BigInteger(proto.getTotalSupply().toByteArray()));
+        state.setOwner(new Address(PublicKey.fromBytes(proto.getOwner().toByteArray())));
+        state.setSupplyManager(new Address(PublicKey.fromBytes(proto.getSupplyManager().toByteArray())));
+        state.setAssetProtectionManager(new Address(PublicKey.fromBytes(proto.getAssetProtectionManager().toByteArray())));
+
+        for (var balance : proto.getBalancesList()) {
+            state.balances.put(
+                PublicKey.fromBytes(balance.getKey().toByteArray()),
+                new BigInteger(balance.getValue().toByteArray())
+            );
+        }
+
+        for (var allowance : proto.getAllowancesList()) {
+            state.allowances.put(
+                new SimpleImmutableEntry<>(
+                    PublicKey.fromBytes(allowance.getFrom().toByteArray()),
+                    PublicKey.fromBytes(allowance.getTo().toByteArray())
+                ),
+                new BigInteger(allowance.getValue().toByteArray())
+            );
+        }
+
+        for (var frozen : proto.getFrozenList()) {
+            state.frozen.put(
+                PublicKey.fromBytes(frozen.getKey().toByteArray()),
+                frozen.getValue()
+            );
+        }
+
+        for (var kycPassed : proto.getKycPassedList()) {
+            state.kycPassed.put(
+                PublicKey.fromBytes(kycPassed.getKey().toByteArray()),
+                kycPassed.getValue()
+            );
+        }
+
+        return state;
+    }
+
+    public static State tryFromFile(File file) {
+        try {
+            return readFromFile(file);
+        } catch (IOException e) {
+            return new State();
+        }
+    }
+
+    public static State readFromFile(File file) throws IOException {
+        var reader = new DataInputStream(new FileInputStream(file));
+
+        return fromProtobuf(com.hedera.hashgraph.stablecoin.proto.State.parseFrom(reader));
+    }
+
+    public void writeToFile(File file) throws IOException {
+        var writer = new DataOutputStream(new FileOutputStream(file));
+
+        writer.write(toProtobuf().toByteArray());
     }
 }

@@ -28,6 +28,9 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 
 import javax.annotation.Nullable;
+
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -65,12 +68,20 @@ public final class TopicListener {
     private final TopicId topicId;
 
     @Nullable
+    private File file;
+
+    @Nullable
     private SubscriptionHandle handle;
 
     public TopicListener(State state, Client client, TopicId topicId) {
+        this(state, client, topicId, null);
+    }
+
+    public TopicListener(State state, Client client, TopicId topicId, @Nullable File file) {
         this.state = state;
         this.client = client;
         this.topicId = topicId;
+        this.file = file;
     }
 
     public synchronized void stopListening() {
@@ -85,11 +96,11 @@ public final class TopicListener {
 
         handle = new TopicMessageQuery()
             .setTopicId(topicId)
-            .setStartTime(Instant.EPOCH)
+            .setStartTime(state.getTimestamp())
             .subscribe(client, topicMessage -> {
                 // noinspection TryWithIdenticalCatches
                 try {
-                    handleTransaction(Transaction.parseFrom(topicMessage.contents));
+                    handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.contents));
                 } catch (InvalidProtocolBufferException e) {
                     // received an invalid message from the stream
                     // todo: log the parsing failure
@@ -102,7 +113,7 @@ public final class TopicListener {
             });
     }
 
-    void handleTransaction(Transaction transaction) throws InvalidProtocolBufferException {
+    void handleTransaction(Instant timestamp, Transaction transaction) throws IOException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
@@ -128,5 +139,10 @@ public final class TopicListener {
         }
 
         transactionHandler.handle(state, caller, transactionBody);
+
+        if (timestamp.compareTo(state.getTimestamp().plusSeconds(10)) > 0 && file != null) {
+            state.setTimestamp(timestamp);
+            state.writeToFile(file);
+        }
     }
 }

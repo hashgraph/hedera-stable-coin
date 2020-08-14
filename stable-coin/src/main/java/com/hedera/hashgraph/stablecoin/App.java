@@ -20,6 +20,8 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
 import java.io.IOException;
+import java.io.File;
+
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.util.Objects;
@@ -51,6 +53,8 @@ public class App {
         @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
 
         var operatorAddress = new Address(operatorKey.getPublicKey());
+
+        var file = new File("state.bin");
 
         if (maybeTopicId.isEmpty()) {
             // if we were not given a topic ID
@@ -114,7 +118,7 @@ public class App {
         var topicId = maybeTopicId.get();
 
         // create a new instance of in-memory state
-        var state = new State();
+        var state = State.tryFromFile(file);
 
         // create a new topic listener, and start listening
         new TopicListener(state, client, topicId).startListening();
