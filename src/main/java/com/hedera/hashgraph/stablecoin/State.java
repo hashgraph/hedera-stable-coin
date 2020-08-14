@@ -12,27 +12,35 @@ public final class State {
     private final Map<PublicKey, Boolean> frozen = new HashMap<>();
     private final Map<PublicKey, Boolean> kycPassed = new HashMap<>();
     private final Map<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new HashMap<>();
+
     /**
      * Display name of the stable coin (ex., Hbar, Ether).
      */
     private String tokenName = "";
+
     /**
      * Ticker symbol for the stable coin (ex., ETH, USD, etc.).
      */
     private String tokenSymbol = "";
+
     private BigInteger tokenDecimal = BigInteger.ZERO;
+
     /**
      * The owner of the stable coin instance. The owner has control over all administrative controls and
      * can re-assign the asset protection manager and supply manager.
      */
     private Address owner = Address.ZERO;
+
     private Address supplyManager = Address.ZERO;
+
     private Address assetProtectionManager = Address.ZERO;
+
     /**
      * The proposed owner may be set at any time by the current owner. The proposed owner can then claim their
      * ownership which will change the owner property.
      */
     private Address proposedOwner = Address.ZERO;
+
     private BigInteger totalSupply = BigInteger.ZERO;
 
     State() {
@@ -114,20 +122,16 @@ public final class State {
         return proposedOwner;
     }
 
+    public void setProposedOwner(Address address) {
+        proposedOwner = address;
+    }
+
     public boolean isFrozen(Address address) {
         return frozen.getOrDefault(address.publicKey, false);
     }
 
     public boolean isKycPassed(Address address) {
         return kycPassed.getOrDefault(address.publicKey, false);
-    }
-
-    public boolean isAllowancesEmpty() {
-        return allowances.isEmpty();
-    }
-
-    public boolean isFrozenEmpty() {
-        return frozen.isEmpty();
     }
 
     public boolean isPrivilegedRole(Address address) {
@@ -154,10 +158,6 @@ public final class State {
 
     public void unfreeze(Address address) {
         frozen.remove(address.publicKey);
-    }
-
-    public void setProposedOwner(Address address) {
-        proposedOwner = address;
     }
 
     public void setAllowance(Address caller, Address spender, BigInteger value) {
