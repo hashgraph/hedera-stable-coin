@@ -24,7 +24,7 @@ public final class UnsetKycPassedTransactionHandler extends TransactionHandler<U
         );
 
         // iii. !isPrivilegedRole(addr)
-        ensure(state.isPrivilegedRole(args.address), Status.UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED);
+        ensure(!state.isPrivilegedRole(args.address), Status.UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED);
     }
 
     @Override
