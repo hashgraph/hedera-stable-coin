@@ -5,30 +5,15 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.SubscriptionHandle;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.stablecoin.handler.ApproveAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.BurnTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.ChangeAssetProtectionManagerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.ChangeSupplyManagerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.ClaimOwnershipTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.DecreaseAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.FreezeTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.IncreaseAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.MintTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.ProposeOwnerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.SetKycPassedTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.TransferFromTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.TransferTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.UnfreezeTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.UnsetKycPassedTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.WipeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.*;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
-import com.hedera.hashgraph.stablecoin.handler.ConstructTransactionHandler;
-import com.hedera.hashgraph.stablecoin.handler.TransactionHandler;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.Map.entry;
 
 /**
  * Listen to the topic on the Hedera Consensus Service (HCS) and handle
@@ -37,7 +22,25 @@ import java.util.HashMap;
 public final class TopicListener {
     private final State state;
 
-    private final HashMap<DataCase, TransactionHandler<?>> transactionHandlers;
+    private final Map<DataCase, TransactionHandler<?>> transactionHandlers = Map.ofEntries(
+        entry(DataCase.CONSTRUCT, new ConstructTransactionHandler()),
+        entry(DataCase.APPROVE, new ApproveAllowanceTransactionHandler()),
+        entry(DataCase.MINT, new MintTransactionHandler()),
+        entry(DataCase.BURN, new BurnTransactionHandler()),
+        entry(DataCase.TRANSFER, new TransferTransactionHandler()),
+        entry(DataCase.TRANSFERFROM, new TransferFromTransactionHandler()),
+        entry(DataCase.PROPOSEOWNER, new ProposeOwnerTransactionHandler()),
+        entry(DataCase.CLAIMOWNERSHIP, new ClaimOwnershipTransactionHandler()),
+        entry(DataCase.CHANGESUPPLYMANAGER, new ChangeSupplyManagerTransactionHandler()),
+        entry(DataCase.CHANGEASSETPROTECTIONMANAGER, new ChangeAssetProtectionManagerTransactionHandler()),
+        entry(DataCase.FREEZE, new FreezeTransactionHandler()),
+        entry(DataCase.UNFREEZE, new UnfreezeTransactionHandler()),
+        entry(DataCase.WIPE, new WipeTransactionHandler()),
+        entry(DataCase.SETKYCPASSED, new SetKycPassedTransactionHandler()),
+        entry(DataCase.UNSETKYCPASSED, new UnsetKycPassedTransactionHandler()),
+        entry(DataCase.INCREASEALLOWANCE, new IncreaseAllowanceTransactionHandler()),
+        entry(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler())
+    );
 
     private final Client client;
 
@@ -49,41 +52,32 @@ public final class TopicListener {
         this.state = state;
         this.client = client;
         this.topicId = topicId;
-
-        transactionHandlers = new HashMap<>() {{
-            put(DataCase.CONSTRUCT, new ConstructTransactionHandler());
-            put(DataCase.APPROVE, new ApproveAllowanceTransactionHandler());
-            put(DataCase.MINT, new MintTransactionHandler());
-            put(DataCase.BURN, new BurnTransactionHandler());
-            put(DataCase.TRANSFER, new TransferTransactionHandler());
-            put(DataCase.TRANSFERFROM, new TransferFromTransactionHandler());
-            put(DataCase.PROPOSEOWNER, new ProposeOwnerTransactionHandler());
-            put(DataCase.CLAIMOWNERSHIP, new ClaimOwnershipTransactionHandler());
-            put(DataCase.CHANGESUPPLYMANAGER, new ChangeSupplyManagerTransactionHandler());
-            put(DataCase.CHANGEASSETPROTECTIONMANAGER, new ChangeAssetProtectionManagerTransactionHandler());
-            put(DataCase.FREEZE, new FreezeTransactionHandler());
-            put(DataCase.UNFREEZE, new UnfreezeTransactionHandler());
-            put(DataCase.WIPE, new WipeTransactionHandler());
-            put(DataCase.SETKYCPASSED, new SetKycPassedTransactionHandler());
-            put(DataCase.UNSETKYCPASSED, new UnsetKycPassedTransactionHandler());
-            put(DataCase.INCREASEALLOWANCE, new IncreaseAllowanceTransactionHandler());
-            put(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler());
-        }};
-
     }
 
-    public void startListening() {
+    public synchronized void stopListening() {
+        if (handle != null) {
+            handle.unsubscribe();
+            handle = null;
+        }
+    }
+
+    public synchronized void startListening() {
         // todo: set startTime to resume from last state snapshot
 
         handle = new TopicMessageQuery()
             .setTopicId(topicId)
             .setStartTime(Instant.EPOCH)
             .subscribe(client, topicMessage -> {
+                // noinspection TryWithIdenticalCatches
                 try {
                     handleTransaction(Transaction.parseFrom(topicMessage.contents));
-                } catch (Exception e) {
+                } catch (InvalidProtocolBufferException e) {
                     // received an invalid message from the stream
-                    // fixme: log this better
+                    // todo: log the parsing failure
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    // fixme: once we start logging transactions as failed
+                    //        this branch should not happen
                     e.printStackTrace();
                 }
             });
@@ -94,13 +88,21 @@ public final class TopicListener {
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
 
+        if (caller.isZero()) {
+            // todo: when transaction logging is added, log this as a failed transaction
+            throw new IllegalStateException("validation failed with status " + Status.CALLER_NOT_SET);
+        }
+
+        var signature = transaction.getSignature().toByteArray();
+
         // verify that this transaction was signed by the identified caller
-        if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), transaction.getSignature().toByteArray())) {
-            // fixme: flag this transaction as failed with <INVALID_SIGNATURE>
-            throw new IllegalStateException("invalid signature");
+        if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), signature)) {
+            // todo: when transaction logging is added, log this as a failed transaction
+            throw new IllegalStateException("validation failed with status " + Status.INVALID_SIGNATURE);
         }
 
         // continue on to process the body
-        transactionHandlers.get(transactionBody.getDataCase()).handle(state, caller, transactionBody);
+        transactionHandlers.get(transactionBody.getDataCase())
+            .handle(state, caller, transactionBody);
     }
 }

@@ -15,18 +15,15 @@ public final class SetKycPassedTransactionHandler extends TransactionHandler<Set
     @Override
     protected void validatePre(State state, Address caller, SetKycPassedTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.SET_KYC_PASSED_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = assetProtectionManager || caller = owner
-        ensure(
-            caller.equals(state.getAssetProtectionManager()) || caller.equals(state.getOwner()),
-            Status.SET_KYC_PASSED_NOT_AUTHORIZED
-        );
+        ensureAssetProtectionManager(state, caller);
     }
 
     @Override
     protected void updateState(State state, Address caller, SetKycPassedTransactionArguments args) {
         // i. KycPassed[addr]
-        state.setKycPassed(args.address, true);
+        state.setKycPassed(args.address);
     }
 }

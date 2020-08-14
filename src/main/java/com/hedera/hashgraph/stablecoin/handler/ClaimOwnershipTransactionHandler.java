@@ -15,13 +15,13 @@ public final class ClaimOwnershipTransactionHandler extends TransactionHandler<C
     @Override
     protected void validatePre(State state, Address caller, ClaimOwnershipTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.CLAIM_OWNERSHIP_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = ProposedOwner
-        ensure(caller.equals(state.getProposedOwner()), Status.CLAIM_OWNERSHIP_CALLER_NOT_PROPOSED_OWNER);
+        ensureAuthorized(caller.equals(state.getProposedOwner()));
 
         // iii. CheckTransferAllowed(addr)
-        ensure(state.checkTransferAllowed(caller), Status.CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.address, Status.CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED);
     }
 
     @Override
@@ -30,6 +30,6 @@ public final class ClaimOwnershipTransactionHandler extends TransactionHandler<C
         state.setOwner(caller);
 
         // ii. ProposedOwner = 0x
-        state.setProposeOwner(Address.ZERO);
+        state.setProposedOwner(Address.ZERO);
     }
 }

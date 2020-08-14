@@ -1,68 +1,63 @@
 package com.hedera.hashgraph.stablecoin;
 
 public enum Status {
-    /**
-     * Transaction passed all pre conditions
-     */
     OK,
 
-    CONSTRUCTOR_ASSET_PROTECTION_MANAGER_ZERO,
-
     /**
-     * Constructor transaction called by empty address.
+     * Any transaction except for the constructor called when the owner is not set.
      */
-    CONSTRUCTOR_CALLER_ZERO,
+    OWNER_NOT_SET,
+
+    /** Any transaction called with an invalid signature. */
+    INVALID_SIGNATURE,
 
     /**
-     * Constructor transaction called after contract has already been constructed.
+     * Any transaction called with an empty caller.
+     */
+    CALLER_NOT_SET,
+
+    /** Any transaction called with a caller that is not authorized to call that transaction. */
+    CALLER_NOT_AUTHORIZED,
+
+    /**
+     * Any transaction called with a caller that is either frozen or has not passed KYC (where that is required).
+     */
+    CALLER_TRANSFER_NOT_ALLOWED,
+
+    /**
+     * Constructor called with an empty value for asset protection manager.
+     */
+    CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET,
+
+    /**
+     * Constructor called after contract has already been constructed.
      */
     CONSTRUCTOR_OWNER_ALREADY_SET,
 
     /**
-     * Constrcutor transaction set `SupplyManager` to the empty address.
+     * Constructor called with an empty value for supply manager.
      */
-    CONSTRUCTOR_SUPPLY_MANAGER_ZERO,
+    CONSTRUCTOR_SUPPLY_MANAGER_NOT_SET,
 
     /**
-     * Contructor transaction set `TokenDecimal` to a value less than zero.
+     * Constructor called with a value less than zero for token decimal.
      */
     CONSTRUCTOR_TOKEN_DECIMAL_LESS_THAN_ZERO,
 
     /**
-     * Constrcutor transaction set `TotalSupply` to a value less than zero.
+     * Constructor called with a value less than zero for total supply.
      */
     CONSTRUCTOR_TOTAL_SUPPLY_LESS_THAN_ZERO,
 
     /**
-     * ApproveAllowance transaction called before contract has been constrcuted.
-     */
-    APPROVE_ALLOWANCE_OWNER_NOT_SET,
-
-    /**
-     * ApproveAllowance transaction called with a value less than zero.
+     * Approve allowance called with a value less than zero.
      */
     APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
 
     /**
-     * ApproveAllowance transcation called by an address which is either frozen or has not passed KYC.
-     */
-    APPROVE_ALLOWANCE_CALLER_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * ApproveAllowance transcation spender field is either frozen or has not passed KYC.
+     * Approve allowance called with a spender that is either frozen or has not passed KYC.
      */
     APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * Mint transaction called before the contract has been constructed.
-     */
-    MINT_OWNER_NOT_SET,
-
-    /**
-     * Mint transaction called by an unauthorized address.
-     * Caller must be either `SupplyManager` or `Owner`
-     */
-    MINT_NOT_AUTHORIZED,
 
     /**
      * Mint transaction called with a value less than zero.
@@ -72,18 +67,7 @@ public enum Status {
     /**
      * Mint transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
      */
-    MINT_INSUFFICENT_TOTAL_SUPPLY,
-
-    /**
-     * Burn transaction called before the contract has been constructed.
-     */
-    BURN_OWNER_NOT_SET,
-    
-    /**
-     * Burn transaction called by an unautorized address.
-     * Caller must be either `SupplyManager` or `Owner`.
-     */
-    BURN_NOT_AUTHORIZED,
+    MINT_INSUFFICIENT_TOTAL_SUPPLY,
 
     /**
      * Burn transaction called with a value less than zero.
@@ -93,17 +77,12 @@ public enum Status {
     /**
      * Burn transaction called with a value greater than `SupplyManager`'s balance.
      */
-    BURN_INSUFFICENT_SUPPLY_MANAGER_BALANCE,
+    BURN_INSUFFICIENT_SUPPLY_MANAGER_BALANCE,
 
     /**
      * Burn transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
      */
-    BURN_INSUFFICENT_TOTAL_SUPPLY,
-
-    /**
-     * Transfer transaction called before the contract has been constructed.
-     */
-    TRANSFER_OWNER_NOT_SET,
+    BURN_INSUFFICIENT_TOTAL_SUPPLY,
 
     /**
      * Transfer transaction called with a value less than zero.
@@ -116,19 +95,9 @@ public enum Status {
     TRANSFER_INSUFFICIENT_BALANCE,
 
     /**
-     * Transfer transaction called by an address which is either frozen or has not passed KYC. 
+     * Transfer transaction to address is either frozen or has not passed KYC.
      */
-    TRANSFER_CALLER_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * Transfer transaction to address is either frozen or has not passed KYC. 
-     */
-    TRANSFER_TO_ADDRESS_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * TransferFrom transaction called before the contract has been constructed.
-     */
-    TRANSFER_FROM_OWNER_NOT_SET,
+    TRANSFER_TO_TRANSFER_NOT_ALLOWED,
 
     /**
      * TransferFrom transaction called with a value less than zero.
@@ -146,29 +115,14 @@ public enum Status {
     TRANSFER_FROM_INSUFFICIENT_ALLOWANCE,
 
     /**
-     * TransferFrom transaction called by an address which is either frozen or has not passed KYC. 
+     * TransferFrom transaction from address is either frozen or has not passed KYC.
      */
-    TRANSFER_FROM_CALLER_TRANSFER_NOT_ALLOWED,
+    TRANSFER_FROM_FROM_TRANSFER_NOT_ALLOWED,
 
     /**
-     * TransferFrom transaction from address is either frozen or has not passed KYC. 
+     * TransferFrom transaction to address is either frozen or has not passed KYC.
      */
-    TRANSFER_FROM_FROM_ADDRESS_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * TransferFrom transaction to address is either frozen or has not passed KYC. 
-     */
-    TRANSFER_FROM_TO_ADDRESS_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * ProposeOwner transaction called before the contract has been constructed.
-     */
-    PROPOSE_OWNER_OWNER_NOT_SET,
-
-    /**
-     * ProposeOwner transaction called by address which is not owner.
-     */
-    PROPOSE_OWNER_CALLER_NOT_OWNER,
+    TRANSFER_FROM_TO_TRANSFER_NOT_ALLOWED,
 
     /**
      * ProposeOwner transaction with empty address.
@@ -181,29 +135,9 @@ public enum Status {
     PROPOSE_OWNER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * ClaimOwnership transaction called before the contract has been constructed.
-     */
-    CLAIM_OWNERSHIP_OWNER_NOT_SET,
-
-    /**
-     * ClaimOwnership transaction called by address which is not `ProposedOwner`.
-     */
-    CLAIM_OWNERSHIP_CALLER_NOT_PROPOSED_OWNER,
-
-    /**
-     * ClaimOwnership transaction called by address which is either frozen or has not passed KYC.
+     * ClaimOwnership transaction called with address which is either frozen or has not passed KYC.
      */
     CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED,
-
-    /**
-     * ChangeSupplyManager transaction called before the contract has been constructed.
-     */
-    CHANGE_SUPPLY_MANAGER_OWNER_NOT_SET,
-
-    /**
-     * ChangeSupplyManager transcation called by address which is not `Owner`.
-     */
-    CHANGE_SUPPLY_MANAGER_CALLER_NOT_OWNER,
 
     /**
      * ChangeSupplyManger transaction called with an empty address.
@@ -216,16 +150,6 @@ public enum Status {
     CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * ChangeAssetProtectionManager transaction called before the contract has been constructed.
-     */
-    CHANGE_ASSET_PROTECTION_MANAGER_OWNER_NOT_SET,
-
-    /**
-     * ChangeAssetProtectionManager transcation called by address which is not `Owner`.
-     */
-    CHANGE_ASSET_PROTECTION_MANAGER_CALLER_NOT_OWNER,
-
-    /**
      * ChangeAssetProtectionManager transaction called with an empty address.
      */
     CHANGE_ASSET_PROTECTION_MANAGER_ADDRESS_NOT_SET,
@@ -236,42 +160,9 @@ public enum Status {
     CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * Freeze transaction called before the contract has been constructed.
-     */
-    FREEZE_OWNER_NOT_SET,
-
-    /**
-     * Freeze transaction called by an unautorized address.
-     * Caller must be either `AssetProtectionManager` or `Owner`.
-     */
-    FREEZE_NOT_AUTHORIZED,
-
-    /**
      * Freeze transaction called with a privileged address.
      */
     FREEZE_ADDRESS_IS_PRIVILEGED,
-
-    /**
-     * Unfreeze transaction called before the contract has been constructed.
-     */
-    UNFREEZE_OWNER_NOT_SET,
-
-    /**
-     * Unfreeze transaction called by an unautorized address.
-     * Caller must be either `AssetProtectionManager` or `Owner`.
-     */
-    UNFREEZE_NOT_AUTHORIZED,
-
-    /**
-     * Wipe transaction called before the contract has been constructed.
-     */
-    WIPE_OWNER_NOT_SET,
-
-    /**
-     * Wipe transaction called by an unautorized address.
-     * Caller must be either `AssetProtectionManager` or `Owner`.
-     */
-    WIPE_NOT_AUTHORIZED,
 
     /**
      * Wipe transaction called with address that is not frozen.
@@ -279,46 +170,14 @@ public enum Status {
     WIPE_ADDRESS_NOT_FROZEN,
 
     /**
-     * SetKycPassed transaction called before the contract has been constructed.
-     */
-    SET_KYC_PASSED_OWNER_NOT_SET,
-
-    /**
-     * SetKycPassed transaction called by an unautorized address.
-     * Caller must be either `AssetProtectionManager` or `Owner`.
-     */
-    SET_KYC_PASSED_NOT_AUTHORIZED,
-
-    /**
-     * UnsetKycPassed transaction called before the contract has been constructed.
-     */
-    UNSET_KYC_PASSED_OWNER_NOT_SET,
-
-    /**
-     * UnsetKycPassed transaction called by an unautorized address.
-     * Caller must be either `AssetProtectionManager` or `Owner`.
-     */
-    UNSET_KYC_PASSED_NOT_AUTHORIZED,
-
-    /**
      * UnsetKycPassed transaction called with privileged address.
      */
     UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED,
 
     /**
-     * IncreaseAllowance transaction called before the contract has been constructed.
-     */
-    INCREASE_ALLOWANCE_OWNER_NOT_SET,
-
-    /**
      * IncreaseAllowance transaction called with value less than zero.
      */
-    INCREASE_ALLOWANCE_VALUE_IS_ZERO,
-
-    /**
-     * IncreaseAllowance called by address which is either frozen or has not passed KYC.
-     */
-    INCREASE_ALLOWANCE_CALLER_TRANSFER_NOT_ALLOWED,
+    INCREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
 
     /**
      * IncreaseAllowance transaction spender is either frozen or has not passed KYC.
@@ -326,19 +185,9 @@ public enum Status {
     INCREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * DecreaseAllowance transaction called before the contract has been constructed.
-     */
-    DECREASE_ALLOWANCE_OWNER_NOT_SET,
-    
-    /**
      * DecreaseAllowance transaction called with value less than zero.
      */
-    DECREASE_ALLOWANCE_VALUE_IS_ZERO,
-
-    /**
-     * DecreaseAllowance transaction called by address which is either frozen or has not passed KYC.
-     */
-    DECREASE_ALLOWANCE_CALLER_TRANSFER_NOT_ALLOWED,
+    DECREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
 
     /**
      * DecreaseAllowance transaction spender is either frozen or has not passed KYC.
@@ -346,7 +195,7 @@ public enum Status {
     DECREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
 
     /**
-     * DecreaseAllowance transation called with value that exceeds caller to spender allowance.
+     * DecreaseAllowance transaction called with value that exceeds caller to spender allowance.
      */
     DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE
 }

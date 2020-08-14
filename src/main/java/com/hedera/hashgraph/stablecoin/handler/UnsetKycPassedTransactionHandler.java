@@ -15,13 +15,10 @@ public final class UnsetKycPassedTransactionHandler extends TransactionHandler<U
     @Override
     protected void validatePre(State state, Address caller, UnsetKycPassedTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.UNSET_KYC_PASSED_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = assetProtectionManager || caller = owner
-        ensure(
-            caller.equals(state.getAssetProtectionManager()) || caller.equals(state.getOwner()),
-            Status.UNSET_KYC_PASSED_NOT_AUTHORIZED
-        );
+        ensureAssetProtectionManager(state, caller);
 
         // iii. !isPrivilegedRole(addr)
         ensure(!state.isPrivilegedRole(args.address), Status.UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED);
@@ -30,6 +27,6 @@ public final class UnsetKycPassedTransactionHandler extends TransactionHandler<U
     @Override
     protected void updateState(State state, Address caller, UnsetKycPassedTransactionArguments args) {
         // i. !KycPassed[addr]
-        state.setKycPassed(args.address, false);
+        state.unsetKycPassed(args.address);
     }
 }

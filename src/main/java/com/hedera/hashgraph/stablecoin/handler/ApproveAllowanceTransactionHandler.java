@@ -6,8 +6,6 @@ import com.hedera.hashgraph.stablecoin.Status;
 import com.hedera.hashgraph.stablecoin.handler.arguments.ApproveAllowanceTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
-import java.math.BigInteger;
-
 public final class ApproveAllowanceTransactionHandler extends TransactionHandler<ApproveAllowanceTransactionArguments> {
     @Override
     protected ApproveAllowanceTransactionArguments parseArguments(TransactionBody transactionBody) {
@@ -17,16 +15,16 @@ public final class ApproveAllowanceTransactionHandler extends TransactionHandler
     @Override
     protected void validatePre(State state, Address caller, ApproveAllowanceTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.APPROVE_ALLOWANCE_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. value >= 0
-        ensure(args.value.compareTo(BigInteger.ZERO) >= 0, Status.APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO);
+        ensureZeroOrGreater(args.value, Status.APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO);
 
         // iii. CheckTransferAllowed(caller)
-        ensure(state.checkTransferAllowed(caller), Status.APPROVE_ALLOWANCE_CALLER_TRANSFER_NOT_ALLOWED);
+        ensureCallerTransferAllowed(state, caller);
 
         // iv. CheckTransferAllowed(spender)
-        ensure(state.checkTransferAllowed(args.spender), Status.APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.spender, Status.APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED);
     }
 
     @Override

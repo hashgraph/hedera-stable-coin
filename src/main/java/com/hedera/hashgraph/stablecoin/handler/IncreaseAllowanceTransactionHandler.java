@@ -17,25 +17,24 @@ public final class IncreaseAllowanceTransactionHandler extends TransactionHandle
     @Override
     protected void validatePre(State state, Address caller, IncreaseAllowanceTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.INCREASE_ALLOWANCE_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. value >= 0
-        ensure(args.value.compareTo(BigInteger.ZERO) >= 0, Status.INCREASE_ALLOWANCE_VALUE_IS_ZERO);
+        ensureZeroOrGreater(args.value, Status.INCREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO);
 
         // iii. CheckTransferAllowed(caller)
-        ensure(state.checkTransferAllowed(caller), Status.INCREASE_ALLOWANCE_CALLER_TRANSFER_NOT_ALLOWED);
+        ensureCallerTransferAllowed(state, caller);
 
         // iv. CheckTransferAllowed(spender)
-        ensure(state.checkTransferAllowed(args.spender), Status.INCREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.spender, Status.INCREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED);
 
         // v. Allowances[caller][spender] + value <= MAX_INT
+        // NOTE: not possible to overflow
     }
 
     @Override
     protected void updateState(State state, Address caller, IncreaseAllowanceTransactionArguments args) {
         // i. Allowances[caller][spender]’ = Allowances[caller][spender] + value
-        var allowancePrime = state.getAllowance(caller, args.spender).add(args.value);
-
-        state.setAllowance(caller, args.spender, allowancePrime);
+        state.increaseAllowanceOf(caller, args.spender, args.value);
     }
 }

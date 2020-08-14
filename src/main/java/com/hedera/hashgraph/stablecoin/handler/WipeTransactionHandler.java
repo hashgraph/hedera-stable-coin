@@ -17,30 +17,21 @@ public final class WipeTransactionHandler extends TransactionHandler<WipeTransac
     @Override
     protected void validatePre(State state, Address caller, WipeTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.WIPE_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = assetProtectionManager || caller = owner
-        ensure(
-            caller.equals(state.getAssetProtectionManager()) || caller.equals(state.getOwner()), 
-            Status.WIPE_NOT_AUTHORIZED
-        );
+        ensureAssetProtectionManager(state, caller);
 
-        
         // iii. Frozen[addr]
         ensure(state.isFrozen(args.address), Status.WIPE_ADDRESS_NOT_FROZEN);
     }
 
     @Override
     protected void updateState(State state, Address caller, WipeTransactionArguments args) {
-        var balance = state.getBalanceOf(args.address);
+        // i. TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
+        state.decreaseTotalSupply(state.getBalanceOf(args.address));
 
-        // TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
-        var totalSupplyPrime = state.getTotalSupply().subtract(balance);
-
-        // Balances[addr]’ = 0 // balance “updated” to 0
-        var balancePrime = BigInteger.ZERO;
-
-        state.setTotalSupply(totalSupplyPrime);
-        state.setBalance(args.address, balancePrime);
+        // ii. Balances[addr]’ = 0
+        state.clearBalanceOf(args.address);
     }
 }

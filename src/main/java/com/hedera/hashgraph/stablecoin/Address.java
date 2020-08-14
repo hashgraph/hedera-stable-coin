@@ -29,6 +29,6 @@ public final class Address {
             return false;
         }
 
-        return this.publicKey.equals(((Address)o).publicKey);
+        return this.publicKey.equals(((Address) o).publicKey);
     }
 }

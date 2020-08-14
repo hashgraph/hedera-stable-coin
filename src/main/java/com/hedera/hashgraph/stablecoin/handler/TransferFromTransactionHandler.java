@@ -17,39 +17,36 @@ public final class TransferFromTransactionHandler extends TransactionHandler<Tra
     @Override
     protected void validatePre(State state, Address caller, TransferFromTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.TRANSFER_FROM_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. value >= 0
-        ensure(args.value.compareTo(BigInteger.ZERO) >= 0, Status.TRANSFER_FROM_VALUE_LESS_THAN_ZERO);
+        ensureZeroOrGreater(args.value, Status.TRANSFER_FROM_VALUE_LESS_THAN_ZERO);
 
         // iii. Balances[caller] >= value
-        ensure(state.getBalanceOf(caller).compareTo(args.value) >= 0, Status.TRANSFER_FROM_INSUFFICIENT_BALANCE);
+        ensureEqualOrGreater(state.getBalanceOf(caller), args.value, Status.TRANSFER_FROM_INSUFFICIENT_BALANCE);
 
-        ensure(state.getAllowance(args.from, caller).compareTo(args.value) >= 0, Status.TRANSFER_FROM_INSUFFICIENT_ALLOWANCE);
+        // iv. Allowances[from][caller] >= value
+        ensureEqualOrGreater(state.getAllowance(args.from, caller), args.value, Status.TRANSFER_FROM_INSUFFICIENT_ALLOWANCE);
 
-        // iv. CheckTransferAllowed(caller)
-        ensure(state.checkTransferAllowed(caller), Status.TRANSFER_FROM_CALLER_TRANSFER_NOT_ALLOWED);
+        // v. CheckTransferAllowed(caller)
+        ensureCallerTransferAllowed(state, caller);
 
-        // v. CheckTransferAllowed(from)
-        ensure(state.checkTransferAllowed(args.from), Status.TRANSFER_FROM_FROM_ADDRESS_TRANSFER_NOT_ALLOWED);
+        // vi. CheckTransferAllowed(from)
+        ensureTransferAllowed(state, args.from, Status.TRANSFER_FROM_FROM_TRANSFER_NOT_ALLOWED);
 
-        // vi. CheckTransferAllowed(to)
-        ensure(state.checkTransferAllowed(args.to), Status.TRANSFER_FROM_TO_ADDRESS_TRANSFER_NOT_ALLOWED);
+        // vii. CheckTransferAllowed(to)
+        ensureTransferAllowed(state, args.to, Status.TRANSFER_FROM_TO_TRANSFER_NOT_ALLOWED);
     }
 
     @Override
     protected void updateState(State state, Address caller, TransferFromTransactionArguments args) {
         // i. Balances[from]’ = Balances[from] - value
-        var fromBalancePrime = state.getBalanceOf(args.from).subtract(args.value);
+        state.decreaseBalanceOf(args.from, args.value);
 
         // ii. Allowances[from][caller]’ = Allowances[from][caller] - value
-        var allowanceFromCallerPrime = state.getAllowance(args.from, caller).subtract(args.value);
+        state.decreaseAllowanceOf(args.from, caller, args.value);
 
         // iii. Balances[to]’ = Balances[to] + value
-        var toBalancePrime = state.getBalanceOf(args.to).add(args.value);
-
-        state.setBalance(args.from, fromBalancePrime);
-        state.setAllowance(args.from, caller, allowanceFromCallerPrime);
-        state.setBalance(args.to, toBalancePrime);
+        state.increaseBalanceOf(args.to, args.value);
     }
 }

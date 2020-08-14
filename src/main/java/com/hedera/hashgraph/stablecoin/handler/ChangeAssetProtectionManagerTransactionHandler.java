@@ -15,16 +15,16 @@ public final class ChangeAssetProtectionManagerTransactionHandler extends Transa
     @Override
     protected void validatePre(State state, Address caller, ChangeAssetProtectionManagerTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.CHANGE_ASSET_PROTECTION_MANAGER_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = Owner
-        ensure(caller.equals(state.getOwner()), Status.CHANGE_ASSET_PROTECTION_MANAGER_CALLER_NOT_OWNER);
+        ensureAuthorized(caller.equals(state.getOwner()));
 
         // iii. addr != 0x
         ensure(!args.address.isZero(), Status.CHANGE_ASSET_PROTECTION_MANAGER_ADDRESS_NOT_SET);
 
         // iv. CheckTransferAllowed(addr)
-        ensure(state.checkTransferAllowed(args.address), Status.CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.address, Status.CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED);
     }
 
     @Override

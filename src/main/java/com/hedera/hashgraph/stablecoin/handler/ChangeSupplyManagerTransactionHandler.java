@@ -17,10 +17,10 @@ public final class ChangeSupplyManagerTransactionHandler extends TransactionHand
     @Override
     protected void validatePre(State state, Address caller, ChangeSupplyManagerTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.CHANGE_SUPPLY_MANAGER_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = Owner
-        ensure(caller.equals(state.getOwner()), Status.CHANGE_SUPPLY_MANAGER_CALLER_NOT_OWNER);
+        ensureAuthorized(caller.equals(state.getOwner()));
 
         // iii. addr != 0x
         ensure(!args.address.isZero(), Status.CHANGE_SUPPLY_MANAGER_ADDRESS_NOT_SET);

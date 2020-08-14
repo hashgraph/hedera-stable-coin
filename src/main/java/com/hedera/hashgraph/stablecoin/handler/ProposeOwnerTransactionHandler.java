@@ -15,21 +15,21 @@ public final class ProposeOwnerTransactionHandler extends TransactionHandler<Pro
     @Override
     protected void validatePre(State state, Address caller, ProposeOwnerTransactionArguments args) {
         // i. Owner != 0x
-        ensure(state.hasOwner(), Status.PROPOSE_OWNER_OWNER_NOT_SET);
+        ensureOwnerSet(state);
 
         // ii. caller = Owner
-        ensure(caller.equals(state.getOwner()), Status.PROPOSE_OWNER_CALLER_NOT_OWNER);
+        ensureAuthorized(caller.equals(state.getOwner()));
 
         // iii. addr != 0x
         ensure(!args.address.isZero(), Status.PROPOSE_OWNER_ADDRESS_NOT_SET);
 
         // iv. CheckTransferAllowed(addr)
-        ensure(state.checkTransferAllowed(args.address), Status.PROPOSE_OWNER_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.address, Status.PROPOSE_OWNER_TRANSFER_NOT_ALLOWED);
     }
 
     @Override
     protected void updateState(State state, Address caller, ProposeOwnerTransactionArguments args) {
         // i. ProposedOwner = addr
-        state.setProposeOwner(args.address);
+        state.setProposedOwner(args.address);
     }
 }

@@ -84,24 +84,21 @@ public class App {
                 .transactionId
                 .getReceipt(client);
 
-            System.out.println("Sent <Construct> transaction to topic " + maybeTopicId.get());
+            // wait 10s because subscribe retries on the SDK v2 are not working
+            // so we need to wait until the topic is fully established on the mirror node
+            Thread.sleep(10_000);
         }
 
         final var topicId = maybeTopicId.get();
 
-        // wait 10s because subscribe retries on the SDK v2 are broken
-        // fixme: look into those
-        Thread.sleep(10_000);
-
         // create a new instance of in-memory state
-        // todo: load from a snapshot?
         var state = new State();
 
         // create a new topic listener, and start listening
         new TopicListener(state, client, topicId).startListening();
 
         // wait while the APIs and the topic listener run in the background
-        // todo: listen to SIGINT/SIGTERM
+        // todo: listen to SIGINT/SIGTERM to cleanly exit
         while (true) Thread.sleep(0);
     }
 }
