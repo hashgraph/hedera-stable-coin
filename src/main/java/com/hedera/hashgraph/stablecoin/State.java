@@ -18,20 +18,20 @@ public final class State {
     /**
      * Display name of the stable coin (ex., Hbar, Ether).
      */
-    private String tokenName;
+    private String tokenName  = "";
 
     /**
      * Ticker symbol for the stable coin (ex., ETH, USD, etc.).
      */
-    private String tokenSymbol;
+    private String tokenSymbol  = "";
 
-    private BigInteger tokenDecimal;
+    private BigInteger tokenDecimal = BigInteger.ZERO;
 
     /**
      * The owner of the stable coin instance. The owner has control over all administrative controls and
      * can re-assign the asset protection manager and supply manager.
      */
-    private Address owner;
+    private Address owner = Address.ZERO;
 
     private Address supplyManager;
 
@@ -41,9 +41,9 @@ public final class State {
      * The proposed owner may be set at any time by the current owner. The proposed owner can then claim their
      * ownership which will change the owner property.
      */
-    private Address proposedOwner;
+    private Address proposedOwner = Address.ZERO;
 
-    private BigInteger totalSupply;
+    private BigInteger totalSupply = BigInteger.ZERO;
 
     private Map<PublicKey, BigInteger> balances = new HashMap<>();
 
@@ -54,12 +54,6 @@ public final class State {
     private Map<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new HashMap<>();
 
     State() {
-        this.tokenName = "";
-        this.tokenSymbol = "";
-        this.tokenDecimal = BigInteger.ZERO;
-        this.totalSupply = BigInteger.ZERO;
-        this.owner = Address.ZERO;
-        this.proposedOwner = Address.ZERO;
     }
 
     public boolean hasOwner() {
