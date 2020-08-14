@@ -8,11 +8,10 @@ import com.hedera.hashgraph.stablecoin.proto.ClaimOwnershipTransactionData;
 
 public final class ClaimOwnershipTransaction extends Transaction {
     public ClaimOwnershipTransaction(
-        PrivateKey claimer,
-        Address address
+        PrivateKey claimer
     ) {
         super(claimer, TransactionBody.newBuilder()
             .setClaimOwnership(ClaimOwnershipTransactionData.newBuilder()
-                .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
+                .setAddress(ByteString.copyFrom(new Address(claimer.getPublicKey()).publicKey.toBytes()))));
     }
 }
