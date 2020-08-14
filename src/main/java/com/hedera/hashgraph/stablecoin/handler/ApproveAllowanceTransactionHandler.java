@@ -17,7 +17,7 @@ public final class ApproveAllowanceTransactionHandler extends TransactionHandler
     @Override
     protected void validatePre(State state, Address caller, ApproveAllowanceTransactionArguments args) {
         // i. Owner != 0x
-        ensure(!state.hasOwner(), Status.APPROVE_ALLOWANCE_OWNER_NOT_SET);
+        ensure(state.hasOwner(), Status.APPROVE_ALLOWANCE_OWNER_NOT_SET);
 
         // ii. value >= 0
         ensure(args.value.compareTo(BigInteger.ZERO) >= 0, Status.APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO);
