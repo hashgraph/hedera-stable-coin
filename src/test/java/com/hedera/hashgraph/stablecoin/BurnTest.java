@@ -5,20 +5,20 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
+import com.hedera.hashgraph.stablecoin.transaction.BurnTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
-import com.hedera.hashgraph.stablecoin.transaction.MintTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
-public class MintTest {
+public class BurnTest {
     State state = new State();
     Client client = Client.forTestnet();
     TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
 
     @Test
-    public void mintTest() throws InvalidProtocolBufferException {
+    public void burnTest() throws InvalidProtocolBufferException {
         var callerKey = PrivateKey.generate();
         var supplyManagerKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -44,7 +44,7 @@ public class MintTest {
         topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
 
         // prepare test transaction
-        var mintTransaction = new MintTransaction(
+        var burnTransaction = new BurnTransaction(
             callerKey,
             value
         );
@@ -57,11 +57,11 @@ public class MintTest {
         // ii. caller = SupplyManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
-        //iii. value >= 0
+        // iii. value >= 0
         Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
 
-        // iv. TotalSupply + value <= MAX_INT // prevents overflow
-        // Overflow not possible
+        // iv. Balances[SupplyManager] >= value
+        Assertions.assertTrue(state.getBalanceOf(state.getSupplyManager()).compareTo(value) >= 0);
 
         // v. TotalSupply >= Balances[SupplyManager]
         Assertions.assertTrue(state.getTotalSupply().compareTo(state.getBalanceOf(supplyManager)) >= 0);
@@ -70,14 +70,14 @@ public class MintTest {
         var supplyManagerBalance = state.getBalanceOf(supplyManager);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(mintTransaction.toByteArray()));
+        topicListener.handleTransaction(Transaction.parseFrom(burnTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. TotalSupply’ = TotalSupply + value // the new supply is increased by value
-        Assertions.assertEquals(totalSupply.add(value), state.getTotalSupply());
+        // i.TotalSupply’ = TotalSupply - value // the new supply is decreased byvalue
+        Assertions.assertEquals(totalSupply.subtract(value), state.getTotalSupply());
 
-        // ii. Balances[SupplyManager]’ = Balances[SupplyManager] + value
-        Assertions.assertEquals(supplyManagerBalance.add(value), state.getBalanceOf(supplyManager));
+        // ii.Balances[SupplyManager]’ = Balances[SupplyManager] - value
+        Assertions.assertEquals(supplyManagerBalance.subtract(value), state.getBalanceOf(supplyManager));
     }
 }
