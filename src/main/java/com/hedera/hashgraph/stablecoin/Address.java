@@ -20,7 +20,7 @@ public final class Address {
     }
 
     public boolean isZero() {
-        return this == ZERO || Arrays.equals(publicKey.toBytes(), ZERO.publicKey.toBytes());
+        return this.equals(ZERO) || Arrays.equals(publicKey.toBytes(), ZERO.publicKey.toBytes());
     }
 
     @Override
@@ -30,5 +30,10 @@ public final class Address {
         }
 
         return this.publicKey.equals(((Address) o).publicKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return publicKey.hashCode();
     }
 }

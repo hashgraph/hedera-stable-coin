@@ -9,8 +9,8 @@ public final class ProposeOwnerTransactionArguments {
     public final Address address;
 
     public ProposeOwnerTransactionArguments(TransactionBody body) {
+        assert body.hasProposeOwner();
         var data = body.getProposeOwner();
-        assert data != null;
 
         address = new Address(data.getAddress());
     }

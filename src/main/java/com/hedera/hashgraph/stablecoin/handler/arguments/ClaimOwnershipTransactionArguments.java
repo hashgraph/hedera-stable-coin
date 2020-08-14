@@ -9,8 +9,8 @@ public final class ClaimOwnershipTransactionArguments {
     public final Address address;
 
     public ClaimOwnershipTransactionArguments(TransactionBody body) {
+        assert body.hasClaimOwnership();
         var data = body.getClaimOwnership();
-        assert data != null;
 
         address = new Address(data.getAddress());
     }

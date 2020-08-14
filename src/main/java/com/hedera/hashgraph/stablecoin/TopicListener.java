@@ -5,11 +5,29 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.SubscriptionHandle;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.stablecoin.handler.*;
+import com.hedera.hashgraph.stablecoin.handler.ApproveAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.BurnTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ChangeAssetProtectionManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ChangeSupplyManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ClaimOwnershipTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ConstructTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.DecreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.FreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.IncreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.MintTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.ProposeOwnerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.SetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.TransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.TransferFromTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.TransferTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.UnfreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.UnsetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.handler.WipeTransactionHandler;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Map;
 
@@ -46,6 +64,7 @@ public final class TopicListener {
 
     private final TopicId topicId;
 
+    @Nullable
     private SubscriptionHandle handle;
 
     public TopicListener(State state, Client client, TopicId topicId) {
@@ -102,7 +121,12 @@ public final class TopicListener {
         }
 
         // continue on to process the body
-        transactionHandlers.get(transactionBody.getDataCase())
-            .handle(state, caller, transactionBody);
+        var transactionHandler = transactionHandlers.get(transactionBody.getDataCase());
+
+        if (transactionHandler == null) {
+            throw new IllegalStateException("unimplemented transaction type " + transactionBody.getDataCase());
+        }
+
+        transactionHandler.handle(state, caller, transactionBody);
     }
 }

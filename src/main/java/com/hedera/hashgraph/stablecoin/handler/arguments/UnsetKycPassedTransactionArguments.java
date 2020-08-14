@@ -9,8 +9,8 @@ public final class UnsetKycPassedTransactionArguments {
     public final Address address;
 
     public UnsetKycPassedTransactionArguments(TransactionBody body) {
+        assert body.hasUnsetKycPassed();
         var data = body.getUnsetKycPassed();
-        assert data != null;
 
         address = new Address(data.getAddress());
     }

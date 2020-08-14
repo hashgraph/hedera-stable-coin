@@ -13,8 +13,8 @@ public final class TransferFromTransactionArguments {
     public final BigInteger value;
 
     public TransferFromTransactionArguments(TransactionBody body) {
+        assert body.hasTransferFrom();
         var data = body.getTransferFrom();
-        assert data != null;
 
         from = new Address(data.getFrom());
         to = new Address(data.getTo());

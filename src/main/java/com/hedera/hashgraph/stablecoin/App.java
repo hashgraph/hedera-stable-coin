@@ -1,6 +1,14 @@
 package com.hedera.hashgraph.stablecoin;
 
-import com.hedera.hashgraph.sdk.*;
+import com.google.errorprone.annotations.Var;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.HederaPreCheckStatusException;
+import com.hedera.hashgraph.sdk.HederaReceiptStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.TopicCreateTransaction;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -10,6 +18,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 public class App {
+    private App() {
+    }
+
     public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
         var env = Dotenv.configure().ignoreIfMissing().load();
 
@@ -26,7 +37,7 @@ public class App {
         // configure the client operator
         client.setOperator(operatorId, operatorKey);
 
-        var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
+        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
 
         var operatorAddress = new Address(operatorKey.getPublicKey());
 
@@ -60,7 +71,7 @@ public class App {
             // or we would have died elsewhere
             assert maybeTopicId.isPresent();
 
-            System.out.println("Created topic " + maybeTopicId.get());
+            System.out.println("created topic " + maybeTopicId.get());
 
             // now we need to create a <Construct> transaction
 
@@ -89,7 +100,7 @@ public class App {
             Thread.sleep(10_000);
         }
 
-        final var topicId = maybeTopicId.get();
+        var topicId = maybeTopicId.get();
 
         // create a new instance of in-memory state
         var state = new State();

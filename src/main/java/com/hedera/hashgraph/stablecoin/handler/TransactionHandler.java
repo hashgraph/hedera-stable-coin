@@ -4,7 +4,6 @@ import com.hedera.hashgraph.stablecoin.Address;
 import com.hedera.hashgraph.stablecoin.State;
 import com.hedera.hashgraph.stablecoin.Status;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
-import io.grpc.netty.shaded.io.netty.channel.AdaptiveRecvByteBufAllocator;
 
 import java.math.BigInteger;
 

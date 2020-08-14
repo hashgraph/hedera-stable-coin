@@ -19,8 +19,8 @@ public final class ConstructTransactionArguments {
     public final Address assetProtectionManager;
 
     public ConstructTransactionArguments(TransactionBody body) {
+        assert body.hasConstruct();
         var data = body.getConstruct();
-        assert data != null; // we should have been given a <Construct>
 
         tokenName = data.getTokenName();
         tokenSymbol = data.getTokenSymbol();

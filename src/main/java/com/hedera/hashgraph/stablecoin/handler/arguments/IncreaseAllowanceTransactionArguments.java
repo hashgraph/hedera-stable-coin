@@ -11,8 +11,8 @@ public final class IncreaseAllowanceTransactionArguments {
     public final BigInteger value;
 
     public IncreaseAllowanceTransactionArguments(TransactionBody body) {
+        assert body.hasIncreaseAllowance();
         var data = body.getIncreaseAllowance();
-        assert data != null;
 
         spender = new Address(data.getSpender());
         value = new BigInteger(data.getValue().toByteArray());

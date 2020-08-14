@@ -7,8 +7,8 @@ public final class ChangeSupplyManagerTransactionArguments {
     public final Address address;
 
     public ChangeSupplyManagerTransactionArguments(TransactionBody body) {
+        assert body.hasChangeSupplyManager();
         var data = body.getChangeSupplyManager();
-        assert data != null;
 
         address = new Address(data.getAddress());
     }

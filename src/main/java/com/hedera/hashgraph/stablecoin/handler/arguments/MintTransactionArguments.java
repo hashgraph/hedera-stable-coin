@@ -8,8 +8,8 @@ public final class MintTransactionArguments {
     public final BigInteger value;
 
     public MintTransactionArguments(TransactionBody body) {
+        assert body.hasMint();
         var data = body.getMint();
-        assert data != null;
 
         value = new BigInteger(data.getValue().toByteArray());
     }

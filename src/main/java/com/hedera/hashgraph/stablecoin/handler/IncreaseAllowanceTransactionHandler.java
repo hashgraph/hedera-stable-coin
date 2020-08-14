@@ -3,10 +3,8 @@ package com.hedera.hashgraph.stablecoin.handler;
 import com.hedera.hashgraph.stablecoin.Address;
 import com.hedera.hashgraph.stablecoin.State;
 import com.hedera.hashgraph.stablecoin.Status;
-import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.handler.arguments.IncreaseAllowanceTransactionArguments;
-
-import java.math.BigInteger;
+import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class IncreaseAllowanceTransactionHandler extends TransactionHandler<IncreaseAllowanceTransactionArguments> {
     @Override

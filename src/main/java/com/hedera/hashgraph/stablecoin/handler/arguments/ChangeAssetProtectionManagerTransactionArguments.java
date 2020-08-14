@@ -9,8 +9,8 @@ public final class ChangeAssetProtectionManagerTransactionArguments {
     public final Address address;
 
     public ChangeAssetProtectionManagerTransactionArguments(TransactionBody body) {
+        assert body.hasChangeAssetProtectionManager();
         var data = body.getChangeAssetProtectionManager();
-        assert data != null;
 
         address = new Address(data.getAddress());
     }
