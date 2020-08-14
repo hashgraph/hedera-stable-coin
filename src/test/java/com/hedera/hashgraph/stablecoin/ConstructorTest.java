@@ -20,8 +20,9 @@ public class ConstructorTest {
     public void constructorTest() throws InvalidProtocolBufferException {
         // prepare test transaction
         var callerKey = PrivateKey.generate();
-        Address caller, supplyManager, assetProtectionManager;
-        caller = supplyManager = assetProtectionManager= new Address(callerKey.getPublicKey());
+        var caller = new Address(callerKey.getPublicKey());
+        var supplyManager = caller;
+        var assetProtectionManager= caller;
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
         var tokenDecimal = new BigInteger("2");
@@ -40,7 +41,7 @@ public class ConstructorTest {
         // Pre-Check
 
         // i. Owner = 0x
-        Assertions.assertFalse(state.hasOwner());
+        Assertions.assertTrue(state.getOwner().isZero());
 
         // ii. tokenDecimal >= 0
         Assertions.assertTrue(tokenDecimal.compareTo(BigInteger.ZERO) >= 0);

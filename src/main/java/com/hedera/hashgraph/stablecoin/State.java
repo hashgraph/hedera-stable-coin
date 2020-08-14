@@ -126,6 +126,10 @@ public final class State {
         proposedOwner = address;
     }
 
+    public boolean getKycPassed(Address address) {
+        return kycPassed.get(address.publicKey);
+    }
+
     public boolean isFrozen(Address address) {
         return frozen.getOrDefault(address.publicKey, false);
     }
@@ -133,6 +137,18 @@ public final class State {
     public boolean isKycPassed(Address address) {
         return kycPassed.getOrDefault(address.publicKey, false);
     }
+
+    public boolean isAllowancesEmpty() {
+        return allowances.isEmpty();
+    }
+
+    public boolean isFrozenEmpty() {
+        return frozen.isEmpty();
+    }
+
+    public boolean isBalanceEmpty() { return balances.isEmpty(); }
+
+    public boolean isKycPassedEmpty() { return kycPassed.isEmpty(); }
 
     public boolean isPrivilegedRole(Address address) {
         return address.equals(getOwner()) ||

@@ -57,7 +57,7 @@ public class ApproveTest {
         // Pre-Check
 
         // i. Owner != 0x
-        Assertions.assertTrue(state.hasOwner());
+        Assertions.assertFalse(state.getOwner().isZero());
 
         // ii. value >= 0
         Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);

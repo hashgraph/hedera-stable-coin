@@ -26,22 +26,22 @@ public class StateTest {
         Assertions.assertSame(Address.ZERO, state.getOwner());
 
         // SupplyManager: Address = {}
-        Assertions.assertNull(state.getSupplyManager());
+        Assertions.assertSame(Address.ZERO, state.getSupplyManager());
 
         // AssetProtectionManager: Address = {}
-        Assertions.assertNull(state.getAssetProtectionManager());
+        Assertions.assertSame(Address.ZERO, state.getAssetProtectionManager());
 
         // Balances: Map::Address->Int = {}
-        // TODO: Need to inspect private map here
+        Assertions.assertTrue(state.isBalanceEmpty());
 
         // Allowances: Map::Address->(Map::Address->Int) = {}
-        // TODO: Need to inspect private map here
+        Assertions.assertTrue(state.isAllowancesEmpty());
 
         // Frozen: Map::Address->Bool = {}
-        // TODO: Need to inspect private map here
+        Assertions.assertTrue(state.isFrozenEmpty());
 
         // KycPassed: Map::Address->Bool = {}
-        // TODO: Need to inspect private map here
+        Assertions.assertTrue(state.isKycPassedEmpty());
 
         // ProposedOwner: Address = 0x
         Assertions.assertSame(Address.ZERO, state.getProposedOwner());

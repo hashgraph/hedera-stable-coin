@@ -60,7 +60,7 @@ public class UnsetKycPassedTest {
         // Pre-Check
 
         // i. Owner != 0x
-        Assertions.assertTrue(state.hasOwner());
+        Assertions.assertFalse(state.getOwner().isZero());
 
         // ii. caller = AssetProtectionManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
@@ -92,7 +92,7 @@ public class UnsetKycPassedTest {
         // Pre-Check
 
         // i. Owner != 0x
-        Assertions.assertTrue(state.hasOwner());
+        Assertions.assertFalse(state.getOwner().isZero());
 
         // ii. caller = AssetProtectionManager || caller = Owner
         Assertions.assertEquals(assetManager, state.getAssetProtectionManager());

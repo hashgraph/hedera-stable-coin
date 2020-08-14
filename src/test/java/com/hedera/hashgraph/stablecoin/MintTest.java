@@ -5,10 +5,8 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
-import com.hedera.hashgraph.stablecoin.transaction.ApproveAllowanceTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.MintTransaction;
-import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +52,7 @@ public class MintTest {
         // Pre-Check
 
         // i. Owner != 0x
-        Assertions.assertTrue(state.hasOwner());
+        Assertions.assertFalse(state.getOwner().isZero());
 
         // ii.caller = SupplyManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
@@ -63,7 +61,7 @@ public class MintTest {
         Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
 
         // iv.TotalSupply + value <= MAX_INT // prevents overflow
-        Assertions.assertTrue(state.getTotalSupply().add(value).compareTo(State.MAX_INT) <= 0);
+        // Overflow not possible
 
         // v.TotalSupply >= Balances[SupplyManager]
         Assertions.assertTrue(state.getTotalSupply().compareTo(state.getBalanceOf(supplyManager)) >= 0);
