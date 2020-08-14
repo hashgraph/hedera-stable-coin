@@ -7,6 +7,7 @@ import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.transaction.ApproveAllowanceTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
+import com.hedera.hashgraph.stablecoin.transaction.MintTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,9 +22,9 @@ public class MintTest {
     @Test
     public void mintTest() throws InvalidProtocolBufferException {
         var callerKey = PrivateKey.generate();
-        var spenderKey = PrivateKey.generate();
+        var supplyManagerKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var spender = new Address(spenderKey.getPublicKey());
+        var supplyManager = new Address(supplyManagerKey.getPublicKey());
         var value = BigInteger.ONE;
 
         // prepare state
@@ -38,16 +39,15 @@ public class MintTest {
             tokenSymbol,
             tokenDecimal,
             totalSupply,
-            caller,
+            supplyManager,
             caller
         );
 
         topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
 
         // prepare test transaction
-        var approveTransaction = new ApproveAllowanceTransaction(
+        var mintTransaction = new MintTransaction(
             callerKey,
-            spender,
             value
         );
 
@@ -56,21 +56,30 @@ public class MintTest {
         // i. Owner != 0x
         Assertions.assertTrue(state.hasOwner());
 
-        // ii. value >= 0
+        // ii.caller = SupplyManager || caller = Owner
+        Assertions.assertEquals(caller, state.getOwner());
+
+        //iii.value >= 0
         Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
 
-        // iii. CheckTransferAllowed(caller)
-        Assertions.assertTrue(state.checkTransferAllowed(caller));
+        // iv.TotalSupply + value <= MAX_INT // prevents overflow
+        Assertions.assertTrue(state.getTotalSupply().add(value).compareTo(State.MAX_INT) <= 0);
 
-        // iv. CheckTransferAllowed(spender)
-        Assertions.assertTrue(state.checkTransferAllowed(spender));
+        // v.TotalSupply >= Balances[SupplyManager]
+        Assertions.assertTrue(state.getTotalSupply().compareTo(state.getBalanceOf(supplyManager)) >= 0);
+
+        // Prepare Post-check
+        var supplyManagerBalance = state.getBalanceOf(supplyManager);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(approveTransaction.toByteArray()));
+        topicListener.handleTransaction(Transaction.parseFrom(mintTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. Allowances[caller][spender] = value
-        Assertions.assertEquals(value, state.getAllowance(caller, spender));
+        // i.TotalSupply’ = TotalSupply + value // the new supply is increased by value
+        Assertions.assertEquals(totalSupply.add(value), state.getTotalSupply());
+
+        // ii.Balances[SupplyManager]’ = Balances[SupplyManager] + value
+        Assertions.assertEquals(supplyManagerBalance.add(value), state.getBalanceOf(supplyManager));
     }
 }

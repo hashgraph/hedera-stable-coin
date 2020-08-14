@@ -21,10 +21,10 @@ public class SetKycPassedTest {
     @Test
     public void setKycPassedTest() throws InvalidProtocolBufferException {
         var callerKey = PrivateKey.generate();
-        var caller2Key = PrivateKey.generate();
+        var assetManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var caller2 = new Address(caller2Key.getPublicKey());
+        var assetManager = new Address(assetManagerKey.getPublicKey());
         var addr = new Address(addrKey.getPublicKey());
 
         // prepare state
@@ -40,7 +40,7 @@ public class SetKycPassedTest {
             tokenDecimal,
             totalSupply,
             caller,
-            caller2
+            assetManager
         );
 
         topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
@@ -79,7 +79,7 @@ public class SetKycPassedTest {
         Assertions.assertFalse(state.isKycPassed(addr));
 
         var setKycPassedTransaction2 = new SetKycPassedTransaction(
-            caller2Key,
+            assetManagerKey,
             addr
         );
 
@@ -92,7 +92,7 @@ public class SetKycPassedTest {
         Assertions.assertTrue(state.hasOwner());
 
         // ii. caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(state.getAssetProtectionManager(), caller2);
+        Assertions.assertEquals(assetManager, state.getAssetProtectionManager());
 
         // Post-Check
 

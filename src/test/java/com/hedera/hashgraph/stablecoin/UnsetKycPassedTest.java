@@ -21,10 +21,10 @@ public class UnsetKycPassedTest {
     @Test
     public void unsetKycPassedTest() throws InvalidProtocolBufferException {
         var callerKey = PrivateKey.generate();
-        var caller2Key = PrivateKey.generate();
+        var assetManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var caller2 = new Address(caller2Key.getPublicKey());
+        var assetManager = new Address(assetManagerKey.getPublicKey());
         var addr = new Address(addrKey.getPublicKey());
 
         // prepare state
@@ -40,7 +40,7 @@ public class UnsetKycPassedTest {
             tokenDecimal,
             totalSupply,
             caller,
-            caller2
+            assetManager
         );
 
         var setKycPassedTransaction = new SetKycPassedTransaction(
@@ -82,7 +82,7 @@ public class UnsetKycPassedTest {
         Assertions.assertTrue(state.isKycPassed(addr));
 
         var unsetKycPassedTransaction2 = new SetKycPassedTransaction(
-            caller2Key,
+            assetManagerKey,
             addr
         );
 
@@ -95,7 +95,7 @@ public class UnsetKycPassedTest {
         Assertions.assertTrue(state.hasOwner());
 
         // ii. caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(caller2, state.getAssetProtectionManager());
+        Assertions.assertEquals(assetManager, state.getAssetProtectionManager());
 
         // iii. !isPrivilegedRole(addr)
         Assertions.assertFalse(state.isPrivilegedRole(addr));
