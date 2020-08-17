@@ -6,6 +6,7 @@ import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
+import com.hedera.hashgraph.stablecoin.transaction.DecreaseAllowanceTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.IncreaseAllowanceTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
-public class IncreaseAllowanceTest {
+public class DecreaseAllowanceTest {
     State state = new State();
     Client client = Client.forTestnet();
     TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
@@ -43,18 +44,16 @@ public class IncreaseAllowanceTest {
         );
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
+        var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(callerKey, spender, BigInteger.TWO);
         topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
 
         // get allowance before test
         var allowance = state.getAllowance(caller, spender);
 
         // prepare test transaction
-        var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(
-            callerKey,
-            spender,
-            value
-        );
+        var decreaseAllowanceTransaction = new DecreaseAllowanceTransaction(callerKey, spender, value);
 
         // Pre-Check
 
@@ -70,42 +69,15 @@ public class IncreaseAllowanceTest {
         // iv. CheckTransferAllowed(spender)
         Assertions.assertTrue(state.checkTransferAllowed(spender));
 
-        // v. Allowances[caller][spender] + value <= MAX_INT
-        // Overflow not possible
+        // v. Allowances[caller][spender] >= value
+        Assertions.assertTrue(state.getAllowance(caller, spender).compareTo(value) >= 0);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Transaction.parseFrom(decreaseAllowanceTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. Allowances[caller][spender]’ = Allowances[caller][spender] + value
-        Assertions.assertEquals(allowance.add(value), state.getAllowance(caller, spender));
-
-        // Increase once more
-        // Pre-Check
-
-        // i. Owner != 0x
-        Assertions.assertFalse(state.getOwner().isZero());
-
-        // ii. value >= 0
-        Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
-
-        // iii. CheckTransferAllowed(caller)
-        Assertions.assertTrue(state.checkTransferAllowed(caller));
-
-        // iv. CheckTransferAllowed(spender)
-        Assertions.assertTrue(state.checkTransferAllowed(spender));
-
-        // v. Allowances[caller][spender] + value <= MAX_INT
-        // Overflow not possible
-
-        // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
-
-        // Post-Check
-
-        // i. Allowances[caller][spender]’ = Allowances[caller][spender] + value
-        // add value twice since we're increasing a second time
-        Assertions.assertEquals(allowance.add(value).add(value), state.getAllowance(caller, spender));
+        // i. Allowances[caller][spender]’ = Allowances[caller][spender] - value
+        Assertions.assertEquals(allowance.subtract(value), state.getAllowance(caller, spender));
     }
 }
