@@ -87,7 +87,7 @@ public class WipeTest {
         Assertions.assertEquals(BigInteger.ZERO, state.getBalanceOf(addr));
 
         // re-establish address, transfer to it, then freeze it and check for caller == AssetProtectionManager instead this time
-        totalSupply = state.getTotalSupply();
+        var totalSupply2 = state.getTotalSupply();
         var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
         topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction.toByteArray()));
@@ -117,7 +117,7 @@ public class WipeTest {
         // Post-Check
 
         // i. TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
-        Assertions.assertEquals(totalSupply.subtract(balance), state.getTotalSupply());
+        Assertions.assertEquals(totalSupply2.subtract(balance), state.getTotalSupply());
 
         // ii. Balances[addr]’ = 0 // balance “updated” to 0
         Assertions.assertEquals(BigInteger.ZERO, state.getBalanceOf(addr));
