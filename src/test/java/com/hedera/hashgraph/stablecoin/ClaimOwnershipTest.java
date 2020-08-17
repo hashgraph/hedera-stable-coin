@@ -51,8 +51,7 @@ public class ClaimOwnershipTest {
 
         // prepare test transaction
         var claimOwnershipTransaction = new ClaimOwnershipTransaction(
-            callerKey,
-            caller
+            callerKey
         );
 
         // Pre-Check
