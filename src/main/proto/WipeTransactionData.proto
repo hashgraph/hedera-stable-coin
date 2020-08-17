@@ -7,5 +7,4 @@ option java_multiple_files = true;
 
 message WipeTransactionData {
     bytes address = 1; // Address
-    bytes balance = 2; // BigInteger
 }
