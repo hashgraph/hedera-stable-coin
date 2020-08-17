@@ -11,12 +11,10 @@ import java.math.BigInteger;
 public final class WipeTransaction extends Transaction {
     public WipeTransaction(
         PrivateKey owner,
-        Address address,
-        BigInteger balance
+        Address address
     ) {
         super(owner, TransactionBody.newBuilder()
             .setWipe(WipeTransactionData.newBuilder()
-                .setBalance(ByteString.copyFrom(balance.toByteArray()))
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }
 }
