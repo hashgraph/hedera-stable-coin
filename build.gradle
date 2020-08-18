@@ -1,29 +1,26 @@
 plugins {
-	id 'java'
-	id 'application'
-	id "idea"
+    id 'java'
+    id 'application'
+    id "idea"
 }
 
 sourceCompatibility = 14
 targetCompatibility = 14
 
 repositories {
-	jcenter()
-}
-
-dependencies {
+    jcenter()
 }
 
 application {
-	mainClassName = 'com.hedera.hashgraph.stablecoin.App'
+    mainClassName = 'com.hedera.hashgraph.stablecoin.App'
 }
 
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
-	}
+    manifest {
+        attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
+    }
 }
 
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

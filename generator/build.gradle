@@ -1,10 +1,10 @@
 plugins {
     id 'java'
     id 'application'
-	id "idea"
-	id 'com.github.johnrengelman.shadow' version '6.0.0'
-	id "com.github.ben-manes.versions" version "0.29.0"
-	id "com.google.protobuf" version "0.8.12"
+    id "idea"
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+    id "com.github.ben-manes.versions" version "0.29.0"
+    id "com.google.protobuf" version "0.8.12"
 }
 
 sourceCompatibility = 14
@@ -21,7 +21,7 @@ description = "Hedera™ Hashgraph Stable Coin Generator"
 dependencies {
     implementation project(':stable-coin')
 
-	implementation 'io.github.cdimascio:java-dotenv:5.2.1'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.1'
     implementation 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
 }
 
@@ -30,7 +30,7 @@ application {
 }
 
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.Generator'
-	}
+    manifest {
+        attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.Generator'
+    }
 }
