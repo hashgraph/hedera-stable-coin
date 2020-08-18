@@ -20,8 +20,8 @@ public final class ClaimOwnershipTransactionHandler extends TransactionHandler<C
         // ii. caller = ProposedOwner
         ensureAuthorized(caller.equals(state.getProposedOwner()));
 
-        // iii. CheckTransferAllowed(addr)
-        ensureTransferAllowed(state, args.address, Status.CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED);
+        // iii. CheckTransferAllowed(caller)
+        ensureCallerTransferAllowed(state, caller);
     }
 
     @Override

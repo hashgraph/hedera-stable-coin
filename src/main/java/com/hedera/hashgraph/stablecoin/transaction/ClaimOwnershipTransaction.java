@@ -11,7 +11,6 @@ public final class ClaimOwnershipTransaction extends Transaction {
         PrivateKey claimer
     ) {
         super(claimer, TransactionBody.newBuilder()
-            .setClaimOwnership(ClaimOwnershipTransactionData.newBuilder()
-                .setAddress(ByteString.copyFrom(new Address(claimer.getPublicKey()).publicKey.toBytes()))));
+            .setClaimOwnership(ClaimOwnershipTransactionData.newBuilder()));
     }
 }

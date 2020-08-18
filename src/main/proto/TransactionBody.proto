@@ -50,6 +50,5 @@ message TransactionBody {
         UnsetKycPassedTransactionData unsetKycPassed = 16;
         IncreaseAllowanceTransactionData increaseAllowance = 17;
         DecreaseAllowanceTransactionData decreaseAllowance = 18;
-
     }
 }
