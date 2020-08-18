@@ -11,8 +11,17 @@ import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -21,12 +30,14 @@ public class App {
     private App() {
     }
 
-    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
+    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException {
         var env = Dotenv.configure().ignoreIfMissing().load();
 
         // configure a client to connect to Hedera
         // todo: we need an .env variable to allow switching network
         var client = Client.forTestnet();
+
+        Vertx vertx = Vertx.vertx();
 
         var operatorId = AccountId.fromString(Objects.requireNonNull(
             env.get("HSC_OPERATOR_ID"), "missing environment variable HSC_OPERATOR_ID"));
@@ -108,8 +119,45 @@ public class App {
         // create a new topic listener, and start listening
         new TopicListener(state, client, topicId).startListening();
 
+        // create StateVerticle
+        startApi(vertx, state);
+
+        // listen to Api and get name (use for testing)
+        // listenToApi(vertx);
+
         // wait while the APIs and the topic listener run in the background
         // todo: listen to SIGINT/SIGTERM to cleanly exit
         while (true) Thread.sleep(0);
+    }
+
+    static void startApi(Vertx vertx, State state) throws IOException {
+        ServerSocket socket = new ServerSocket(0);
+
+        var port = socket.getLocalPort();
+        socket.close();
+
+        DeploymentOptions options = new DeploymentOptions()
+            .setConfig(new JsonObject().put("HTTP_PORT", port));
+
+        StateVerticle stateVerticle = new StateVerticle(state);
+
+        vertx.deployVerticle(stateVerticle, options);
+    }
+
+    // Use to test StateVerticle
+    static void listenToApi(Vertx vertx) {
+        WebClientOptions wcOptions = new WebClientOptions()
+            .setUserAgent("My-App/1.2.3");
+        wcOptions.setKeepAlive(false);
+        WebClient webClient = WebClient.create(vertx, wcOptions);
+
+        webClient
+            .get(8080, "localhost", "/api/tokenname")
+            .send(ar -> {
+                HttpResponse<Buffer> response = ar.result();
+                if (response != null && response.body() != null) {
+                    System.out.println(response.body().toString());
+                }
+            });
     }
 }

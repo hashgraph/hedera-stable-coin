@@ -25,6 +25,11 @@ dependencies {
 	implementation 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
 	implementation 'io.grpc:grpc-netty-shaded:1.30.2'
 
+	implementation "io.vertx:vertx-web:3.9.2"
+
+	// TODO: will probably only need this for testing
+	implementation "io.vertx:vertx-web-client:3.9.2"
+
 	// https://github.com/google/error-prone
 	// https://errorprone.info/
 	errorprone "com.google.errorprone:error_prone_core:2.3.4"
