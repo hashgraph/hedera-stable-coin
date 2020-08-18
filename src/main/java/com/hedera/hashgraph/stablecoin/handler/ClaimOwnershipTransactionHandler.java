@@ -2,7 +2,6 @@ package com.hedera.hashgraph.stablecoin.handler;
 
 import com.hedera.hashgraph.stablecoin.Address;
 import com.hedera.hashgraph.stablecoin.State;
-import com.hedera.hashgraph.stablecoin.Status;
 import com.hedera.hashgraph.stablecoin.handler.arguments.ClaimOwnershipTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
