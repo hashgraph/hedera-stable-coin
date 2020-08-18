@@ -96,6 +96,11 @@ clean {
 	delete protobuf.generatedFilesBaseDir
 }
 
-test {
+tasks.withType(Test) {
 	useJUnitPlatform()
+
+	testLogging {
+		exceptionFormat = 'full'
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+	}
 }
