@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
 
-public class Generator {
+class Generator {
     final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     final Random random = new Random();
 
@@ -39,11 +39,11 @@ public class Generator {
     Generator() {
     }
 
-    public String loadEnvironmentVariable(String s) {
+    String loadEnvironmentVariable(String s) {
         return Objects.requireNonNull(env.get(s), "missing environment variable " + s);
     }
 
-    public void loadEnvironmentVariables() throws FileNotFoundException {
+    void loadEnvironmentVariables() throws FileNotFoundException {
         file = new File(loadEnvironmentVariable("HSC_GENERATE_FILE"));
         writer = new DataOutputStream(new FileOutputStream(file));
         operatorKey = PrivateKey.fromString(loadEnvironmentVariable("HSC_OPERATOR_ID"));
@@ -56,19 +56,19 @@ public class Generator {
         count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
     }
 
-    public void generateAccounts() throws IOException {
+    void generateAccounts() throws IOException {
         for (int i = 0; i < 10; ++i) {
             accounts.add(PrivateKey.generate());
         }
+
+        // Set KYC passed for all generated accounts, and transfer 100000 units to that account from the supplyManager.
+        for (var account: accounts) {
+            writeTransactionToFile(new SetKycPassedTransaction(operatorKey, new Address(account.getPublicKey())));
+            writeTransactionToFile(new TransferTransaction(supplyManager, new Address(account.getPublicKey()), BigInteger.valueOf(100000)));
+        }
     }
 
-    public void run() throws IOException {
-        loadEnvironmentVariables();
-
-        // Generate 10 accounts
-        generateAccounts();
-
-        // Create and write the ConstructTransaction to file
+    void constructor() throws IOException {
         writeTransactionToFile(new ConstructTransaction(
             operatorKey,
             tokenName,
@@ -78,13 +78,9 @@ public class Generator {
             new Address(supplyManager.getPublicKey()),
             new Address(assetProtectionManager.getPublicKey())
         ));
+    }
 
-        // Set KYC passed for all generated accounts, and transfer 100000 units to that account from the supplyManager.
-        for (var account: accounts) {
-            writeTransactionToFile(new SetKycPassedTransaction(operatorKey, new Address(account.getPublicKey())));
-            writeTransactionToFile(new TransferTransaction(supplyManager, new Address(account.getPublicKey()), BigInteger.valueOf(100000)));
-        }
-
+    void randomTransfers() throws IOException {
         // Write `HSC_TRANSACTION_COUNT` number of TransferTransactions to the file
         // These TransferTransactions will be random as to from which account, to which account, and amount will
         // be between [0, 100).
@@ -104,13 +100,27 @@ public class Generator {
         }
     }
 
-    public void writeTransactionToFile(Transaction transaction) throws IOException {
+    void writeTransactionToFile(Transaction transaction) throws IOException {
         var bytes = transaction.toByteArray();
         writer.writeInt(bytes.length);
         writer.write(bytes);
     }
+    
+    void run() throws IOException {
+        // Load environment vaariables into class fields
+        loadEnvironmentVariables();
 
-    public static void main(String[] args) throws IOException {
+        // Create and write the ConstructTransaction to file
+        constructor();
+
+        // Generate 10 accounts
+        generateAccounts();
+
+        // Create and write transfers from a random account to another random account
+        randomTransfers();
+    }
+
+    static void main(String[] args) throws IOException {
         new Generator().run();
     }
 }
