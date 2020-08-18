@@ -20,7 +20,7 @@ public class DecreaseAllowanceTest {
     TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
 
     @Test
-    public void increaseAllowanceTest() throws InvalidProtocolBufferException {
+    public void decreaseAllowanceTest() throws InvalidProtocolBufferException {
         var callerKey = PrivateKey.generate();
         var spenderKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
