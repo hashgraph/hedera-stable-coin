@@ -100,10 +100,18 @@ public final class TopicListener {
             .subscribe(client, topicMessage -> {
                 // noinspection TryWithIdenticalCatches
                 try {
-                    handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.contents));
+                    handleTransaction(Transaction.parseFrom(topicMessage.contents));
+                    if (topicMessage.consensusTimestamp.compareTo(state.getTimestamp().plusSeconds(10)) > 0 && file != null) {
+                        state.setTimestamp(topicMessage.consensusTimestamp);
+                        state.writeToFile(file);
+                    }
                 } catch (InvalidProtocolBufferException e) {
                     // received an invalid message from the stream
                     // todo: log the parsing failure
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // IOException
+                    // todo: log the exception
                     e.printStackTrace();
                 } catch (Exception e) {
                     // fixme: once we start logging transactions as failed
@@ -113,7 +121,7 @@ public final class TopicListener {
             });
     }
 
-    void handleTransaction(Instant timestamp, Transaction transaction) throws IOException {
+    void handleTransaction(Transaction transaction) throws InvalidProtocolBufferException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
@@ -139,10 +147,5 @@ public final class TopicListener {
         }
 
         transactionHandler.handle(state, caller, transactionBody);
-
-        if (timestamp.compareTo(state.getTimestamp().plusSeconds(10)) > 0 && file != null) {
-            state.setTimestamp(timestamp);
-            state.writeToFile(file);
-        }
     }
 }
