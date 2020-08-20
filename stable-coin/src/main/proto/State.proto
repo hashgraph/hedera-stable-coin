@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "com.hedera.hashgraph.stablecoin.proto";
+option java_multiple_files = true;
+
+import "Balance.proto";
+import "Allowance.proto";
+import "Frozen.proto";
+import "KycPassed.proto";
+
+message State {
+    int64 timestamp = 1;
+    string tokenName = 2;
+    string tokenSymbol = 3;
+    bytes tokenDecimal = 4;
+    bytes totalSupply = 5;
+    bytes owner = 6;
+    bytes supplyManager = 7;
+    bytes assetProtectionManager = 8;
+    repeated Balance balances = 9;
+    repeated Allowance allowances = 10;
+    repeated Frozen frozen = 11;
+    repeated KycPassed kycPassed = 12;
+    bytes proposedOwner = 13;
+}
