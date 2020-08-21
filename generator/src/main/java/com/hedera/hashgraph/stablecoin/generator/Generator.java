@@ -1,22 +1,19 @@
 package com.hedera.hashgraph.stablecoin.generator;
 
-import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.*;
 import com.hedera.hashgraph.stablecoin.Address;
+import com.hedera.hashgraph.stablecoin.State;
+import com.hedera.hashgraph.stablecoin.TopicListener;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.Transaction;
 import com.hedera.hashgraph.stablecoin.transaction.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 class Generator {
     final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
@@ -26,6 +23,7 @@ class Generator {
     DataOutputStream writer;
 
     PrivateKey operatorKey;
+    AccountId operatorId;
     String tokenName;
     String tokenSymbol;
     BigInteger tokenDecimal;
@@ -33,10 +31,12 @@ class Generator {
     PrivateKey supplyManager;
     PrivateKey assetProtectionManager;
     int count;
+    long timeTaken;
+    com.hedera.hashgraph.stablecoin.proto.Transaction[] transactionsRead;
 
-    ArrayList<PrivateKey> accounts;
+    ArrayList<PrivateKey> accounts = new ArrayList<>();
 
-    Generator() {
+    private Generator() {
     }
 
     String loadEnvironmentVariable(String s) {
@@ -46,7 +46,8 @@ class Generator {
     void loadEnvironmentVariables() throws FileNotFoundException {
         file = new File(loadEnvironmentVariable("HSC_GENERATE_FILE"));
         writer = new DataOutputStream(new FileOutputStream(file));
-        operatorKey = PrivateKey.fromString(loadEnvironmentVariable("HSC_OPERATOR_ID"));
+        operatorKey = PrivateKey.fromString(loadEnvironmentVariable("HSC_OPERATOR_KEY"));
+        operatorId = AccountId.fromString(loadEnvironmentVariable("HSC_OPERATOR_ID"));
         tokenName = loadEnvironmentVariable("HSC_TOKEN_NAME");
         tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
         tokenDecimal = new BigInteger(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
@@ -85,8 +86,8 @@ class Generator {
         // These TransferTransactions will be random as to from which account, to which account, and amount will
         // be between [0, 100).
         for (int i = 0; i < count; ++i) {
-            var from = accounts.get(random.nextInt() % accounts.size());
-            var to = accounts.get(random.nextInt() % accounts.size());
+            var from = accounts.get(random.nextInt(accounts.size()));
+            var to = accounts.get(random.nextInt(accounts.size()));
 
             if (from == to) {
                 i--;
@@ -102,11 +103,51 @@ class Generator {
 
     void writeTransactionToFile(Transaction transaction) throws IOException {
         var bytes = transaction.toByteArray();
+        System.out.println(bytes.length);
         writer.writeInt(bytes.length);
         writer.write(bytes);
     }
-    
-    void run() throws IOException {
+
+    void readTransactions(File file) throws IOException {
+        var reader = new DataInputStream(new FileInputStream(file));
+
+        var length = reader.readInt();
+        var lineCount = 0;
+        transactionsRead = new com.hedera.hashgraph.stablecoin.proto.Transaction[100];
+
+        while (reader.available() > 0) {
+            System.out.println(length);
+            var line = reader.readNBytes(length);
+            var tx = com.hedera.hashgraph.stablecoin.proto.Transaction.parseFrom(reader.readNBytes(length));
+            transactionsRead[lineCount] = tx;
+            lineCount ++;
+
+        }
+    }
+
+    void processTransfers() throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, IOException {
+        var state = new State();
+        var client = Client.forTestnet();
+
+        client.setOperator(operatorId, operatorKey);
+
+        var topicId = new TopicCreateTransaction()
+            .setAdminKey(operatorKey)
+            .execute(client)
+            .transactionId
+            .getReceipt(client)
+            .topicId;
+
+        assert topicId != null;
+
+        var topicListener = new TopicListener(state, client, topicId, file);
+
+        for (var tx : transactionsRead) {
+            topicListener.handleTransaction(tx);
+        }
+    }
+
+    void run() throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
         // Load environment vaariables into class fields
         loadEnvironmentVariables();
 
@@ -118,9 +159,23 @@ class Generator {
 
         // Create and write transfers from a random account to another random account
         randomTransfers();
+
+        long startTime = System.currentTimeMillis();
+        System.out.println("Start Time: " + startTime + " ms");
+
+        readTransactions(file);
+        processTransfers();
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("End Time: " + endTime + " ms");
+
+        this.timeTaken = endTime - startTime;
     }
 
-    static void main(String[] args) throws IOException {
-        new Generator().run();
+    public static void main(String[] args) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+        Generator generator = new Generator();
+        generator.run();
+        System.out.println("Total Execution Time: " + generator.timeTaken + " ms");
+        System.out.println("Transfers per second: " + (100000 / (generator.timeTaken / 1000)));
     }
 }

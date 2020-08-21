@@ -55,7 +55,7 @@ public final class State {
 
     private Instant timestamp = Instant.EPOCH;
 
-    State() {
+    public State() {
     }
 
     public Address getOwner() {
