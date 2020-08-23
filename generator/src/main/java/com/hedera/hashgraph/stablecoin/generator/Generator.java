@@ -4,13 +4,14 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.HederaPreCheckStatusException;
 import com.hedera.hashgraph.sdk.HederaReceiptStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.stablecoin.Address;
-import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
-import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
-import com.hedera.hashgraph.stablecoin.transaction.Transaction;
-import com.hedera.hashgraph.stablecoin.transaction.TransferTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.Transaction;
+import com.hedera.hashgraph.stablecoin.sdk.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import javax.annotation.Nullable;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,23 +24,25 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
-public class Generator {
+public final class Generator {
     final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     final Random random = new Random();
 
     File file;
     DataOutputStream writer;
 
-    static PrivateKey operatorKey;
-    static AccountId operatorId;
+    PrivateKey operatorKey;
+    AccountId operatorId;
     String tokenName;
     String tokenSymbol;
     BigInteger tokenDecimal;
     BigInteger totalSupply;
     PrivateKey supplyManager;
     PrivateKey assetProtectionManager;
-    public int count;
-    List<com.hedera.hashgraph.stablecoin.proto.Transaction> transactionsRead;
+    
+    public int count = 0;
+    
+    final List<com.hedera.hashgraph.stablecoin.proto.Transaction> transactionsRead = new ArrayList<>();
 
     ArrayList<PrivateKey> accounts = new ArrayList<>();
 
@@ -114,7 +117,6 @@ public class Generator {
         writer.writeInt(bytes.length);
         writer.write(bytes);
     }
-
 
     public void run() throws IOException {
         // Create and write the ConstructTransaction to file

@@ -1,0 +1,10 @@
+apply plugin: "java-library"
+
+group = "com.hedera.hashgraph.stablecoin.sdk"
+version = "1.0.0"
+description = "Hedera™ Hashgraph Stable Coin SDK"
+
+dependencies {
+	api 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
+	implementation project(":proto")
+}

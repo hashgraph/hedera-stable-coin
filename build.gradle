@@ -1,26 +1,104 @@
 plugins {
-    id 'java'
-    id 'application'
-    id "idea"
+	id 'com.github.johnrengelman.shadow' version '6.0.0' apply false
+	id "net.ltgt.errorprone" version "1.2.1" apply false
+	id "com.github.ben-manes.versions" version "0.29.0" apply false
+	id "com.google.protobuf" version "0.8.12" apply false
 }
 
-sourceCompatibility = 14
-targetCompatibility = 14
+allprojects {
+	apply plugin: "java"
+	apply plugin: "idea"
+	apply plugin: "net.ltgt.errorprone"
+	apply plugin: "com.github.ben-manes.versions"
 
-repositories {
-    jcenter()
+	sourceCompatibility = 14
+	targetCompatibility = 14
+
+	repositories {
+		jcenter()
+	}
+
+	dependencies {
+		implementation 'com.google.guava:guava:29.0-jre'
+
+		// https://github.com/google/error-prone
+		// https://errorprone.info/
+		errorprone "com.google.errorprone:error_prone_core:2.4.0"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.4.0"
+
+		// https://github.com/uber/NullAway
+		errorprone "com.uber.nullaway:nullaway:0.7.9"
+
+		// https://github.com/eclipse-ee4j/common-annotations-api
+		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+
+		options.errorprone {
+			// https://github.com/uber/NullAway
+			warn("NullAway")
+			option("NullAway:AnnotatedPackages", "com.hedera.hashgraph.stablecoin")
+			option("NullAway:TreatGeneratedAsUnannotated", "true")
+
+			// Enable _all_ error prone checks then selectively disble
+			// Checks that are default-disabled are enabled as warnings
+			allDisabledChecksAsWarnings = true
+			disable("Java7ApiChecker")
+			disable("AndroidJdkLibsChecker")
+
+			// Ignore generated and protobuf code
+			disableWarningsInGeneratedCode = true
+			excludedPaths = ".*proto.*"
+		}
+	}
+}
+
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.google.protobuf'
+
+group = "com.hedera.hashgraph.stablecoin.app"
+version = "0.0.1"
+description = "Hedera™ Hashgraph Stable Coin"
+
+dependencies {
+	implementation 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
+	implementation 'io.github.cdimascio:java-dotenv:5.2.1'
+	implementation 'io.grpc:grpc-netty-shaded:1.30.2'
+	implementation "io.vertx:vertx-web:3.9.2"
+	implementation project(":proto")
+	implementation project(":sdk")
+
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
 
 application {
-    mainClassName = 'com.hedera.hashgraph.stablecoin.App'
+	mainClassName = 'com.hedera.hashgraph.stablecoin.App'
 }
 
 jar {
-    manifest {
-        attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
-    }
+	manifest {
+		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
+	}
 }
 
-test {
-    useJUnitPlatform()
+clean {
+	delete protobuf.generatedFilesBaseDir
+}
+
+tasks.withType(Test) {
+	useJUnitPlatform()
+
+	// this task will fail on the first failed test
+	failFast = true
+
+	// emit logs per passed or failed test
+	testLogging {
+		exceptionFormat = 'full'
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+	}
 }
