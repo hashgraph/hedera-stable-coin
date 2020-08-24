@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.generator;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.*;
 import com.hedera.hashgraph.stablecoin.Address;
 import com.hedera.hashgraph.stablecoin.State;
@@ -22,8 +23,8 @@ class Generator {
     File file;
     DataOutputStream writer;
 
-    PrivateKey operatorKey;
-    AccountId operatorId;
+    static PrivateKey operatorKey;
+    static AccountId operatorId;
     String tokenName;
     String tokenSymbol;
     BigInteger tokenDecimal;
@@ -32,11 +33,12 @@ class Generator {
     PrivateKey assetProtectionManager;
     int count;
     long timeTaken;
-    com.hedera.hashgraph.stablecoin.proto.Transaction[] transactionsRead;
+    List<com.hedera.hashgraph.stablecoin.proto.Transaction> transactionsRead;
 
     ArrayList<PrivateKey> accounts = new ArrayList<>();
 
-    private Generator() {
+    private Generator() throws FileNotFoundException {
+        loadEnvironmentVariables();
     }
 
     String loadEnvironmentVariable(String s) {
@@ -103,53 +105,87 @@ class Generator {
 
     void writeTransactionToFile(Transaction transaction) throws IOException {
         var bytes = transaction.toByteArray();
-        System.out.println(bytes.length);
         writer.writeInt(bytes.length);
         writer.write(bytes);
     }
 
-    void readTransactions(File file) throws IOException {
-        var reader = new DataInputStream(new FileInputStream(file));
-
-        var length = reader.readInt();
-        var lineCount = 0;
-        transactionsRead = new com.hedera.hashgraph.stablecoin.proto.Transaction[100];
-
-        while (reader.available() > 0) {
-            System.out.println(length);
-            var line = reader.readNBytes(length);
-            var tx = com.hedera.hashgraph.stablecoin.proto.Transaction.parseFrom(reader.readNBytes(length));
-            transactionsRead[lineCount] = tx;
-            lineCount ++;
-
-        }
-    }
-
-    void processTransfers() throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, IOException {
-        var state = new State();
-        var client = Client.forTestnet();
-
-        client.setOperator(operatorId, operatorKey);
-
-        var topicId = new TopicCreateTransaction()
+    TopicId createTopicId(Client client) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException {
+        return new TopicCreateTransaction()
             .setAdminKey(operatorKey)
+            .setNodeAccountId(AccountId.fromString("0.0.4"))
             .execute(client)
             .transactionId
             .getReceipt(client)
             .topicId;
+    }
 
-        assert topicId != null;
+    void readTransactions() throws IOException {
+        var reader = new DataInputStream(new FileInputStream(file));
 
-        var topicListener = new TopicListener(state, client, topicId, file);
+        transactionsRead = new ArrayList<com.hedera.hashgraph.stablecoin.proto.Transaction>();
 
+        while (reader.available() > 0) {
+            var length = reader.readInt();
+//            var line = reader.readNBytes(length);
+            var tx = com.hedera.hashgraph.stablecoin.proto.Transaction.parseFrom(reader.readNBytes(length));
+            transactionsRead.add(tx);
+        }
+    }
+
+    void processTransfers(TopicListener topicListener) throws IOException {
         for (var tx : transactionsRead) {
             topicListener.handleTransaction(tx);
         }
     }
 
-    void run() throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
-        // Load environment vaariables into class fields
-        loadEnvironmentVariables();
+    void sendTransactions(Client client, TopicId topicId) throws IOException, TimeoutException, HederaPreCheckStatusException {
+        var reader = new DataInputStream(new FileInputStream(file));
+
+        transactionsRead = new ArrayList<com.hedera.hashgraph.stablecoin.proto.Transaction>();
+
+        var count = 1;
+
+        while (reader.available() > 0) {
+            var length = reader.readInt();
+
+            new TopicMessageSubmitTransaction()
+                .setTopicId(topicId)
+                .setMessage(reader.readNBytes(length))
+                .setNodeAccountId(AccountId.fromString("0.0.4"))   // Can remove this later
+                .execute(client);
+
+            System.out.println("message " + count + " sent!");
+            count ++;
+        }
+    }
+
+    void run(State state, Client client, TopicId topicId) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+        // Create and write the ConstructTransaction to file
+        constructor();
+
+        // Generate 10 accounts
+        generateAccounts();
+
+        // Create and write transfers from a random account to another random account
+        randomTransfers();
+
+        readTransactions();
+
+        var topicListener = new TopicListener(state, client, topicId, file);
+
+        long startTime = System.nanoTime();
+
+        processTransfers(topicListener);
+
+        long endTime = System.nanoTime();
+        System.out.println("Start Time: " + startTime / 1000000 + " ms");
+        System.out.println("End Time: " + endTime / 1000000 + " ms");
+
+        this.timeTaken = endTime - startTime;
+    }
+
+    void runHcs(State state, Client client, TopicId topicId) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+        new TopicListener(state, client, topicId).startListening();
 
         // Create and write the ConstructTransaction to file
         constructor();
@@ -160,22 +196,39 @@ class Generator {
         // Create and write transfers from a random account to another random account
         randomTransfers();
 
-        long startTime = System.currentTimeMillis();
-        System.out.println("Start Time: " + startTime + " ms");
+        long startTime = System.nanoTime();
 
-        readTransactions(file);
-        processTransfers();
+        sendTransactions(client, topicId);
 
-        long endTime = System.currentTimeMillis();
-        System.out.println("End Time: " + endTime + " ms");
+        long endTime = System.nanoTime();
+        System.out.println("Start Time: " + startTime / 1000000 + " ms");
+        System.out.println("End Time: " + endTime / 1000000 + " ms");
 
         this.timeTaken = endTime - startTime;
     }
 
     public static void main(String[] args) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
         Generator generator = new Generator();
-        generator.run();
-        System.out.println("Total Execution Time: " + generator.timeTaken + " ms");
-        System.out.println("Transfers per second: " + (100000 / (generator.timeTaken / 1000)));
+
+        var state = new State();
+        var client = Client.forTestnet();
+
+        client.setOperator(operatorId, operatorKey);
+
+        var topicId = generator.createTopicId(client);
+
+        generator.run(state, client, topicId);
+        System.out.println("Total Execution Time: " + generator.timeTaken / 1000000 + " ms");
+        System.out.println("Transfers per second: " + ((generator.count + 41) / ((double) generator.timeTaken / 1000000000)));
+
+        generator = new Generator();
+
+        topicId = generator.createTopicId(client);
+
+        System.out.println("Topic Id: " + topicId);
+
+        generator.runHcs(state, client, topicId);
+        System.out.println("Total Execution Time: " + generator.timeTaken / 1000000 + " ms");
+        System.out.println("Transfers per second: " + ((generator.count + 41) / ((double) generator.timeTaken / 1000000000)));
     }
 }
