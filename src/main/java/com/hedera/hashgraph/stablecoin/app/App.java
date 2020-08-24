@@ -6,140 +6,180 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.HederaPreCheckStatusException;
 import com.hedera.hashgraph.sdk.HederaReceiptStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.PublicKey;
 import com.hedera.hashgraph.sdk.TopicCreateTransaction;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
-import java.io.IOException;
-import java.io.File;
-
 import java.math.BigInteger;
-import java.net.ServerSocket;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 public class App {
-    private App() {
+    // access to the system environment overlaid with a .env file, if present
+    final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
+
+    // client to the Hedera(tm) Hashgraph network
+    // used when submitting transactions to hedera and to listen
+    // for messages from the mirror node
+    final Client hederaClient = createHederaClient();
+
+    // handle to the vert.x event loop
+    // used for interaction with postgresql and to setup API servers
+    final Vertx vertx = Vertx.vertx();
+
+    // current state of the token contract
+    final State contractState = new State();
+
+    // topic ID of the contract instance
+    final TopicId topicId = getOrCreateContractInstance();
+
+    // listener to the Hedera topic
+    final TopicListener topicListener = new TopicListener(contractState, hederaClient, topicId);
+
+    // verticle providing the read-only contract state API
+    final StateVerticle stateVerticle = new StateVerticle(contractState);
+
+    @SuppressWarnings("CheckedExceptionNotThrown") // false positive in errorprone
+    private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException {
     }
 
-    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException {
-        var env = Dotenv.configure().ignoreIfMissing().load();
+    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
+        var app = new App();
 
-        // configure a client to connect to Hedera
-        // todo: we need an .env variable to allow switching network
-        var client = Client.forTestnet();
+        // start listening to the contract instance (topic) on the Hedera
+        // mirror node
+        app.startListeningOnTopic();
 
-        Vertx vertx = Vertx.vertx();
-
-        var operatorId = AccountId.fromString(Objects.requireNonNull(
-            env.get("HSC_OPERATOR_ID"), "missing environment variable HSC_OPERATOR_ID"));
-
-        var operatorKey = PrivateKey.fromString(Objects.requireNonNull(
-            env.get("HSC_OPERATOR_KEY"), "missing environment variable HSC_OPERATOR_ID"));
-
-        // configure the client operator
-        client.setOperator(operatorId, operatorKey);
-
-        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
-
-        var operatorAddress = new Address(operatorKey.getPublicKey());
-
-        var file = new File("state.bin");
-
-        if (maybeTopicId.isEmpty()) {
-            // if we were not given a topic ID
-            // we need to create a new topic, and send a construct message,
-            // which establishes our operator as the owner
-
-            // we need the token properties to do this
-            var tokenName = Objects.requireNonNull(
-                env.get("HSC_TOKEN_NAME"), "missing environment variable HSC_TOKEN_NAME");
-
-            var tokenSymbol = Objects.requireNonNull(
-                env.get("HSC_TOKEN_SYMBOL"), "missing environment variable HSC_TOKEN_SYMBOL");
-
-            var tokenDecimal = new BigInteger(Objects.requireNonNull(
-                env.get("HSC_TOKEN_DECIMAL"), "missing environment variable HSC_TOKEN_DECIMAL"));
-
-            var totalSupply = new BigInteger(Objects.requireNonNull(
-                env.get("HSC_TOTAL_SUPPLY"), "missing environment variable HSC_TOTAL_SUPPLY"));
-
-            // create the new topic ID
-            maybeTopicId = Optional.ofNullable(new TopicCreateTransaction()
-                .setAdminKey(operatorKey)
-                .execute(client)
-                .transactionId
-                .getReceipt(client)
-                .topicId);
-
-            // after a topic create transaction, this will be set
-            // or we would have died elsewhere
-            assert maybeTopicId.isPresent();
-
-            System.out.println("created topic " + maybeTopicId.get());
-
-            // now we need to create a <Construct> transaction
-
-            var constructTransactionBytes = new ConstructTransaction(
-                operatorKey,
-                tokenName,
-                tokenSymbol,
-                tokenDecimal,
-                totalSupply,
-                // fixme: allow these to be configured
-                operatorAddress,
-                operatorAddress
-            ).toByteArray();
-
-            // and finally submit it
-
-            new TopicMessageSubmitTransaction()
-                .setTopicId(maybeTopicId.get())
-                .setMessage(constructTransactionBytes)
-                .execute(client)
-                .transactionId
-                .getReceipt(client);
-
-            // wait 10s because subscribe retries on the SDK v2 are not working
-            // so we need to wait until the topic is fully established on the mirror node
-            Thread.sleep(10_000);
-        }
-
-        var topicId = maybeTopicId.get();
-
-        // create a new instance of in-memory state
-        var state = State.tryFromFile(file);
-
-        // create a new topic listener, and start listening
-        new TopicListener(state, client, topicId).startListening();
-
-        // create StateVerticle
-        startApi(vertx, state);
+        // expose the read-only API for the contract state
+        app.deployStateVerticle();
 
         // wait while the APIs and the topic listener run in the background
         // todo: listen to SIGINT/SIGTERM to cleanly exit
         while (true) Thread.sleep(0);
     }
 
-    static void startApi(Vertx vertx, State state) throws IOException {
-        ServerSocket socket = new ServerSocket(0);
+    Client createHederaClient() {
+        // TODO: we need an .env variable to allow switching network
+        var client = Client.forTestnet();
 
-        var port = socket.getLocalPort();
-        socket.close();
+        // if an OPERATOR_ID and OPERATOR_KEY were provided, set them
+        // on the client; this is only needed when we are creating a new
+        // contract instance
 
-        DeploymentOptions options = new DeploymentOptions()
-            .setConfig(new JsonObject().put("HTTP_PORT", port));
+        var operatorIdVar = env.get("HSC_OPERATOR_ID");
+        var operatorKeyVar = env.get("HSC_OPERATOR_KEY");
 
-        StateVerticle stateVerticle = new StateVerticle(state);
+        if (operatorIdVar != null && operatorKeyVar != null) {
+            client.setOperator(
+                AccountId.fromString(operatorIdVar),
+                PrivateKey.fromString(operatorKeyVar));
+        }
 
-        vertx.deployVerticle(stateVerticle, options);
+        return client;
+    }
+
+    TopicId createContractInstance() throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
+        // if we were not given a topic ID
+        // we need to create a new topic, and send a construct message,
+        // which establishes our operator as the owner
+
+        var operatorPrivateKey = PrivateKey.fromString(Objects.requireNonNull(
+            env.get("HSC_OPERATOR_KEY"), "missing environment variable HSC_OPERATOR_KEY"));
+
+        var tokenName = Objects.requireNonNull(
+            env.get("HSC_TOKEN_NAME"), "missing environment variable HSC_TOKEN_NAME");
+
+        var tokenSymbol = Objects.requireNonNull(
+            env.get("HSC_TOKEN_SYMBOL"), "missing environment variable HSC_TOKEN_SYMBOL");
+
+        var tokenDecimal = new BigInteger(Objects.requireNonNull(
+            env.get("HSC_TOKEN_DECIMAL"), "missing environment variable HSC_TOKEN_DECIMAL"));
+
+        var totalSupply = new BigInteger(Objects.requireNonNull(
+            env.get("HSC_TOTAL_SUPPLY"), "missing environment variable HSC_TOTAL_SUPPLY"));
+
+        var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
+            .map(PrivateKey::fromString);
+
+        var supplyManagerAddress = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
+            .map(PublicKey::fromString).map(Address::new);
+
+        var assetProtectionManagerAddress = Optional.ofNullable(env.get("HSC_ASSET_PROTECTION_MANAGER_KEY"))
+            .map(PublicKey::fromString).map(Address::new);
+
+        // create the new topic ID
+        var topicId = Optional.ofNullable(new TopicCreateTransaction()
+            .execute(hederaClient)
+            .transactionId
+            .getReceipt(hederaClient)
+            .topicId);
+
+        // after a topic create transaction, this will be set
+        // or we would have died elsewhere
+        assert topicId.isPresent();
+
+        System.out.println("created topic " + topicId.get());
+
+        // now we need to create a <Construct> transaction
+        var operatorAddress = new Address(operatorPrivateKey.getPublicKey());
+
+        var constructTransactionBytes = new ConstructTransaction(
+            ownerKey.orElse(operatorPrivateKey),
+            tokenName,
+            tokenSymbol,
+            tokenDecimal,
+            totalSupply,
+            supplyManagerAddress.orElse(operatorAddress),
+            assetProtectionManagerAddress.orElse(operatorAddress)
+        ).toByteArray();
+
+        // and finally submit it
+
+        new TopicMessageSubmitTransaction()
+            .setTopicId(topicId.get())
+            .setMessage(constructTransactionBytes)
+            .execute(hederaClient)
+            .transactionId
+            .getReceipt(hederaClient);
+
+        // wait 10s because subscribe retries on the SDK v2 are not working
+        // so we need to wait until the topic is fully established on the mirror node
+        Thread.sleep(10_000);
+
+        return topicId.get();
+    }
+
+    TopicId getOrCreateContractInstance() throws HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException, InterruptedException {
+        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
+
+        if (maybeTopicId.isPresent()) {
+            return maybeTopicId.get();
+        }
+
+        // no topic ID is found in the system environment
+        System.out.println("no Topic ID found, creating a new topic ...");
+
+        return createContractInstance();
+    }
+
+    void startListeningOnTopic() {
+        topicListener.startListening();
+    }
+
+    void deployStateVerticle() {
+        DeploymentOptions deploymentOptions = new DeploymentOptions()
+            // TODO: the port for this API should be configurable
+            .setConfig(new JsonObject().put("HTTP_PORT", 9000));
+
+        vertx.deployVerticle(stateVerticle, deploymentOptions);
     }
 
 
