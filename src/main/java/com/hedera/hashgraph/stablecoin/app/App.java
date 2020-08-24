@@ -18,6 +18,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -68,7 +70,15 @@ public class App {
 
     Client createHederaClient() {
         // TODO: we need an .env variable to allow switching network
-        var client = Client.forTestnet();
+        // TODO: ..3 is commented out as its currently (as of 8-23) down
+        var network = new HashMap<AccountId, String>();
+        // network.put(new AccountId(3), "0.testnet.hedera.com:50211");
+        network.put(new AccountId(4), "1.testnet.hedera.com:50211");
+        network.put(new AccountId(5), "2.testnet.hedera.com:50211");
+        network.put(new AccountId(6), "3.testnet.hedera.com:50211");
+
+        var client = Client.forNetwork(network);
+        client.setMirrorNetwork(List.of("hcs.testnet.mirrornode.hedera.com:5600"));
 
         // if an OPERATOR_ID and OPERATOR_KEY were provided, set them
         // on the client; this is only needed when we are creating a new

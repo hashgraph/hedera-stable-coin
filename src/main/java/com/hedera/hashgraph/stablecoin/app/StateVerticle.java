@@ -1,15 +1,14 @@
 package com.hedera.hashgraph.stablecoin.app;
 
-import com.hedera.hashgraph.sdk.PublicKey;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.math.BigInteger;
+import java.util.Map;
 
 public class StateVerticle extends AbstractVerticle {
     private final State state;
@@ -20,32 +19,17 @@ public class StateVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> promise) {
+        var server = vertx.createHttpServer();
+        var router = Router.router(vertx);
 
-        Router router = Router.router(vertx);
+        router.get("/").handler(this::getToken);
+        router.get("/:address").handler(this::getAddress);
+        router.get("/:address/allowance/:of").handler(this::getAllowance);
+        router.get("/:address/balance").handler(this::getBalance);
 
-        router.route("/").handler(rc -> {
-            HttpServerResponse response = rc.response();
-            response
-                .putHeader("content-type", "text/html")
-                .end("</pre><h1>State Api</h1> <pre>");
-        });
-
-        router.get("/api/tokenname").handler(this::getTokenName);
-        router.get("/api/tokensymbol").handler(this::getTokenSymbol);
-        router.get("/api/tokendecimal").handler(this::getTokenDecimal);
-        router.get("/api/totalsupply").handler(this::getTotalSupply);
-        router.get("/api/balance/:address").handler(this::getBalance);
-        router.get("/api/allowance/:caller/:address").handler(this::getAllowance);
-        router.get("/api/owner").handler(this::getOwner);
-        router.get("/api/supplymanager").handler(this::getSupplyManager);
-        router.get("/api/assetprotectionmanager").handler(this::getAssetProtectionManager);
-        router.get("/api/proposedowner").handler(this::getProposedOwner);
-        router.get("/api/isfrozen/:address").handler(this::isFrozen);
-        router.get("/api/iskycpassed/:address").handler(this::isKycPassed);
-
-        vertx.createHttpServer()
+        server
             .requestHandler(router)
-            .listen(config().getInteger("http.port", 8080), result -> {
+            .listen(config().getInteger("http.port", 9000), result -> {
                 if (result.succeeded()) {
                     promise.complete();
                 } else {
@@ -54,117 +38,66 @@ public class StateVerticle extends AbstractVerticle {
             });
     }
 
-    private void getTokenName(RoutingContext routingContext) {
-        String name = state.getTokenName();
+    private void getToken(RoutingContext routingContext) {
+        var name = state.getTokenName();
+        var symbol = state.getTokenSymbol();
+        var decimals = state.getTokenDecimal();
+        var totalSupply = state.getTotalSupply();
+        var owner = state.getOwner();
+        var proposedOwner = state.getProposedOwner();
+        var supplyManager = state.getSupplyManager();
+        var assetProtectionManager = state.getAssetProtectionManager();
 
         routingContext.response()
             .putHeader("content-type", "application/json")
             .setStatusCode(200)
-            .end(Json.encodePrettily(name));
-    }
-
-    private void getTokenSymbol(RoutingContext routingContext) {
-        String symbol = state.getTokenSymbol();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(symbol));
-    }
-
-    private void getTokenDecimal(RoutingContext routingContext) {
-        BigInteger decimal = state.getTokenDecimal();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(decimal.toString()));
-    }
-
-    private void getTotalSupply(RoutingContext routingContext) {
-        BigInteger supply = state.getTotalSupply();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(supply.toString()));
-    }
-
-    private void getOwner(RoutingContext routingContext) {
-        Address owner = state.getOwner();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(owner.toString()));
-    }
-
-    private void getSupplyManager(RoutingContext routingContext) {
-        Address manager = state.getSupplyManager();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(manager.toString()));
-    }
-
-    private void getAssetProtectionManager(RoutingContext routingContext) {
-        Address manager = state.getAssetProtectionManager();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(manager.toString()));
-    }
-
-    private void getProposedOwner(RoutingContext routingContext) {
-        Address owner = state.getProposedOwner();
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(owner.toString()));
+            .end(new JsonObject(Map.ofEntries(
+                Map.entry("name", name),
+                Map.entry("symbol", symbol),
+                Map.entry("decimals", decimals.toString()),
+                Map.entry("totalSupply", totalSupply.toString()),
+                Map.entry("owner", owner.toString()),
+                Map.entry("proposedOwner", proposedOwner.toString()),
+                Map.entry("supplyManager", supplyManager.toString()),
+                Map.entry("assetProtectionManager", assetProtectionManager.toString())
+            )).encode());
     }
 
     private void getBalance(RoutingContext routingContext) {
-        String address = routingContext.request().getParam("address");
-        BigInteger balance = state.getBalanceOf(new Address(PublicKey.fromString(address)));
+        var address = Address.fromString(routingContext.request().getParam("address"));
+        var balance = state.getBalanceOf(address);
 
         routingContext.response()
             .putHeader("content-type", "application/json")
             .setStatusCode(200)
-            .end(Json.encodePrettily(balance.toString()));
+            .end(new JsonObject(Map.of("balance", balance.toString())).encode());
     }
 
     private void getAllowance(RoutingContext routingContext) {
-        String caller = routingContext.request().getParam("caller");
-        String address = routingContext.request().getParam("address");
-        BigInteger allowance = state.getAllowance(new Address(PublicKey.fromString(caller)), new Address(PublicKey.fromString(address)));
+        var address = Address.fromString(routingContext.request().getParam("address"));
+        var of = Address.fromString(routingContext.request().getParam("of"));
+
+        BigInteger allowance = state.getAllowance(address, of);
 
         routingContext.response()
             .putHeader("content-type", "application/json")
             .setStatusCode(200)
-            .end(Json.encodePrettily(allowance.toString()));
+            .end(new JsonObject(Map.of("allowance", allowance.toString())).encode());
     }
 
-    private void isFrozen(RoutingContext routingContext) {
-        String address = routingContext.request().getParam("address");
-        boolean isFrozen = state.isFrozen(new Address(PublicKey.fromString(address)));
+    private void getAddress(RoutingContext routingContext) {
+        var address = Address.fromString(routingContext.request().getParam("address"));
+        var balance = state.getBalanceOf(address);
+        var isFrozen = state.isFrozen(address);
+        var isKycPassed = state.isKycPassed(address);
 
         routingContext.response()
             .putHeader("content-type", "application/json")
             .setStatusCode(200)
-            .end(Json.encodePrettily(Boolean.toString(isFrozen)));
+            .end(new JsonObject(Map.ofEntries(
+                Map.entry("balance", balance.toString()),
+                Map.entry("isFrozen", isFrozen),
+                Map.entry("isKycPassed", isKycPassed)
+            )).encode());
     }
-
-    private void isKycPassed(RoutingContext routingContext) {
-        String address = routingContext.request().getParam("address");
-        boolean isKycPassed = state.isKycPassed(new Address(PublicKey.fromString(address)));
-
-        routingContext.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(200)
-            .end(Json.encodePrettily(Boolean.toString(isKycPassed)));
-    }
-
 }

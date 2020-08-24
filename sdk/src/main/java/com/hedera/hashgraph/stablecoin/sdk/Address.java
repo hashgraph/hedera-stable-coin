@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.sdk;
 
+import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.sdk.PublicKey;
 
@@ -19,8 +20,18 @@ public final class Address {
         this((bytes == null || bytes.isEmpty()) ? ZERO.publicKey : PublicKey.fromBytes(bytes.toByteArray()));
     }
 
+    public static Address fromString(String s) {
+        return new Address(PublicKey.fromString(s));
+    }
+
     public boolean isZero() {
         return this.equals(ZERO) || Arrays.equals(publicKey.toBytes(), ZERO.publicKey.toBytes());
+    }
+
+    @Override
+    public String toString() {
+        // encode just the key (no alg prefix) for the address
+        return BaseEncoding.base16().lowerCase().encode(publicKey.toBytes());
     }
 
     @Override

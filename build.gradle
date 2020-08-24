@@ -77,12 +77,12 @@ dependencies {
 }
 
 application {
-	mainClassName = 'com.hedera.hashgraph.stablecoin.App'
+	mainClassName = 'com.hedera.hashgraph.stablecoin.app.App'
 }
 
 jar {
 	manifest {
-		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.App'
+		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.app.App'
 	}
 }
 
