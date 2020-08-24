@@ -31,7 +31,7 @@ import com.hedera.hashgraph.stablecoin.sdk.Address;
 import javax.annotation.Nullable;
 
 import java.io.File;
-import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -68,7 +68,7 @@ public final class TopicListener {
     private final TopicId topicId;
 
     @Nullable
-    private final File file;
+    private File file;
 
     @Nullable
     private SubscriptionHandle handle;
@@ -92,26 +92,19 @@ public final class TopicListener {
     }
 
     public synchronized void startListening() {
-        // todo: set startTime to resume from last state snapshot
+        System.out.println("listening on topic " + topicId + " from " + state.getTimestamp());
 
         handle = new TopicMessageQuery()
             .setTopicId(topicId)
-            .setStartTime(state.getTimestamp())
+            // add 1 ns so we don't pull in the same message
+            .setStartTime(state.getTimestamp().plusNanos(1))
             .subscribe(client, topicMessage -> {
                 // noinspection TryWithIdenticalCatches
                 try {
-                    handleTransaction(Transaction.parseFrom(topicMessage.contents));
-                    if (topicMessage.consensusTimestamp.compareTo(state.getTimestamp().plusSeconds(10)) > 0 && file != null) {
-                        state.setTimestamp(topicMessage.consensusTimestamp);
-                        state.writeToFile(file);
-                    }
+                    handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.contents));
                 } catch (InvalidProtocolBufferException e) {
                     // received an invalid message from the stream
                     // todo: log the parsing failure
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // IOException
-                    // todo: log the exception
                     e.printStackTrace();
                 } catch (Exception e) {
                     // fixme: once we start logging transactions as failed
@@ -121,7 +114,7 @@ public final class TopicListener {
             });
     }
 
-    public void handleTransaction(Transaction transaction) throws InvalidProtocolBufferException {
+    void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
@@ -147,5 +140,8 @@ public final class TopicListener {
         }
 
         transactionHandler.handle(state, caller, transactionBody);
+
+        // state has now successfully transitioned
+        state.setTimestamp(consensusTimestamp);
     }
 }

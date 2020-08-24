@@ -60,7 +60,17 @@ public abstract class TransactionHandler<ArgumentsT> {
         // fixme: if these fail, mark the transaction as failed with the given status from the exception
         validatePre(state, caller, arguments);
 
-        // now update our state, this should not be able to fail
-        updateState(state, caller, arguments);
+        // acquire a lock to update our state
+        // we do this to block a snapshot from happening in the middle of
+        // a state update
+        state.lock();
+
+        try {
+            // now update our state, this should not be able to fail
+            updateState(state, caller, arguments);
+        } finally {
+            // release our state lock so that a snapshot may now happen
+            state.unlock();
+        }
     }
 }

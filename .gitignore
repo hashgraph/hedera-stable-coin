@@ -12,3 +12,6 @@ gen/
 
 # local environment
 .env
+
+# state snapshot dir from .env.sample
+_state/

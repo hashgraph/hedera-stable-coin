@@ -17,6 +17,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,10 @@ public class App {
     // current state of the token contract
     final State contractState = new State();
 
+    // state snapshot manager
+    // responsible for reading and writing state snapshots on a state interval
+    final SnapshotManager snapshotManager = new SnapshotManager(env, contractState);
+
     // topic ID of the contract instance
     final TopicId topicId = getOrCreateContractInstance();
 
@@ -50,11 +55,15 @@ public class App {
     final StateVerticle stateVerticle = new StateVerticle(contractState);
 
     @SuppressWarnings("CheckedExceptionNotThrown") // false positive in errorprone
-    private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException {
+    private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException, IOException {
     }
 
-    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
+    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException {
         var app = new App();
+
+        // try to read the latest state snapshot
+        // this is to let us resume instead of reading from the beginning of history
+        app.snapshotManager.tryReadLatest();
 
         // start listening to the contract instance (topic) on the Hedera
         // mirror node
