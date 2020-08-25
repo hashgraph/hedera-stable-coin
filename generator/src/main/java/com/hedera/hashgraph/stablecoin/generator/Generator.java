@@ -98,7 +98,7 @@ class Generator {
             writeTransactionToFile(new TransferTransaction(
                 from,
                 new Address(to.getPublicKey()),
-                BigInteger.valueOf(Math.abs(random.nextInt()) % 100)
+                BigInteger.valueOf(random.nextInt(100))
             ));
         }
     }
@@ -159,7 +159,7 @@ class Generator {
         }
     }
 
-    void run(State state, Client client, TopicId topicId) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+    void run(State state, Client client, TopicId topicId) throws IOException {
         // Create and write the ConstructTransaction to file
         constructor();
 
@@ -184,7 +184,7 @@ class Generator {
         this.timeTaken = endTime - startTime;
     }
 
-    void runHcs(State state, Client client, TopicId topicId) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+    void runHcs(State state, Client client, TopicId topicId) throws IOException, TimeoutException, HederaPreCheckStatusException {
         new TopicListener(state, client, topicId).startListening();
 
         // Create and write the ConstructTransaction to file
@@ -215,7 +215,7 @@ class Generator {
 
         client.setOperator(operatorId, operatorKey);
 
-        var topicId = generator.createTopicId(client);
+        var topicId = TopicId.fromString("0.0.5005");
 
         generator.run(state, client, topicId);
         System.out.println("Total Execution Time: " + generator.timeTaken / 1000000 + " ms");
