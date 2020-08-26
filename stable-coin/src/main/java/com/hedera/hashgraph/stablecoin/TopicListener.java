@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -68,7 +67,7 @@ public final class TopicListener {
     private final TopicId topicId;
 
     @Nullable
-    private File file;
+    private final File file;
 
     @Nullable
     private SubscriptionHandle handle;
@@ -121,7 +120,7 @@ public final class TopicListener {
             });
     }
 
-    void handleTransaction(Transaction transaction) throws InvalidProtocolBufferException {
+    public void handleTransaction(Transaction transaction) throws InvalidProtocolBufferException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());

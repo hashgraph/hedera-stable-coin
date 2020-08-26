@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class State {
     private final Map<PublicKey, BigInteger> balances = new HashMap<>();
@@ -55,7 +54,7 @@ public final class State {
 
     private Instant timestamp = Instant.EPOCH;
 
-    State() {
+    public State() {
     }
 
     public Address getOwner() {

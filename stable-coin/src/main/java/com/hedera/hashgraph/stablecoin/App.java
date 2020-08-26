@@ -19,36 +19,70 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
-import java.io.IOException;
 import java.io.File;
-
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
+import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 
 public class App {
+    final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
+    static PrivateKey operatorKey = PrivateKey.fromString(loadEnvironmentVariable("HSC_OPERATOR_KEY"));
+    static AccountId operatorId = AccountId.fromString(loadEnvironmentVariable("HSC_OPERATOR_ID"));
+    // configure a client to connect to Hedera
+    // todo: we need an .env variable to allow switching network
+    static Client client = Client.forTestnet();
+
     private App() {
     }
 
     public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException {
-        var env = Dotenv.configure().ignoreIfMissing().load();
+        setClient();
 
-        // configure a client to connect to Hedera
-        // todo: we need an .env variable to allow switching network
-        var client = Client.forTestnet();
+        showMenu();
+    }
 
-        Vertx vertx = Vertx.vertx();
+    @SuppressWarnings("ReturnMissingNullable")
+    static String loadEnvironmentVariable(String s) {
+        return Objects.requireNonNull(env.get(s), "missing environment variable " + s);
+    }
 
-        var operatorId = AccountId.fromString(Objects.requireNonNull(
-            env.get("HSC_OPERATOR_ID"), "missing environment variable HSC_OPERATOR_ID"));
-
-        var operatorKey = PrivateKey.fromString(Objects.requireNonNull(
-            env.get("HSC_OPERATOR_KEY"), "missing environment variable HSC_OPERATOR_ID"));
-
+    static void setClient() {
         // configure the client operator
         client.setOperator(operatorId, operatorKey);
+    }
+
+    static void showMenu() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException, IOException {
+        @Var
+        var selection = 0;
+
+        while (selection != 1 && selection != 2) {
+            selection =  menu();
+        }
+
+        if (selection == 1) {
+            runApp();
+        }
+        if (selection == 2) {
+            runBenchmark();
+        }
+    }
+
+    public static int menu() {
+        Scanner input = new Scanner(System.in, Charset.defaultCharset().name());
+
+        System.out.println("1 - Run App");
+        System.out.println("2 - Run Benchmark");
+
+        return  input.nextInt();
+    }
+
+    static void runApp() throws IOException, InterruptedException, TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException {
+        Vertx vertx = Vertx.vertx();
 
         @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
 
@@ -62,17 +96,13 @@ public class App {
             // which establishes our operator as the owner
 
             // we need the token properties to do this
-            var tokenName = Objects.requireNonNull(
-                env.get("HSC_TOKEN_NAME"), "missing environment variable HSC_TOKEN_NAME");
+            var tokenName = loadEnvironmentVariable("HSC_TOKEN_NAME");
 
-            var tokenSymbol = Objects.requireNonNull(
-                env.get("HSC_TOKEN_SYMBOL"), "missing environment variable HSC_TOKEN_SYMBOL");
+            var tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
 
-            var tokenDecimal = new BigInteger(Objects.requireNonNull(
-                env.get("HSC_TOKEN_DECIMAL"), "missing environment variable HSC_TOKEN_DECIMAL"));
+            var tokenDecimal = new BigInteger(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
 
-            var totalSupply = new BigInteger(Objects.requireNonNull(
-                env.get("HSC_TOTAL_SUPPLY"), "missing environment variable HSC_TOTAL_SUPPLY"));
+            var totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
 
             // create the new topic ID
             maybeTopicId = Optional.ofNullable(new TopicCreateTransaction()
@@ -149,6 +179,7 @@ public class App {
     }
 
     // Use to test StateVerticle
+    @SuppressWarnings("NullableDereference")
     static void listenToApi(Vertx vertx) {
         WebClientOptions wcOptions = new WebClientOptions()
             .setUserAgent("My-App/1.2.3");
@@ -163,5 +194,17 @@ public class App {
                     System.out.println(response.body().toString());
                 }
             });
+    }
+
+    private static void runBenchmark() throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
+        var state = new State();
+
+        var generatedFile = new File(loadEnvironmentVariable("HSC_GENERATE_FILE"));
+
+        var count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
+
+        var topicId = TopicId.fromString("0.0.5005");
+
+        Benchmark.runBenchmark(state, client, generatedFile, count, topicId, operatorKey);
     }
 }
