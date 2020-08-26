@@ -4,8 +4,14 @@
 # gradle build output directory
 build/
 
-# intellij project folder
+# editor files: intellij
 .idea/
+
+# editor files: vscode
+bin/
+.classpath
+.settings
+.project
 
 # generated code
 gen/
