@@ -1,22 +1,29 @@
 package com.hedera.hashgraph.stablecoin.generator;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.HederaPreCheckStatusException;
+import com.hedera.hashgraph.sdk.HederaReceiptStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.stablecoin.Address;
-import com.hedera.hashgraph.stablecoin.State;
-import com.hedera.hashgraph.stablecoin.TopicListener;
 import com.hedera.hashgraph.stablecoin.transaction.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.SetKycPassedTransaction;
 import com.hedera.hashgraph.stablecoin.transaction.Transaction;
 import com.hedera.hashgraph.stablecoin.transaction.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
-class Generator {
+public class Generator {
     final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     final Random random = new Random();
 
@@ -31,13 +38,12 @@ class Generator {
     BigInteger totalSupply;
     PrivateKey supplyManager;
     PrivateKey assetProtectionManager;
-    int count;
-    long timeTaken;
+    public int count;
     List<com.hedera.hashgraph.stablecoin.proto.Transaction> transactionsRead;
 
     ArrayList<PrivateKey> accounts = new ArrayList<>();
 
-    private Generator() throws FileNotFoundException {
+    public Generator() throws FileNotFoundException {
         loadEnvironmentVariables();
     }
 
@@ -109,57 +115,8 @@ class Generator {
         writer.write(bytes);
     }
 
-    TopicId createTopicId(Client client) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException {
-        return new TopicCreateTransaction()
-            .setAdminKey(operatorKey)
-            .setNodeAccountId(AccountId.fromString("0.0.4"))
-            .execute(client)
-            .transactionId
-            .getReceipt(client)
-            .topicId;
-    }
 
-    void readTransactions() throws IOException {
-        var reader = new DataInputStream(new FileInputStream(file));
-
-        transactionsRead = new ArrayList<com.hedera.hashgraph.stablecoin.proto.Transaction>();
-
-        while (reader.available() > 0) {
-            var length = reader.readInt();
-//            var line = reader.readNBytes(length);
-            var tx = com.hedera.hashgraph.stablecoin.proto.Transaction.parseFrom(reader.readNBytes(length));
-            transactionsRead.add(tx);
-        }
-    }
-
-    void processTransfers(TopicListener topicListener) throws IOException {
-        for (var tx : transactionsRead) {
-            topicListener.handleTransaction(tx);
-        }
-    }
-
-    void sendTransactions(Client client, TopicId topicId) throws IOException, TimeoutException, HederaPreCheckStatusException {
-        var reader = new DataInputStream(new FileInputStream(file));
-
-        transactionsRead = new ArrayList<com.hedera.hashgraph.stablecoin.proto.Transaction>();
-
-        var count = 1;
-
-        while (reader.available() > 0) {
-            var length = reader.readInt();
-
-            new TopicMessageSubmitTransaction()
-                .setTopicId(topicId)
-                .setMessage(reader.readNBytes(length))
-                .setNodeAccountId(AccountId.fromString("0.0.4"))   // Can remove this later
-                .execute(client);
-
-            System.out.println("message " + count + " sent!");
-            count ++;
-        }
-    }
-
-    void run(State state, Client client, TopicId topicId) throws IOException {
+    public void run() throws IOException {
         // Create and write the ConstructTransaction to file
         constructor();
 
@@ -168,67 +125,9 @@ class Generator {
 
         // Create and write transfers from a random account to another random account
         randomTransfers();
-
-        readTransactions();
-
-        var topicListener = new TopicListener(state, client, topicId, file);
-
-        long startTime = System.nanoTime();
-
-        processTransfers(topicListener);
-
-        long endTime = System.nanoTime();
-        System.out.println("Start Time: " + startTime / 1000000 + " ms");
-        System.out.println("End Time: " + endTime / 1000000 + " ms");
-
-        this.timeTaken = endTime - startTime;
-    }
-
-    void runHcs(State state, Client client, TopicId topicId) throws IOException, TimeoutException, HederaPreCheckStatusException {
-        new TopicListener(state, client, topicId).startListening();
-
-        // Create and write the ConstructTransaction to file
-        constructor();
-
-        // Generate 10 accounts
-        generateAccounts();
-
-        // Create and write transfers from a random account to another random account
-        randomTransfers();
-
-        long startTime = System.nanoTime();
-
-        sendTransactions(client, topicId);
-
-        long endTime = System.nanoTime();
-        System.out.println("Start Time: " + startTime / 1000000 + " ms");
-        System.out.println("End Time: " + endTime / 1000000 + " ms");
-
-        this.timeTaken = endTime - startTime;
     }
 
     public static void main(String[] args) throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
-        Generator generator = new Generator();
-
-        var state = new State();
-        var client = Client.forTestnet();
-
-        client.setOperator(operatorId, operatorKey);
-
-        var topicId = TopicId.fromString("0.0.5005");
-
-        generator.run(state, client, topicId);
-        System.out.println("Total Execution Time: " + generator.timeTaken / 1000000 + " ms");
-        System.out.println("Transfers per second: " + ((generator.count + 41) / ((double) generator.timeTaken / 1000000000)));
-
-        generator = new Generator();
-
-        topicId = generator.createTopicId(client);
-
-        System.out.println("Topic Id: " + topicId);
-
-        generator.runHcs(state, client, topicId);
-        System.out.println("Total Execution Time: " + generator.timeTaken / 1000000 + " ms");
-        System.out.println("Transfers per second: " + ((generator.count + 41) / ((double) generator.timeTaken / 1000000000)));
+        new Generator().run();
     }
 }

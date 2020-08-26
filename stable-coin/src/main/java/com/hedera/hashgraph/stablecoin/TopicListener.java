@@ -67,7 +67,7 @@ public final class TopicListener {
     private final TopicId topicId;
 
     @Nullable
-    private File file;
+    private final File file;
 
     @Nullable
     private SubscriptionHandle handle;
