@@ -78,7 +78,7 @@ dependencies {
 }
 
 protobuf {
-	generatedFilesBaseDir = "$projectDir/gen"
+	generatedFilesBaseDir = "$projectDir/src"
 	protoc {
 		artifact = "com.google.protobuf:protoc:3.12.4"
 	}
@@ -101,10 +101,6 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.app.App'
 	}
-}
-
-clean {
-	delete protobuf.generatedFilesBaseDir
 }
 
 tasks.withType(Test) {

@@ -12,9 +12,10 @@ bin/
 .classpath
 .settings
 .project
+.vscode/
 
 # generated code
-gen/
+src/main/java/com/hedera/hashgraph/stablecoin/app/proto
 
 # local environment
 .env
