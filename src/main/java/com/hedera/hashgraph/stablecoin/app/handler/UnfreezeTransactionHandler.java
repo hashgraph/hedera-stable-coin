@@ -7,12 +7,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class UnfreezeTransactionHandler extends TransactionHandler<UnfreezeTransactionArguments> {
     @Override
-    protected UnfreezeTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public UnfreezeTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new UnfreezeTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, UnfreezeTransactionArguments args) {
+    protected void validatePre(State state, Address caller, UnfreezeTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

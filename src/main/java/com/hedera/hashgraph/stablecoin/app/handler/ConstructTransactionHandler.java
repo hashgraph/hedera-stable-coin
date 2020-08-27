@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class ConstructTransactionHandler extends TransactionHandler<ConstructTransactionArguments> {
     @Override
-    protected ConstructTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public ConstructTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new ConstructTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, ConstructTransactionArguments args) {
+    protected void validatePre(State state, Address caller, ConstructTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner = 0x
         ensure(state.getOwner().isZero(), Status.CONSTRUCTOR_OWNER_ALREADY_SET);
 

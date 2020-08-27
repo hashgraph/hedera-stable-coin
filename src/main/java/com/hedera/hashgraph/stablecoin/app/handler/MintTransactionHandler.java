@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class MintTransactionHandler extends TransactionHandler<MintTransactionArguments> {
     @Override
-    protected MintTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public MintTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new MintTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, MintTransactionArguments args) {
+    protected void validatePre(State state, Address caller, MintTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

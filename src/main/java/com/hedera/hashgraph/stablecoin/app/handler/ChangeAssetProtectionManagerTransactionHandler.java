@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class ChangeAssetProtectionManagerTransactionHandler extends TransactionHandler<ChangeAssetProtectionManagerTransactionArguments> {
     @Override
-    protected ChangeAssetProtectionManagerTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public ChangeAssetProtectionManagerTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new ChangeAssetProtectionManagerTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, ChangeAssetProtectionManagerTransactionArguments args) {
+    protected void validatePre(State state, Address caller, ChangeAssetProtectionManagerTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

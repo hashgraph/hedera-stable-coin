@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class ProposeOwnerTransactionHandler extends TransactionHandler<ProposeOwnerTransactionArguments> {
     @Override
-    protected ProposeOwnerTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public ProposeOwnerTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new ProposeOwnerTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, ProposeOwnerTransactionArguments args) {
+    protected void validatePre(State state, Address caller, ProposeOwnerTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

@@ -7,12 +7,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class ClaimOwnershipTransactionHandler extends TransactionHandler<ClaimOwnershipTransactionArguments> {
     @Override
-    protected ClaimOwnershipTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public ClaimOwnershipTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new ClaimOwnershipTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, ClaimOwnershipTransactionArguments args) {
+    protected void validatePre(State state, Address caller, ClaimOwnershipTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

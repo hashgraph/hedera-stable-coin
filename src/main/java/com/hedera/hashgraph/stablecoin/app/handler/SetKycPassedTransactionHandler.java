@@ -7,12 +7,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class SetKycPassedTransactionHandler extends TransactionHandler<SetKycPassedTransactionArguments> {
     @Override
-    protected SetKycPassedTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public SetKycPassedTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new SetKycPassedTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, SetKycPassedTransactionArguments args) {
+    protected void validatePre(State state, Address caller, SetKycPassedTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class WipeTransactionHandler extends TransactionHandler<WipeTransactionArguments> {
     @Override
-    protected WipeTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public WipeTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new WipeTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, WipeTransactionArguments args) {
+    protected void validatePre(State state, Address caller, WipeTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 

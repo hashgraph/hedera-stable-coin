@@ -8,12 +8,12 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class UnsetKycPassedTransactionHandler extends TransactionHandler<UnsetKycPassedTransactionArguments> {
     @Override
-    protected UnsetKycPassedTransactionArguments parseArguments(TransactionBody transactionBody) {
+    public UnsetKycPassedTransactionArguments parseArguments(TransactionBody transactionBody) {
         return new UnsetKycPassedTransactionArguments(transactionBody);
     }
 
     @Override
-    protected void validatePre(State state, Address caller, UnsetKycPassedTransactionArguments args) {
+    protected void validatePre(State state, Address caller, UnsetKycPassedTransactionArguments args) throws StableCoinPreCheckException {
         // i. Owner != 0x
         ensureOwnerSet(state);
 
