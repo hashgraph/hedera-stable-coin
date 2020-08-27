@@ -4,7 +4,25 @@
 
  - Java 14+
 
+ - PostgreSQL 12+
+
+ - [TimescaleDB](https://www.timescale.com/)
+
 ## Build
+
+Create the development database. Assumes that TimescaleDB is running on `localhost:5432`.
+
+```
+createdb -h localhost -U postgres stable_coin_dev
+```
+
+Run database migrations.
+
+```
+./gradlew flywayMigrate
+```
+
+Assemble JAR.
 
 ```
 ./gradlew assemble
