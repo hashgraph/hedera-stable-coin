@@ -75,8 +75,8 @@ public final class TransactionRepository {
         var repository = (TransactionDataRepository<ArgumentsT>) transactionDataBatch.get(dataCase);
 
         // <claim ownership> does not have any associated data
-        var transactionKind = dataCase == TransactionBody.DataCase.CLAIMOWNERSHIP
-            ? TransactionKind.CLAIM_OWNERSHIP : repository.getTransactionKind();
+        var transactionKind = (dataCase == TransactionBody.DataCase.CLAIMOWNERSHIP
+            ? TransactionKind.CLAIM_OWNERSHIP : repository.getTransactionKind()).getValue();
 
         // this is a <synchronized> method and `transactionBatch` should not
         // have became null since the start of the method
