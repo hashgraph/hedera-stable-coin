@@ -26,14 +26,7 @@ public final class SnapshotManager {
 
     private final Path stateDir;
 
-    private final long stateInterval;
-
     private final int stateHistorySize;
-
-    private final Thread snapshotThread;
-
-    @Nullable
-    private Instant lastSnapshotTime;
 
     public SnapshotManager(Dotenv env, State state) throws IOException {
         this.state = state;
@@ -44,15 +37,8 @@ public final class SnapshotManager {
         // create directories if they do not exist
         Files.createDirectories(stateDir);
 
-        // how often do we write a new snapshot
-        stateInterval = Integer.parseInt(env.get("HSC_STATE_INTERVAL", "1")) * 1000;
-
         // number of state files to keep
         stateHistorySize = Integer.parseInt(env.get("HSC_STATE_HISTORY_SIZE", "10"));
-
-        // thread where we write out snapshots
-        snapshotThread = new Thread(this::writeOnInterval);
-        snapshotThread.start();
     }
 
     public void tryReadLatest() throws IOException {
@@ -115,41 +101,6 @@ public final class SnapshotManager {
             }
         } finally {
             state.unlock();
-        }
-    }
-
-    void writeOnInterval() {
-        while (true) {
-            try {
-                Thread.sleep(stateInterval);
-            } catch (InterruptedException e) {
-                // thread was interrupted
-                break;
-            }
-
-            state.lock();
-
-            try {
-                if (state.getTimestamp().isBefore(Instant.EPOCH)) {
-                    // nothing has happened yet
-                    continue;
-                }
-
-                if (lastSnapshotTime != null && lastSnapshotTime.equals(state.getTimestamp())) {
-                    // we just wrote this state
-                    // nothing has been happening
-                    continue;
-                }
-
-                write();
-                prunePrevious();
-
-                lastSnapshotTime = state.getTimestamp();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                state.unlock();
-            }
         }
     }
 

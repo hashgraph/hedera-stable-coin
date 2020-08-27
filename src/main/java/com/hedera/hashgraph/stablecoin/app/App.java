@@ -10,6 +10,7 @@ import com.hedera.hashgraph.sdk.PublicKey;
 import com.hedera.hashgraph.sdk.TopicCreateTransaction;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
+import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -41,6 +42,12 @@ public class App {
     // current state of the token contract
     final State contractState = new State();
 
+    // SQL connection manager
+    final SqlConnectionManager connectionManager = new SqlConnectionManager(env);
+
+    // repository for interaction with transactions in the database
+    final TransactionRepository transactionRepository = new TransactionRepository(connectionManager);
+
     // state snapshot manager
     // responsible for reading and writing state snapshots on a state interval
     final SnapshotManager snapshotManager = new SnapshotManager(env, contractState);
@@ -49,10 +56,18 @@ public class App {
     final TopicId topicId = getOrCreateContractInstance();
 
     // listener to the Hedera topic
-    final TopicListener topicListener = new TopicListener(contractState, hederaClient, topicId);
+    final TopicListener topicListener = new TopicListener(contractState, hederaClient, topicId, transactionRepository);
 
     // verticle providing the read-only contract state API
     final StateVerticle stateVerticle = new StateVerticle(contractState);
+
+    // on an interval, we commit our state
+    final CommitInterval commitInterval = new CommitInterval(
+        env,
+        contractState,
+        transactionRepository,
+        snapshotManager
+    );
 
     @SuppressWarnings("CheckedExceptionNotThrown") // false positive in errorprone
     private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException, IOException {

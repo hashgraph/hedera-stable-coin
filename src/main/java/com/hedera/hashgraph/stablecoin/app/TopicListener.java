@@ -17,20 +17,21 @@ import com.hedera.hashgraph.stablecoin.app.handler.IncreaseAllowanceTransactionH
 import com.hedera.hashgraph.stablecoin.app.handler.MintTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.ProposeOwnerTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.SetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.StableCoinPreCheckException;
 import com.hedera.hashgraph.stablecoin.app.handler.TransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.TransferFromTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.TransferTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.UnfreezeTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.UnsetKycPassedTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.WipeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 import javax.annotation.Nullable;
-
-import java.io.File;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -68,20 +69,16 @@ public final class TopicListener {
     private final TopicId topicId;
 
     @Nullable
-    private File file;
-
-    @Nullable
     private SubscriptionHandle handle;
 
-    public TopicListener(State state, Client client, TopicId topicId) {
-        this(state, client, topicId, null);
-    }
+    @Nullable
+    private final TransactionRepository transactionRepository;
 
-    public TopicListener(State state, Client client, TopicId topicId, @Nullable File file) {
+    public TopicListener(State state, Client client, TopicId topicId, @Nullable TransactionRepository transactionRepository) {
         this.state = state;
         this.client = client;
         this.topicId = topicId;
-        this.file = file;
+        this.transactionRepository = transactionRepository;
     }
 
     public synchronized void stopListening() {
@@ -99,22 +96,21 @@ public final class TopicListener {
             // add 1 ns so we don't pull in the same message
             .setStartTime(state.getTimestamp().plusNanos(1))
             .subscribe(client, topicMessage -> {
-                // noinspection TryWithIdenticalCatches
                 try {
                     handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.contents));
                 } catch (InvalidProtocolBufferException e) {
-                    // received an invalid message from the stream
-                    // todo: log the parsing failure
+                    // log the failure, this is a parsing failure of an incoming message
+                    // likely someone posted to our topic by mistake
                     e.printStackTrace();
-                } catch (Exception e) {
-                    // fixme: once we start logging transactions as failed
-                    //        this branch should not happen
-                    e.printStackTrace();
+                } catch (SQLException e) {
+                    // exception with persistence, not recoverable
+                    // a programming error or the database is gone
+                    throw new RuntimeException(e);
                 }
             });
     }
 
-    void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException {
+    void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException, SQLException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
@@ -132,16 +128,40 @@ public final class TopicListener {
             throw new IllegalStateException("validation failed with status " + Status.INVALID_SIGNATURE);
         }
 
-        // continue on to process the body
-        var transactionHandler = transactionHandlers.get(transactionBody.getDataCase());
+        @SuppressWarnings("unchecked")
+        var transactionHandler = (TransactionHandler<Object>) transactionHandlers.get(transactionBody.getDataCase());
 
         if (transactionHandler == null) {
             throw new IllegalStateException("unimplemented transaction type " + transactionBody.getDataCase());
         }
 
-        transactionHandler.handle(state, caller, transactionBody);
+        Status transactionStatus;
 
-        // state has now successfully transitioned
-        state.setTimestamp(consensusTimestamp);
+        var transactionArguments = transactionHandler.parseArguments(transactionBody);
+
+        try {
+            // attempt to handle the transaction
+            transactionHandler.handle(state, caller, transactionArguments);
+
+            // state has now successfully transitioned
+            transactionStatus = Status.OK;
+            state.setTimestamp(consensusTimestamp);
+        } catch (StableCoinPreCheckException e) {
+            // when a pre-check validation failure happens, we still need to log the
+            // transaction but the status is adjusted
+            transactionStatus = e.status;
+        }
+
+        // persist the transaction to our database if there is a configured
+        // transaction repository available
+        if (transactionRepository != null) {
+            transactionRepository.bindTransaction(
+                consensusTimestamp,
+                caller,
+                transactionStatus,
+                transactionBody.getDataCase(),
+                transactionArguments
+            );
+        }
     }
 }
