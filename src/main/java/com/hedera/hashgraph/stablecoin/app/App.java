@@ -18,8 +18,10 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -73,8 +75,14 @@ public class App {
     private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException, IOException {
     }
 
-    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException {
+    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException, SQLException {
         var app = new App();
+
+        // TODO: add a real arg parser
+        if (args.length > 2 && args[1].equals("--bench")) {
+            app.runBenchmark(args[2]);
+            return;
+        }
 
         // try to read the latest state snapshot
         // this is to let us resume instead of reading from the beginning of history
@@ -143,11 +151,11 @@ public class App {
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
             .map(PrivateKey::fromString);
 
-        var supplyManagerAddress = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
-            .map(PublicKey::fromString).map(Address::new);
+        var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
+            .map(PrivateKey::fromString);
 
-        var assetProtectionManagerAddress = Optional.ofNullable(env.get("HSC_ASSET_PROTECTION_MANAGER_KEY"))
-            .map(PublicKey::fromString).map(Address::new);
+        var assetProtectionManagerKey = Optional.ofNullable(env.get("HSC_ASSET_PROTECTION_MANAGER_KEY"))
+            .map(PrivateKey::fromString);
 
         // create the new topic ID
         var topicId = Optional.ofNullable(new TopicCreateTransaction()
@@ -163,7 +171,6 @@ public class App {
         System.out.println("created topic " + topicId.get());
 
         // now we need to create a <Construct> transaction
-        var operatorAddress = new Address(operatorPrivateKey.getPublicKey());
 
         var constructTransactionBytes = new ConstructTransaction(
             ownerKey.orElse(operatorPrivateKey),
@@ -171,8 +178,8 @@ public class App {
             tokenSymbol,
             tokenDecimal,
             totalSupply,
-            supplyManagerAddress.orElse(operatorAddress),
-            assetProtectionManagerAddress.orElse(operatorAddress)
+            new Address(supplyManagerKey.orElse(operatorPrivateKey).getPublicKey()),
+            new Address(assetProtectionManagerKey.orElse(operatorPrivateKey).getPublicKey())
         ).toByteArray();
 
         // and finally submit it
@@ -216,16 +223,12 @@ public class App {
         vertx.deployVerticle(stateVerticle, deploymentOptions);
     }
 
-
-    /*private static void runBenchmark() throws IOException, HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException {
-        var state = new State();
-
-        var generatedFile = new File(loadEnvironmentVariable("HSC_GENERATE_FILE"));
-
-        var count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
-
-        var topicId = TopicId.fromString("0.0.5005");
-
-        Benchmark.runBenchmark(state, client, generatedFile, count, topicId, operatorKey);
-    }*/
+    void runBenchmark(String inputFile) throws IOException, SQLException {
+        new Benchmark(
+            contractState,
+            hederaClient,
+            transactionRepository,
+            new File(inputFile)
+        ).run();
+    }
 }

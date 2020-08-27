@@ -39,10 +39,10 @@ public final class Generator {
     BigInteger totalSupply;
     PrivateKey supplyManager;
     PrivateKey assetProtectionManager;
-    
+
     public int count = 0;
-    
-    final List<com.hedera.hashgraph.stablecoin.proto.Transaction> transactionsRead = new ArrayList<>();
+
+    final List<com.hedera.hashgraph.stablecoin.sdk.Transaction> transactionsRead = new ArrayList<>();
 
     ArrayList<PrivateKey> accounts = new ArrayList<>();
 
@@ -63,8 +63,8 @@ public final class Generator {
         tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
         tokenDecimal = new BigInteger(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
-        supplyManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER"));
-        assetProtectionManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_ASSET_PROTECTION_MANAGER"));
+        supplyManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
+        assetProtectionManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_ASSET_PROTECTION_MANAGER_KEY"));
         count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
     }
 
