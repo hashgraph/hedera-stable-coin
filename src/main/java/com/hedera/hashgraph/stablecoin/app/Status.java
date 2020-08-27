@@ -1,201 +1,234 @@
 package com.hedera.hashgraph.stablecoin.app;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
+
 public enum Status {
-    OK,
+    OK(0),
 
     /**
      * Any transaction except for the constructor called when the owner is not set.
      */
-    OWNER_NOT_SET,
+    OWNER_NOT_SET(1),
 
-    /** Any transaction called with an invalid signature. */
-    INVALID_SIGNATURE,
+    /**
+     * Any transaction called with an invalid signature.
+     */
+    INVALID_SIGNATURE(2),
 
     /**
      * Any transaction called with an empty caller.
      */
-    CALLER_NOT_SET,
+    CALLER_NOT_SET(3),
 
-    /** Any transaction called with a caller that is not authorized to call that transaction. */
-    CALLER_NOT_AUTHORIZED,
+    /**
+     * Any transaction called with a caller that is not authorized to call that transaction.
+     */
+    CALLER_NOT_AUTHORIZED(4),
+
+    /**
+     * Any transaction called with an unexpected nonce.
+     */
+    UNEXPECTED_NONCE(5),
 
     /**
      * Any transaction called with a caller that is either frozen or has not passed KYC (where that is required).
      */
-    CALLER_TRANSFER_NOT_ALLOWED,
+    CALLER_TRANSFER_NOT_ALLOWED(6),
 
     /**
      * Constructor called with an empty value for asset protection manager.
      */
-    CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET,
+    CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET(7),
 
     /**
      * Constructor called after contract has already been constructed.
      */
-    CONSTRUCTOR_OWNER_ALREADY_SET,
+    CONSTRUCTOR_OWNER_ALREADY_SET(8),
 
     /**
      * Constructor called with an empty value for supply manager.
      */
-    CONSTRUCTOR_SUPPLY_MANAGER_NOT_SET,
+    CONSTRUCTOR_SUPPLY_MANAGER_NOT_SET(9),
 
     /**
      * Constructor called with a value less than zero for token decimal.
      */
-    CONSTRUCTOR_TOKEN_DECIMAL_LESS_THAN_ZERO,
+    CONSTRUCTOR_TOKEN_DECIMAL_LESS_THAN_ZERO(10),
 
     /**
      * Constructor called with a value less than zero for total supply.
      */
-    CONSTRUCTOR_TOTAL_SUPPLY_LESS_THAN_ZERO,
+    CONSTRUCTOR_TOTAL_SUPPLY_LESS_THAN_ZERO(11),
 
     /**
      * Approve allowance called with a value less than zero.
      */
-    APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
+    APPROVE_ALLOWANCE_VALUE_LESS_THAN_ZERO(12),
 
     /**
      * Approve allowance called with a spender that is either frozen or has not passed KYC.
      */
-    APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
+    APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED(13),
 
     /**
      * Mint transaction called with a value less than zero.
      */
-    MINT_VALUE_LESS_THAN_ZERO,
+    MINT_VALUE_LESS_THAN_ZERO(14),
 
     /**
      * Mint transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
      */
-    MINT_INSUFFICIENT_TOTAL_SUPPLY,
+    MINT_INSUFFICIENT_TOTAL_SUPPLY(15),
 
     /**
      * Burn transaction called with a value less than zero.
      */
-    BURN_VALUE_LESS_THAN_ZERO,
+    BURN_VALUE_LESS_THAN_ZERO(16),
 
     /**
      * Burn transaction called with a value greater than `SupplyManager`'s balance.
      */
-    BURN_INSUFFICIENT_SUPPLY_MANAGER_BALANCE,
+    BURN_INSUFFICIENT_SUPPLY_MANAGER_BALANCE(17),
 
     /**
      * Burn transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
      */
-    BURN_INSUFFICIENT_TOTAL_SUPPLY,
+    BURN_INSUFFICIENT_TOTAL_SUPPLY(18),
 
     /**
      * Transfer transaction called with a value less than zero.
      */
-    TRANSFER_VALUE_LESS_THAN_ZERO,
+    TRANSFER_VALUE_LESS_THAN_ZERO(19),
 
     /**
      * Transfer transaction value is greater than caller's balance.
      */
-    TRANSFER_INSUFFICIENT_BALANCE,
+    TRANSFER_INSUFFICIENT_BALANCE(20),
 
     /**
      * Transfer transaction to address is either frozen or has not passed KYC.
      */
-    TRANSFER_TO_TRANSFER_NOT_ALLOWED,
+    TRANSFER_TO_TRANSFER_NOT_ALLOWED(21),
 
     /**
      * TransferFrom transaction called with a value less than zero.
      */
-    TRANSFER_FROM_VALUE_LESS_THAN_ZERO,
+    TRANSFER_FROM_VALUE_LESS_THAN_ZERO(22),
 
     /**
      * TransferFrom transaction value exceeds caller's balance.
      */
-    TRANSFER_FROM_INSUFFICIENT_BALANCE,
+    TRANSFER_FROM_INSUFFICIENT_BALANCE(23),
 
     /**
      * TransferFrom transaction value exceeds `From` to `Caller` allowance.
      */
-    TRANSFER_FROM_INSUFFICIENT_ALLOWANCE,
+    TRANSFER_FROM_INSUFFICIENT_ALLOWANCE(24),
 
     /**
      * TransferFrom transaction from address is either frozen or has not passed KYC.
      */
-    TRANSFER_FROM_FROM_TRANSFER_NOT_ALLOWED,
+    TRANSFER_FROM_FROM_TRANSFER_NOT_ALLOWED(25),
 
     /**
      * TransferFrom transaction to address is either frozen or has not passed KYC.
      */
-    TRANSFER_FROM_TO_TRANSFER_NOT_ALLOWED,
+    TRANSFER_FROM_TO_TRANSFER_NOT_ALLOWED(26),
 
     /**
      * ProposeOwner transaction with empty address.
      */
-    PROPOSE_OWNER_ADDRESS_NOT_SET,
+    PROPOSE_OWNER_ADDRESS_NOT_SET(27),
 
     /**
      * ProposeOwner transaction called with address which is either frozen or has not passed KYC.
      */
-    PROPOSE_OWNER_TRANSFER_NOT_ALLOWED,
+    PROPOSE_OWNER_TRANSFER_NOT_ALLOWED(28),
 
     /**
      * ClaimOwnership transaction called with address which is either frozen or has not passed KYC.
      */
-    CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED,
+    CLAIM_OWNERSHIP_TRANSFER_NOT_ALLOWED(29),
 
     /**
      * ChangeSupplyManger transaction called with an empty address.
      */
-    CHANGE_SUPPLY_MANAGER_ADDRESS_NOT_SET,
+    CHANGE_SUPPLY_MANAGER_ADDRESS_NOT_SET(30),
 
     /**
      * ChangeSupplyManager transaction called with address that either is frozen or has not passed KYC.
      */
-    CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED,
+    CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED(31),
 
     /**
      * ChangeAssetProtectionManager transaction called with an empty address.
      */
-    CHANGE_ASSET_PROTECTION_MANAGER_ADDRESS_NOT_SET,
+    CHANGE_ASSET_PROTECTION_MANAGER_ADDRESS_NOT_SET(32),
 
     /**
      * ChangeAssetProtectionManager transaction called with address that either is frozen or has not passed KYC.
      */
-    CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED,
+    CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED(33),
 
     /**
      * Freeze transaction called with a privileged address.
      */
-    FREEZE_ADDRESS_IS_PRIVILEGED,
+    FREEZE_ADDRESS_IS_PRIVILEGED(34),
 
     /**
      * Wipe transaction called with address that is not frozen.
      */
-    WIPE_ADDRESS_NOT_FROZEN,
+    WIPE_ADDRESS_NOT_FROZEN(35),
 
     /**
      * UnsetKycPassed transaction called with privileged address.
      */
-    UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED,
+    UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED(36),
 
     /**
      * IncreaseAllowance transaction called with value less than zero.
      */
-    INCREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
+    INCREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO(37),
 
     /**
      * IncreaseAllowance transaction spender is either frozen or has not passed KYC.
      */
-    INCREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
+    INCREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED(38),
 
     /**
      * DecreaseAllowance transaction called with value less than zero.
      */
-    DECREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO,
+    DECREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO(39),
 
     /**
      * DecreaseAllowance transaction spender is either frozen or has not passed KYC.
      */
-    DECREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED,
+    DECREASE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED(40),
 
     /**
      * DecreaseAllowance transaction called with value that exceeds caller to spender allowance.
      */
-    DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE
+    DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE(41);
+
+    private static final Map<Integer, Status> possibleValues = Arrays.stream(values())
+        .collect(Collectors.toMap(Status::getValue, identity()));
+
+    private final int value;
+
+    private Status(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public Status valueOf(int value) {
+        return possibleValues.get(value);
+    }
 }
