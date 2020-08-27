@@ -14,14 +14,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class UnfreezeTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void unfreezeTest() throws InvalidProtocolBufferException {
+    public void unfreezeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var assetProtectionManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
@@ -48,9 +50,9 @@ public class UnfreezeTest {
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
         var freezeTransaction = new FreezeTransaction(callerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var unfreezeTransaction = new UnfreezeTransaction(
@@ -67,7 +69,7 @@ public class UnfreezeTest {
         Assertions.assertEquals(caller, state.getOwner());
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
         // Post-Check
 
@@ -75,7 +77,7 @@ public class UnfreezeTest {
         Assertions.assertFalse(state.isFrozen(addr));
 
         // freeze and test for caller == AssetProtectionManager instead this time
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var unfreezeTransaction2 = new UnfreezeTransaction(
@@ -92,7 +94,7 @@ public class UnfreezeTest {
         Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction2.toByteArray()));
 
         // Post-Check
 

@@ -14,14 +14,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class DecreaseAllowanceTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void decreaseAllowanceTest() throws InvalidProtocolBufferException {
+    public void decreaseAllowanceTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var spenderKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -46,9 +48,9 @@ public class DecreaseAllowanceTest {
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
         var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(callerKey, spender, BigInteger.TWO);
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
 
         // get allowance before test
         var allowance = state.getAllowance(caller, spender);
@@ -74,7 +76,7 @@ public class DecreaseAllowanceTest {
         Assertions.assertTrue(state.getAllowance(caller, spender).compareTo(value) >= 0);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(decreaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(decreaseAllowanceTransaction.toByteArray()));
 
         // Post-Check
 

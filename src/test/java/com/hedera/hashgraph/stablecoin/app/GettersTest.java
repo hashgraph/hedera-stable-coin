@@ -18,11 +18,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class GettersTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
     PrivateKey ownerKey = PrivateKey.generate();
     PrivateKey supplyManagerKey = PrivateKey.generate();
     PrivateKey assetProtectionManagerKey = PrivateKey.generate();
@@ -55,12 +57,12 @@ public class GettersTest {
         assetProtectionManager
     );
 
-    static void construct(TopicListener topicListener, ConstructTransaction constructTransaction) throws InvalidProtocolBufferException {
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
+    static void construct(TopicListener topicListener, ConstructTransaction constructTransaction) throws InvalidProtocolBufferException, SQLException {
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
     }
 
     @Test
-    public void getTokenNameTest() throws InvalidProtocolBufferException {
+    public void getTokenNameTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -71,7 +73,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getTokenSymbolTest() throws InvalidProtocolBufferException {
+    public void getTokenSymbolTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -82,7 +84,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getTokenDecimalTest() throws InvalidProtocolBufferException {
+    public void getTokenDecimalTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -93,7 +95,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getTotalSupplyTest() throws InvalidProtocolBufferException {
+    public void getTotalSupplyTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -104,7 +106,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getBalanceTest() throws InvalidProtocolBufferException {
+    public void getBalanceTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         var transferTransaction = new TransferTransaction(
@@ -115,8 +117,8 @@ public class GettersTest {
 
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, to);
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
 
         // Precondition: i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
@@ -125,14 +127,14 @@ public class GettersTest {
         Assertions.assertEquals(value, state.getBalanceOf(to));
 
         // Transfer and check again
-        topicListener.handleTransaction(Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
 
         // Post-conditions: i. result =  Balances[addr]
         Assertions.assertEquals(value.add(value), state.getBalanceOf(to));
     }
 
     @Test
-    public void getAllowanceTest() throws InvalidProtocolBufferException {
+    public void getAllowanceTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, spender);
@@ -142,8 +144,8 @@ public class GettersTest {
             value
         );
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(approveTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(approveTransaction.toByteArray()));
 
         // Precondition: i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
@@ -158,14 +160,14 @@ public class GettersTest {
             value
         );
 
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
 
         // Post-conditions: i. result = Allowances[addr][spender]
         Assertions.assertEquals(value.add(value), state.getAllowance(supplyManager, spender));
     }
 
     @Test
-    public void getOwnerTest() throws InvalidProtocolBufferException {
+    public void getOwnerTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -176,7 +178,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getSupplyManager() throws InvalidProtocolBufferException {
+    public void getSupplyManager() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -187,7 +189,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getAssetManagerTest() throws InvalidProtocolBufferException {
+    public void getAssetManagerTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -198,7 +200,7 @@ public class GettersTest {
     }
 
     @Test
-    public void getProposedOwnerTest() throws InvalidProtocolBufferException {
+    public void getProposedOwnerTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -211,15 +213,15 @@ public class GettersTest {
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, proposedOwner);
         var proposeOwnerTransaction = new ProposeOwnerTransaction(ownerKey, proposedOwner);
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(proposeOwnerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(proposeOwnerTransaction.toByteArray()));
 
         // Post-conditions: i. result = ProposedOwner
         Assertions.assertEquals(proposedOwner, state.getProposedOwner());
     }
 
     @Test
-    public void isFrozenTest() throws InvalidProtocolBufferException {
+    public void isFrozenTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -232,8 +234,8 @@ public class GettersTest {
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, proposedOwner);
         var freezeTransaction = new FreezeTransaction(ownerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // Post-conditions: i. result = Frozen[addr]
         Assertions.assertTrue(state.isFrozen(addr));
@@ -241,14 +243,14 @@ public class GettersTest {
         // Unfreeze addr then check again
         var unfreezeTransaction = new UnfreezeTransaction(ownerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
         // Post-conditions: i. result = Frozen[addr]
         Assertions.assertFalse(state.isFrozen(addr));
     }
 
     @Test
-    public void isKycPassedTest() throws InvalidProtocolBufferException {
+    public void isKycPassedTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -260,14 +262,14 @@ public class GettersTest {
         // Set Kyc passed for addr then check again
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // Post-conditions: i. result = KycPassed[addr]
         Assertions.assertTrue(state.isKycPassed(addr));
     }
 
     @Test
-    public void checkTransferAllowedTest() throws InvalidProtocolBufferException {
+    public void checkTransferAllowedTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x
@@ -279,7 +281,7 @@ public class GettersTest {
         // Set Kyc passed for addr then check again
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // Post-conditions: i. result = (!Frozen[addr] && KycPassed[addr])
         Assertions.assertTrue(state.checkTransferAllowed(addr));
@@ -287,14 +289,14 @@ public class GettersTest {
         // Freeze addr then check again
         var freezeTransaction = new FreezeTransaction(ownerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // Post-conditions: i. result = (!Frozen[addr] && KycPassed[addr])
         Assertions.assertFalse(state.checkTransferAllowed(addr));
     }
 
     @Test
-    public void isPrivilegedRoleTest() throws InvalidProtocolBufferException {
+    public void isPrivilegedRoleTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
         // Precondition: i. Owner != 0x

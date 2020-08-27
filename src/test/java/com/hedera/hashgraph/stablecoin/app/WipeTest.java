@@ -16,14 +16,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class WipeTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void wipeTest() throws InvalidProtocolBufferException {
+    public void wipeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var assetProtectionManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
@@ -52,10 +54,10 @@ public class WipeTest {
         var transferTransaction = new TransferTransaction(callerKey, addr, value);
         var freezeTransaction = new FreezeTransaction(callerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(transferTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var wipeTransaction = new WipeTransaction(
@@ -77,7 +79,7 @@ public class WipeTest {
         Assertions.assertTrue(state.isFrozen(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(wipeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction.toByteArray()));
 
         // Post-Check
 
@@ -90,10 +92,10 @@ public class WipeTest {
         // re-establish address, transfer to it, then freeze it and check for caller == AssetProtectionManager instead this time
         var totalSupply2 = state.getTotalSupply();
         var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(transferTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var wipeTransaction2 = new WipeTransaction(
@@ -113,7 +115,7 @@ public class WipeTest {
         Assertions.assertTrue(state.isFrozen(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(wipeTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction2.toByteArray()));
 
         // Post-Check
 

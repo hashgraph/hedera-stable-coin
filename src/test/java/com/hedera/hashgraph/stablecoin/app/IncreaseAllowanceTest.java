@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class IncreaseAllowanceTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void increaseAllowanceTest() throws InvalidProtocolBufferException {
+    public void increaseAllowanceTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var spenderKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -44,8 +46,8 @@ public class IncreaseAllowanceTest {
         );
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // get allowance before test
         var allowance = state.getAllowance(caller, spender);
@@ -75,7 +77,7 @@ public class IncreaseAllowanceTest {
         // Overflow not possible
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
 
         // Post-Check
 
@@ -101,7 +103,7 @@ public class IncreaseAllowanceTest {
         // Overflow not possible
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
 
         // Post-Check
 

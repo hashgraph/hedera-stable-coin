@@ -14,14 +14,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class FreezeTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void freezeTest() throws InvalidProtocolBufferException {
+    public void freezeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var assetProtectionManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
@@ -47,8 +49,8 @@ public class FreezeTest {
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var freezeTransaction = new FreezeTransaction(
@@ -68,7 +70,7 @@ public class FreezeTest {
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // Post-Check
 
@@ -77,7 +79,7 @@ public class FreezeTest {
 
         // unfreeze and check for caller == AssetProtectionManager instead this time
         var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
-        topicListener.handleTransaction(Transaction.parseFrom(unfreezeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
         // prepare test transaction
         var freezeTransaction2 = new FreezeTransaction(
@@ -97,7 +99,7 @@ public class FreezeTest {
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(freezeTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction2.toByteArray()));
 
         // Post-Check
 

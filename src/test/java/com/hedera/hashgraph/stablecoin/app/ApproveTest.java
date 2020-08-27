@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class ApproveTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void approveTest() throws InvalidProtocolBufferException {
+    public void approveTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var spenderKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -45,8 +47,8 @@ public class ApproveTest {
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var approveTransaction = new ApproveAllowanceTransaction(
@@ -70,7 +72,7 @@ public class ApproveTest {
         Assertions.assertTrue(state.checkTransferAllowed(spender));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(approveTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(approveTransaction.toByteArray()));
 
         // Post-Check
 

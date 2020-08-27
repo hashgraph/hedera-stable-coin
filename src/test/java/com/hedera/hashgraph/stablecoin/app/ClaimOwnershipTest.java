@@ -14,14 +14,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class ClaimOwnershipTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void claimOwnershipTest() throws InvalidProtocolBufferException {
+    public void claimOwnershipTest() throws InvalidProtocolBufferException, SQLException {
         var ownerKey = PrivateKey.generate();
         var callerKey = PrivateKey.generate();
         var owner = new Address(callerKey.getPublicKey());
@@ -46,9 +48,9 @@ public class ClaimOwnershipTest {
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, caller);
         var proposeOwnerTransaction = new ProposeOwnerTransaction(ownerKey, caller);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(proposeOwnerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(proposeOwnerTransaction.toByteArray()));
 
         // prepare test transaction
         var claimOwnershipTransaction = new ClaimOwnershipTransaction(
@@ -67,7 +69,7 @@ public class ClaimOwnershipTest {
         Assertions.assertTrue(state.checkTransferAllowed(caller));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(claimOwnershipTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(claimOwnershipTransaction.toByteArray()));
 
         // Post-Check
 

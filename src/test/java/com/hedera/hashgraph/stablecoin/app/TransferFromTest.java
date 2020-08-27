@@ -15,14 +15,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class TransferFromTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void transferFromTest() throws InvalidProtocolBufferException {
+    public void transferFromTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var fromKey = PrivateKey.generate();
         var toKey = PrivateKey.generate();
@@ -52,11 +54,11 @@ public class TransferFromTest {
         var transferTransaction = new TransferTransaction(callerKey, from, value);
         var approveAllowanceTransaction = new ApproveAllowanceTransaction(fromKey, caller, value);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransactionTo.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransactionFrom.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(transferTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(approveAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionTo.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionFrom.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(approveAllowanceTransaction.toByteArray()));
 
         // prepare test transaction
         var transferFromTransaction = new TransferFromTransaction(
@@ -95,7 +97,7 @@ public class TransferFromTest {
         var allowanceFromGrantedCaller = state.getAllowance(from, caller);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(transferFromTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferFromTransaction.toByteArray()));
 
         // Post-Check
 

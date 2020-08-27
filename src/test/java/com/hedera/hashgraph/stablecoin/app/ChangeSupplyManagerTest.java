@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class ChangeSupplyManagerTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void changeSupplyManagerTest() throws InvalidProtocolBufferException {
+    public void changeSupplyManagerTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -44,8 +46,8 @@ public class ChangeSupplyManagerTest {
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var changeSupplyManagerTransaction = new ChangeSupplyManagerTransaction(
@@ -68,7 +70,7 @@ public class ChangeSupplyManagerTest {
         Assertions.assertTrue(state.checkTransferAllowed(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(changeSupplyManagerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeSupplyManagerTransaction.toByteArray()));
 
         // Post-Check
 

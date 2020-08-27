@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class ChangeAssetProtectionManagerTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void changeAssetProtectionManagerTest() throws InvalidProtocolBufferException {
+    public void changeAssetProtectionManagerTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -44,8 +46,8 @@ public class ChangeAssetProtectionManagerTest {
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var changeAssetProtectionManagerTransaction = new ChangeAssetProtectionManagerTransaction(
@@ -68,7 +70,7 @@ public class ChangeAssetProtectionManagerTest {
         Assertions.assertTrue(state.checkTransferAllowed(addr));
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(changeAssetProtectionManagerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeAssetProtectionManagerTransaction.toByteArray()));
 
         // Post-Check
 

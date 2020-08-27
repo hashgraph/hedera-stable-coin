@@ -12,14 +12,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class MintTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void mintTest() throws InvalidProtocolBufferException {
+    public void mintTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var supplyManagerKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -42,7 +44,7 @@ public class MintTest {
             caller
         );
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
 
         // prepare test transaction
         var mintTransaction = new MintTransaction(
@@ -71,7 +73,7 @@ public class MintTest {
         var supplyManagerBalance = state.getBalanceOf(supplyManager);
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(mintTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(mintTransaction.toByteArray()));
 
         // Post-Check
 

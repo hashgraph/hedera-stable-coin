@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class UnsetKycPassedTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void unsetKycPassedTest() throws InvalidProtocolBufferException {
+    public void unsetKycPassedTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var assetManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
@@ -49,8 +51,8 @@ public class UnsetKycPassedTest {
             addr
         );
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
 
         // prepare test transaction
         var unsetKycPassedTransaction = new UnsetKycPassedTransaction(
@@ -70,7 +72,7 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // update State
-        topicListener.handleTransaction(Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
 
         // Post-Check
 
@@ -78,7 +80,7 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.isKycPassed(addr));
 
         // re-set and check for caller == AssetProtectionManager instead this time
-        topicListener.handleTransaction(Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
 
         Assertions.assertTrue(state.isKycPassed(addr));
 
@@ -88,7 +90,7 @@ public class UnsetKycPassedTest {
         );
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(unsetKycPassedTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction2.toByteArray()));
 
         // Pre-Check
 
@@ -102,7 +104,7 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // update State
-        topicListener.handleTransaction(Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
 
         // Post-Check
 

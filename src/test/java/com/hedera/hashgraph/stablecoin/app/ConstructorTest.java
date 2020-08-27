@@ -11,14 +11,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class ConstructorTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void constructorTest() throws InvalidProtocolBufferException {
+    public void constructorTest() throws InvalidProtocolBufferException, SQLException {
         // prepare test transaction
         var callerKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -61,7 +63,7 @@ public class ConstructorTest {
 
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
 
         // Post-Check
 

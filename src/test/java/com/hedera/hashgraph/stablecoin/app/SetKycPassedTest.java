@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.Instant;
 
 public class SetKycPassedTest {
     State state = new State();
     Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1));
+    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void setKycPassedTest() throws InvalidProtocolBufferException {
+    public void setKycPassedTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var assetManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
@@ -44,7 +46,7 @@ public class SetKycPassedTest {
             assetManager
         );
 
-        topicListener.handleTransaction(Transaction.parseFrom(constructTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
 
         // prepare test transaction
         var setKycPassedTransaction = new SetKycPassedTransaction(
@@ -61,7 +63,7 @@ public class SetKycPassedTest {
         Assertions.assertEquals(caller, state.getOwner());
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
 
         // Post-Check
 
@@ -75,7 +77,7 @@ public class SetKycPassedTest {
         );
 
         // update State
-        topicListener.handleTransaction(Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
 
         Assertions.assertFalse(state.isKycPassed(addr));
 
@@ -85,7 +87,7 @@ public class SetKycPassedTest {
         );
 
         // Update State
-        topicListener.handleTransaction(Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
 
         // Pre-Check
 
