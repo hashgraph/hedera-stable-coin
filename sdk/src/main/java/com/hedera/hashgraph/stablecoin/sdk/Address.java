@@ -28,6 +28,10 @@ public final class Address {
         return this.equals(ZERO) || Arrays.equals(publicKey.toBytes(), ZERO.publicKey.toBytes());
     }
 
+    public byte[] toBytes() {
+        return publicKey.toBytes();
+    }
+
     @Override
     public String toString() {
         // encode just the key (no alg prefix) for the address
