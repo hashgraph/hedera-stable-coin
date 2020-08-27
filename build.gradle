@@ -107,7 +107,7 @@ flyway {
 	url = 'jdbc:postgresql://localhost:5432/stable_coin_dev'
 	user = 'postgres'
 	password = 'password'
-	locations = ['classpath:migrations']
+	locations = ['filesystem:src/main/resources/migrations']
 }
 
 jooq {
