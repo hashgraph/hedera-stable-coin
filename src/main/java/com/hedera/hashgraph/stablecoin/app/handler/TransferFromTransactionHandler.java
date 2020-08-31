@@ -34,6 +34,12 @@ public final class TransferFromTransactionHandler extends TransactionHandler<Tra
 
         // vii. CheckTransferAllowed(to)
         ensureTransferAllowed(state, args.to, Status.TRANSFER_FROM_TO_TRANSFER_NOT_ALLOWED);
+
+        // viii. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
+
+        // ix. Balances[to] + value <= MAX_INT
+        ensureLessThanMaxInt(state.getBalanceOf(args.to).add(args.value), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

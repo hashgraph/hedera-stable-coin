@@ -32,6 +32,9 @@ public final class DecreaseAllowanceTransactionHandler extends TransactionHandle
             args.value,
             Status.DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE
         );
+
+        // vi. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

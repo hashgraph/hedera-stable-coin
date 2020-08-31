@@ -52,6 +52,10 @@ public abstract class TransactionHandler<ArgumentsT> {
         ensure(value.compareTo(equalTo) >= 0, status);
     }
 
+    protected void ensureLessThanMaxInt(BigInteger value, Status status) throws StableCoinPreCheckException {
+        ensure(value.compareTo(BigInteger.valueOf(2).pow(256).subtract(BigInteger.ONE)) <= 0, status);
+    }
+
     protected void ensureTransferAllowed(State state, Address address, Status status) throws StableCoinPreCheckException {
         ensure(state.checkTransferAllowed(address), status);
     }

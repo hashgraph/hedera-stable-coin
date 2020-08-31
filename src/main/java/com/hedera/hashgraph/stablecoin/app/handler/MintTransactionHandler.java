@@ -23,8 +23,8 @@ public final class MintTransactionHandler extends TransactionHandler<MintTransac
         // iii. value >= 0
         ensureZeroOrGreater(args.value, Status.MINT_VALUE_LESS_THAN_ZERO);
 
-        // iv. TotalSupply + value <= MAX_INT (prevents overflow)
-        // NOTE: overflow is not possible
+        // iv. TotalSupply + value <= MAX_INT
+        ensureLessThanMaxInt(state.getTotalSupply().add(args.value), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
 
         // v. TotalSupply >= Balances[SupplyManager]
         ensureEqualOrGreater(
@@ -32,6 +32,9 @@ public final class MintTransactionHandler extends TransactionHandler<MintTransac
             state.getBalanceOf(state.getSupplyManager()),
             Status.MINT_INSUFFICIENT_TOTAL_SUPPLY
         );
+
+        // vi. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

@@ -36,6 +36,9 @@ public final class BurnTransactionHandler extends TransactionHandler<BurnTransac
             state.getBalanceOf(state.getSupplyManager()),
             Status.BURN_INSUFFICIENT_TOTAL_SUPPLY
         );
+
+        // vi. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBERS_LIMITED_TO_256_BITS);
     }
 
     @Override
