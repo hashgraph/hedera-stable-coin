@@ -6,6 +6,8 @@ plugins {
 	id "com.google.protobuf" version "0.8.12" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
+
+	id "jacoco"
 }
 
 allprojects {
@@ -55,6 +57,11 @@ allprojects {
 			disableWarningsInGeneratedCode = true
 			excludedPaths = "(.*proto.*)|(.*generated.*)"
 		}
+	}
+
+	jacoco {
+		reportsDir = file("$buildDir/jacoco")
+		toolVersion = "0.8.5"
 	}
 }
 
@@ -162,6 +169,8 @@ jar {
 }
 
 tasks.withType(Test) {
+	apply plugin: "jacoco"
+
 	useJUnitPlatform()
 
 	// this task will fail on the first failed test
@@ -172,4 +181,27 @@ tasks.withType(Test) {
 		exceptionFormat = 'full'
 		events "passed", "skipped", "failed", "standardOut", "standardError"
 	}
+}
+
+jacocoTestReport {
+	// make sure to use any/all test coverage data for the report
+	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
+
+	// remove generated files from report
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/proto/**', '**/db/**'])
+        }))
+    }
+
+	// configure it so only xml is generated for the report
+	reports {
+		xml.enabled true
+		xml.destination file("$buildDir/reports/jacoco/report.xml")
+		html.enabled true
+		csv.enabled false
+	}
+
+	// make sure we run all tests before this report is made
+	dependsOn tasks.withType(Test)
 }
