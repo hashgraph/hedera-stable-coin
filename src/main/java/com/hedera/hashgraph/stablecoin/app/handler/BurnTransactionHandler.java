@@ -38,7 +38,7 @@ public final class BurnTransactionHandler extends TransactionHandler<BurnTransac
         );
 
         // vi. value <= MAX_INT
-        ensureLessThanMaxInt(args.value, Status.NUMBERS_LIMITED_TO_256_BITS);
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override
