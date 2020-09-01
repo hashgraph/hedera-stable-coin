@@ -141,7 +141,7 @@ public class App {
         var tokenSymbol = Objects.requireNonNull(
             env.get("HSC_TOKEN_SYMBOL"), "missing environment variable HSC_TOKEN_SYMBOL");
 
-        var tokenDecimal = new BigInteger(Objects.requireNonNull(
+        var tokenDecimal = Integer.parseInt(Objects.requireNonNull(
             env.get("HSC_TOKEN_DECIMAL"), "missing environment variable HSC_TOKEN_DECIMAL"));
 
         var totalSupply = new BigInteger(Objects.requireNonNull(

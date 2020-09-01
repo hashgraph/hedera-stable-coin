@@ -6,7 +6,6 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 import java.math.BigInteger;
-import java.time.Instant;
 
 public abstract class TransactionHandler<ArgumentsT> {
     public abstract ArgumentsT parseArguments(TransactionBody transactionBody);
@@ -43,6 +42,10 @@ public abstract class TransactionHandler<ArgumentsT> {
 
     protected void ensureZeroOrGreater(BigInteger value, Status status) throws StableCoinPreCheckException {
         ensureEqualOrGreater(value, BigInteger.ZERO, status);
+    }
+
+    protected void ensureZeroOrGreater(int value, Status status) throws StableCoinPreCheckException {
+        ensure(value >= 0, status);
     }
 
     protected void ensureEqualOrGreater(BigInteger value, BigInteger equalTo, Status status) throws StableCoinPreCheckException {

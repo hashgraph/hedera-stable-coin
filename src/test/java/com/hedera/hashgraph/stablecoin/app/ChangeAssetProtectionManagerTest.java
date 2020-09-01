@@ -31,7 +31,7 @@ public class ChangeAssetProtectionManagerTest {
         // prepare state
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
-        var tokenDecimal = new BigInteger("2");
+        var tokenDecimal = 2;
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(

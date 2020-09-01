@@ -70,7 +70,7 @@ public final class SnapshotManager {
             state.setTimestamp(stateTimestamp);
             state.setTokenName(snapshot.getTokenName());
             state.setTokenSymbol(snapshot.getTokenSymbol());
-            state.setTokenDecimal(new BigInteger(snapshot.getTokenDecimal().toByteArray()));
+            state.setTokenDecimal(snapshot.getTokenDecimal());
             state.setTotalSupply(new BigInteger(snapshot.getTotalSupply().toByteArray()));
             state.setOwner(new Address(snapshot.getOwner()));
             state.setProposedOwner(new Address(snapshot.getProposedOwner()));
@@ -110,7 +110,7 @@ public final class SnapshotManager {
         var snapshot = Snapshot.newBuilder()
             .setTokenName(state.getTokenName())
             .setTokenSymbol(state.getTokenSymbol())
-            .setTokenDecimal(ByteString.copyFrom(state.getTokenDecimal().toByteArray()))
+            .setTokenDecimal(state.getTokenDecimal())
             .setTotalSupply(ByteString.copyFrom(state.getTotalSupply().toByteArray()))
             .setOwner(ByteString.copyFrom(state.getOwner().publicKey.toBytes()))
             .setSupplyManager(ByteString.copyFrom(state.getSupplyManager().publicKey.toBytes()))

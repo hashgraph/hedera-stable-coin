@@ -41,7 +41,7 @@ public class StateVerticle extends AbstractVerticle {
     private void getToken(RoutingContext routingContext) {
         var name = state.getTokenName();
         var symbol = state.getTokenSymbol();
-        var decimals = state.getTokenDecimal();
+        var decimal = state.getTokenDecimal();
         var totalSupply = state.getTotalSupply();
         var owner = state.getOwner();
         var proposedOwner = state.getProposedOwner();
@@ -54,7 +54,7 @@ public class StateVerticle extends AbstractVerticle {
             .end(new JsonObject(Map.ofEntries(
                 Map.entry("name", name),
                 Map.entry("symbol", symbol),
-                Map.entry("decimals", decimals.toString()),
+                Map.entry("decimals", decimal),
                 Map.entry("totalSupply", totalSupply.toString()),
                 Map.entry("owner", owner.toString()),
                 Map.entry("proposedOwner", proposedOwner.toString()),

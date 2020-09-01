@@ -33,7 +33,7 @@ public final class State {
      */
     private String tokenSymbol = "";
 
-    private BigInteger tokenDecimal = BigInteger.ZERO;
+    private int tokenDecimal = 0;
 
     /**
      * The owner of the stable coin instance. The owner has control over all administrative controls and
@@ -95,11 +95,11 @@ public final class State {
         this.tokenSymbol = tokenSymbol;
     }
 
-    public BigInteger getTokenDecimal() {
+    public int getTokenDecimal() {
         return tokenDecimal;
     }
 
-    public void setTokenDecimal(BigInteger tokenDecimal) {
+    public void setTokenDecimal(int tokenDecimal) {
         this.tokenDecimal = tokenDecimal;
     }
 

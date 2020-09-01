@@ -8,7 +8,7 @@ option java_multiple_files = true;
 message ConstructTransactionData {
     string tokenName = 1;
     string tokenSymbol = 2;
-    bytes tokenDecimal = 3; // BigInteger
+    uint32 tokenDecimal = 3; // int
     bytes totalSupply = 4; //BigInteger
     bytes supplyManager = 5; // Address
     bytes assetProtectionManager = 6; // Address

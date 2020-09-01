@@ -28,7 +28,7 @@ public class ConstructorTest {
         var assetProtectionManager= caller;
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
-        var tokenDecimal = new BigInteger("2");
+        var tokenDecimal = 2;
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
@@ -47,7 +47,7 @@ public class ConstructorTest {
         Assertions.assertTrue(state.getOwner().isZero());
 
         // ii. tokenDecimal >= 0
-        Assertions.assertTrue(tokenDecimal.compareTo(BigInteger.ZERO) >= 0);
+        Assertions.assertTrue(tokenDecimal >= 0);
 
         // iii. totalSupply >= 0
         Assertions.assertTrue(totalSupply.compareTo(BigInteger.ZERO) >= 0);

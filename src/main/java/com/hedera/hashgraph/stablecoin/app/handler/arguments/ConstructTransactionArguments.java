@@ -10,7 +10,7 @@ public final class ConstructTransactionArguments {
 
     public final String tokenSymbol;
 
-    public final BigInteger tokenDecimal;
+    public final int tokenDecimal;
 
     public final BigInteger totalSupply;
 
@@ -24,7 +24,7 @@ public final class ConstructTransactionArguments {
 
         tokenName = data.getTokenName();
         tokenSymbol = data.getTokenSymbol();
-        tokenDecimal = new BigInteger(data.getTokenDecimal().toByteArray());
+        tokenDecimal = data.getTokenDecimal();
         totalSupply = new BigInteger(data.getTotalSupply().toByteArray());
         supplyManager = new Address(data.getSupplyManager());
         assetProtectionManager = new Address(data.getAssetProtectionManager());

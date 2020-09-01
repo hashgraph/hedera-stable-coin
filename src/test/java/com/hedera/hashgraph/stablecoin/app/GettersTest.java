@@ -44,7 +44,7 @@ public class GettersTest {
     // prepare state
     String tokenName = "tokenName";
     String tokenSymbol = "tokenSymbol";
-    BigInteger tokenDecimal = new BigInteger("2");
+    int tokenDecimal = 2;
     BigInteger totalSupply = new BigInteger("10000");
 
     ConstructTransaction constructTransaction = new ConstructTransaction(

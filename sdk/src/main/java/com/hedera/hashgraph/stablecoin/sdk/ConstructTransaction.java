@@ -12,7 +12,7 @@ public final class ConstructTransaction extends Transaction {
         PrivateKey owner,
         String tokenName,
         String tokenSymbol,
-        BigInteger tokenDecimal,
+        int tokenDecimal,
         BigInteger totalSupply,
         Address supplyManager,
         Address assetProtectionManager
@@ -21,7 +21,7 @@ public final class ConstructTransaction extends Transaction {
             .setConstruct(ConstructTransactionData.newBuilder()
                 .setTokenSymbol(tokenSymbol)
                 .setTokenName(tokenName)
-                .setTokenDecimal(ByteString.copyFrom(tokenDecimal.toByteArray()))
+                .setTokenDecimal(tokenDecimal)
                 .setTotalSupply(ByteString.copyFrom(totalSupply.toByteArray()))
                 .setSupplyManager(ByteString.copyFrom(supplyManager.publicKey.toBytes()))
                 .setAssetProtectionManager(ByteString.copyFrom(assetProtectionManager.publicKey.toBytes()))));

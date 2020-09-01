@@ -8,7 +8,7 @@ option java_multiple_files = true;
 message Snapshot {
     string tokenName = 1;
     string tokenSymbol = 2;
-    bytes tokenDecimal = 3;
+    uint32 tokenDecimal = 3;
     bytes totalSupply = 4;
     bytes owner = 5;
     bytes supplyManager = 6;

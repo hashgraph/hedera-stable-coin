@@ -35,7 +35,7 @@ public final class Generator {
     AccountId operatorId;
     String tokenName;
     String tokenSymbol;
-    BigInteger tokenDecimal;
+    int tokenDecimal;
     BigInteger totalSupply;
     PrivateKey supplyManager;
     PrivateKey assetProtectionManager;
@@ -61,7 +61,7 @@ public final class Generator {
         operatorId = AccountId.fromString(loadEnvironmentVariable("HSC_OPERATOR_ID"));
         tokenName = loadEnvironmentVariable("HSC_TOKEN_NAME");
         tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
-        tokenDecimal = new BigInteger(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
+        tokenDecimal = Integer.parseInt(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
         supplyManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
         assetProtectionManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_ASSET_PROTECTION_MANAGER_KEY"));

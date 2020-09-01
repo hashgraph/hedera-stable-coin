@@ -18,7 +18,7 @@ public class StateTest {
         Assertions.assertEquals("",state.getTokenSymbol());
 
         // TokenDecimal : Int = 0
-        Assertions.assertEquals(new BigInteger("0"), state.getTokenDecimal());
+        Assertions.assertEquals(0, state.getTokenDecimal());
 
         // TotalSupply : Int = 0
         Assertions.assertEquals(new BigInteger("0"), state.getTotalSupply());
