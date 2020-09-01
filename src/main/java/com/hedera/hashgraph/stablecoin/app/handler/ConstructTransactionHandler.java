@@ -32,10 +32,7 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
         // vi. assetProtectionManager != 0x
         ensure(!args.assetProtectionManager.isZero(), Status.CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET);
 
-        // vii. tokenDecimal <= MAX_INT
-        ensureLessThanMaxInt(args.tokenDecimal, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
-
-        // viii. totalSupply <= MAX_INT
+        // vii. totalSupply <= MAX_INT
         ensureLessThanMaxInt(args.totalSupply, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
