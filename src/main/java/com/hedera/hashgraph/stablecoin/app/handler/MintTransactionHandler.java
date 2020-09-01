@@ -18,7 +18,7 @@ public final class MintTransactionHandler extends TransactionHandler<MintTransac
         ensureOwnerSet(state);
 
         // ii. caller = SupplyManager || caller = Owner
-        ensureSupplyManager(state, caller);
+        ensureSupplyManagerOrOwner(state, caller);
 
         // iii. value >= 0
         ensureZeroOrGreater(args.value, Status.MINT_VALUE_LESS_THAN_ZERO);

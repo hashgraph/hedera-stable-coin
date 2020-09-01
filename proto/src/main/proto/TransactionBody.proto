@@ -26,7 +26,7 @@ import "DecreaseAllowanceTransactionData.proto";
 message TransactionBody {
     bytes caller = 1;
 
-    // FIXME: we need a way to prevent repeat attacks
+    // we need a way to prevent repeat attacks
     //        1) add a validUntil timestamp
     //        2) require validUntil to be within ~1 minute
     //        3) add a nonce which is a random 8-byte value

@@ -78,7 +78,7 @@ public class App {
     public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException, SQLException {
         var app = new App();
 
-        // TODO: add a real arg parser
+        // should add a real arg parser
         if (args.length > 2 && args[1].equals("--bench")) {
             app.runBenchmark(args[2]);
             return;
@@ -96,15 +96,14 @@ public class App {
         app.deployStateVerticle();
 
         // wait while the APIs and the topic listener run in the background
-        // todo: listen to SIGINT/SIGTERM to cleanly exit
+        // should listen to SIGINT/SIGTERM to cleanly exit
         while (true) Thread.sleep(0);
     }
 
     Client createHederaClient() {
-        // TODO: we need an .env variable to allow switching network
-        // TODO: ..3 is commented out as its currently (as of 8-23) down
+        // we need an .env variable to allow switching network
         var network = new HashMap<AccountId, String>();
-        // network.put(new AccountId(3), "0.testnet.hedera.com:50211");
+        network.put(new AccountId(3), "0.testnet.hedera.com:50211");
         network.put(new AccountId(4), "1.testnet.hedera.com:50211");
         network.put(new AccountId(5), "2.testnet.hedera.com:50211");
         network.put(new AccountId(6), "3.testnet.hedera.com:50211");
@@ -217,7 +216,7 @@ public class App {
 
     void deployStateVerticle() {
         DeploymentOptions deploymentOptions = new DeploymentOptions()
-            // TODO: the port for this API should be configurable
+            // the port for this API should be configurable
             .setConfig(new JsonObject().put("HTTP_PORT", 9000));
 
         vertx.deployVerticle(stateVerticle, deploymentOptions);

@@ -34,6 +34,10 @@ public abstract class TransactionHandler<ArgumentsT> {
     }
 
     protected void ensureSupplyManager(State state, Address caller) throws StableCoinPreCheckException {
+        ensureAuthorized(caller.equals(state.getSupplyManager()));
+    }
+
+    protected void ensureSupplyManagerOrOwner(State state, Address caller) throws StableCoinPreCheckException {
         ensureAuthorized(caller.equals(state.getSupplyManager()) || caller.equals(state.getOwner()));
     }
 
