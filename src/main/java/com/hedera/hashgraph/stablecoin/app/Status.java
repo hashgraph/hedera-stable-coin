@@ -213,7 +213,12 @@ public enum Status {
     /**
      * DecreaseAllowance transaction called with value that exceeds caller to spender allowance.
      */
-    DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE(41);
+    DECREASE_ALLOWANCE_VALUE_EXCEEDS_ALLOWANCE(41),
+
+    /**
+     * Any Transaction called with value or resulting value above the max value for a uint256 number.
+     */
+    NUMBER_VALUES_LIMITED_TO_256_BITS(42);
 
     private static final Map<Integer, Status> possibleValues = Arrays.stream(values())
         .collect(Collectors.toMap(Status::getValue, identity()));

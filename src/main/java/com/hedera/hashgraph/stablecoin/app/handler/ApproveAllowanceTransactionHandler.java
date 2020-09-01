@@ -25,6 +25,9 @@ public final class ApproveAllowanceTransactionHandler extends TransactionHandler
 
         // iv. CheckTransferAllowed(spender)
         ensureTransferAllowed(state, args.spender, Status.APPROVE_ALLOWANCE_SPENDER_TRANSFER_NOT_ALLOWED);
+
+        // v. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override
