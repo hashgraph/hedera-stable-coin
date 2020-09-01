@@ -159,7 +159,7 @@ public final class SnapshotManager {
     }
 
     void prunePrevious() {
-        // TODO: list files and delete state files if there are more than X
+        // list files and delete state files if there are more than X
     }
 
     private Path getFilename(Instant timestamp) {

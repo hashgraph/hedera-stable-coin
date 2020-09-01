@@ -116,7 +116,7 @@ public final class TopicListener {
         var caller = new Address(transactionBody.getCaller());
 
         if (caller.isZero()) {
-            // todo: when transaction logging is added, log this as a failed transaction
+            // when transaction logging is added, log this as a failed transaction
             throw new IllegalStateException("validation failed with status " + Status.CALLER_NOT_SET);
         }
 
@@ -124,7 +124,7 @@ public final class TopicListener {
 
         // verify that this transaction was signed by the identified caller
         if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), signature)) {
-            // todo: when transaction logging is added, log this as a failed transaction
+            // when transaction logging is added, log this as a failed transaction
             throw new IllegalStateException("validation failed with status " + Status.INVALID_SIGNATURE);
         }
 

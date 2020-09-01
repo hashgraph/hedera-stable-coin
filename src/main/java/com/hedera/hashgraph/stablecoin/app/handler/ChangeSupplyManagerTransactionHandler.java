@@ -24,7 +24,7 @@ public final class ChangeSupplyManagerTransactionHandler extends TransactionHand
         ensure(!args.address.isZero(), Status.CHANGE_SUPPLY_MANAGER_ADDRESS_NOT_SET);
 
         // iv. CheckTransferAllowed(addr)
-        ensure(state.checkTransferAllowed(args.address), Status.CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED);
+        ensureTransferAllowed(state, args.address, Status.CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED);
     }
 
     @Override
