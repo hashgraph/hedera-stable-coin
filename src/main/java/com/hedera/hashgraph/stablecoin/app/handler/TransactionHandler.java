@@ -28,8 +28,12 @@ public abstract class TransactionHandler<ArgumentsT> {
         ensure(isAuthorized, Status.CALLER_NOT_AUTHORIZED);
     }
 
-    protected void ensureAssetProtectionManager(State state, Address caller) throws StableCoinPreCheckException {
-        ensureAuthorized(caller.equals(state.getAssetProtectionManager()) || caller.equals(state.getOwner()));
+    protected void ensureComplianceManagerOrOwner(State state, Address caller) throws StableCoinPreCheckException {
+        ensureAuthorized(caller.equals(state.getComplianceManager()) || caller.equals(state.getOwner()));
+    }
+
+    protected void ensureEnforcementManagerOrOwner(State state, Address caller) throws StableCoinPreCheckException {
+        ensureAuthorized(caller.equals(state.getEnforcementManager()) || caller.equals(state.getOwner()));
     }
 
     protected void ensureSupplyManager(State state, Address caller) throws StableCoinPreCheckException {

@@ -47,7 +47,7 @@ http GET :9000/
 
 ```json
 {
-    "assetProtectionManager": "cf750f7c2adc1baf87b3de9df1c317a5f845c994d0b28a6ec4655e7fc59b75dc",
+    "complianceManager": "cf750f7c2adc1baf87b3de9df1c317a5f845c994d0b28a6ec4655e7fc59b75dc",
     "decimals": "2",
     "name": "Fire",
     "owner": "cf750f7c2adc1baf87b3de9df1c317a5f845c994d0b28a6ec4655e7fc59b75dc",

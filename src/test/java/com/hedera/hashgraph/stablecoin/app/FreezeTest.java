@@ -25,10 +25,10 @@ public class FreezeTest {
     @Test
     public void freezeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
-        var assetProtectionManagerKey = PrivateKey.generate();
+        var complianceManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var assetProtectionManager = new Address(assetProtectionManagerKey.getPublicKey());
+        var complianceManager = new Address(complianceManagerKey.getPublicKey());
         var addr = new Address(addrKey.getPublicKey());
 
         // prepare state
@@ -44,7 +44,7 @@ public class FreezeTest {
             tokenDecimal,
             totalSupply,
             caller,
-            assetProtectionManager
+            complianceManager
         );
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
@@ -63,7 +63,7 @@ public class FreezeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii.caller = AssetProtectionManager || caller = Owner
+        // ii.caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
         // iii.!isPrivilegedRole(addr)
@@ -74,16 +74,16 @@ public class FreezeTest {
 
         // Post-Check
 
-        // i. AssetProtectionManager = addr
+        // i. complianceManager = addr
         Assertions.assertTrue(state.isFrozen(addr));
 
-        // unfreeze and check for caller == AssetProtectionManager instead this time
+        // unfreeze and check for caller == complianceManager instead this time
         var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
         // prepare test transaction
         var freezeTransaction2 = new FreezeTransaction(
-            assetProtectionManagerKey,
+            complianceManagerKey,
             addr
         );
 
@@ -92,8 +92,8 @@ public class FreezeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii.caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
+        // ii.caller = complianceManager || caller = Owner
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
 
         // iii.!isPrivilegedRole(addr)
         Assertions.assertFalse(state.isPrivilegedRole(addr));
@@ -103,7 +103,7 @@ public class FreezeTest {
 
         // Post-Check
 
-        // i. AssetProtectionManager = addr
+        // i. complianceManager = addr
         Assertions.assertTrue(state.isFrozen(addr));
     }
 }

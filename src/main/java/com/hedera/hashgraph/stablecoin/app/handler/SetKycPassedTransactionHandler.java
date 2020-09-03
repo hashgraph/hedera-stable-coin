@@ -16,8 +16,8 @@ public final class SetKycPassedTransactionHandler extends TransactionHandler<Set
         // i. Owner != 0x
         ensureOwnerSet(state);
 
-        // ii. caller = assetProtectionManager || caller = owner
-        ensureAssetProtectionManager(state, caller);
+        // ii. caller = ComplianceManager || caller = Owner
+        ensureComplianceManagerOrOwner(state, caller);
     }
 
     @Override

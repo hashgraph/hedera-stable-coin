@@ -16,7 +16,9 @@ public final class ConstructTransactionArguments {
 
     public final Address supplyManager;
 
-    public final Address assetProtectionManager;
+    public final Address complianceManager;
+
+    public final Address enforcementManager;
 
     public ConstructTransactionArguments(TransactionBody body) {
         assert body.hasConstruct();
@@ -27,6 +29,7 @@ public final class ConstructTransactionArguments {
         tokenDecimal = data.getTokenDecimal();
         totalSupply = new BigInteger(data.getTotalSupply().toByteArray());
         supplyManager = new Address(data.getSupplyManager());
-        assetProtectionManager = new Address(data.getAssetProtectionManager());
+        complianceManager = new Address(data.getComplianceManager());
+        enforcementManager = new Address(data.getEnforcementManager());
     }
 }

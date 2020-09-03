@@ -12,7 +12,7 @@ message Snapshot {
     bytes totalSupply = 4;
     bytes owner = 5;
     bytes supplyManager = 6;
-    bytes assetProtectionManager = 7;
+    bytes complianceManager = 7;
     bytes proposedOwner = 8;
     repeated AddressEntry addresses = 9;
     repeated AllowanceEntry allowances = 10;

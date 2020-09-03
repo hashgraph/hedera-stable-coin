@@ -27,14 +27,14 @@ public class GettersTest {
     TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
     PrivateKey ownerKey = PrivateKey.generate();
     PrivateKey supplyManagerKey = PrivateKey.generate();
-    PrivateKey assetProtectionManagerKey = PrivateKey.generate();
+    PrivateKey complianceManagerKey = PrivateKey.generate();
     PrivateKey toKey = PrivateKey.generate();
     PrivateKey spenderKey = PrivateKey.generate();
     PrivateKey proposedOwnerKey = PrivateKey.generate();
     PrivateKey addrKey = PrivateKey.generate();
     Address owner = new Address(ownerKey.getPublicKey());
     Address supplyManager = new Address(supplyManagerKey.getPublicKey());
-    Address assetProtectionManager = new Address(assetProtectionManagerKey.getPublicKey());
+    Address complianceManager = new Address(complianceManagerKey.getPublicKey());
     Address to = new Address(toKey.getPublicKey());
     Address spender = new Address(spenderKey.getPublicKey());
     Address proposedOwner = new Address(proposedOwnerKey.getPublicKey());
@@ -54,7 +54,7 @@ public class GettersTest {
         tokenDecimal,
         totalSupply,
         supplyManager,
-        assetProtectionManager
+        complianceManager
     );
 
     static void construct(TopicListener topicListener, ConstructTransaction constructTransaction) throws InvalidProtocolBufferException, SQLException {
@@ -195,8 +195,8 @@ public class GettersTest {
         // Precondition: i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // Post-conditions: i. result = AssetProtectionManager
-        Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
+        // Post-conditions: i. result = complianceManager
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
     }
 
     @Test
@@ -302,22 +302,22 @@ public class GettersTest {
         // Precondition: i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
         Assertions.assertTrue(state.isPrivilegedRole(owner));
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
-        Assertions.assertTrue(state.isPrivilegedRole(assetProtectionManager));
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
+        Assertions.assertTrue(state.isPrivilegedRole(complianceManager));
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
         Assertions.assertTrue(state.isPrivilegedRole(supplyManager));
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
         Assertions.assertFalse(state.isPrivilegedRole(spender));
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
         Assertions.assertFalse(state.isPrivilegedRole(to));
 
-        // Post-conditions: i. result = (addr = Owner || addr = AssetProtectionManager ||addr = SupplyManager)
+        // Post-conditions: i. result = (addr = Owner || addr = complianceManager ||addr = SupplyManager)
         Assertions.assertFalse(state.isPrivilegedRole(addr));
     }
 }

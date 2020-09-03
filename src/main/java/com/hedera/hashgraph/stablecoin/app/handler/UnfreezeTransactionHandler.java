@@ -16,8 +16,8 @@ public final class UnfreezeTransactionHandler extends TransactionHandler<Unfreez
         // i. Owner != 0x
         ensureOwnerSet(state);
 
-        // ii. caller = assetProtectionManager || caller = owner
-        ensureAuthorized(caller.equals(state.getAssetProtectionManager()) || caller.equals(state.getOwner()));
+        // ii. caller = ComplianceManager || caller = Owner
+        ensureAuthorized(caller.equals(state.getComplianceManager()) || caller.equals(state.getOwner()));
     }
 
     @Override

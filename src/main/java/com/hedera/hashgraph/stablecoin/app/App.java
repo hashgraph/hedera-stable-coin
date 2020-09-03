@@ -153,7 +153,7 @@ public class App {
         var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
             .map(PrivateKey::fromString);
 
-        var assetProtectionManagerKey = Optional.ofNullable(env.get("HSC_ASSET_PROTECTION_MANAGER_KEY"))
+        var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY"))
             .map(PrivateKey::fromString);
 
         // create the new topic ID
@@ -178,7 +178,7 @@ public class App {
             tokenDecimal,
             totalSupply,
             new Address(supplyManagerKey.orElse(operatorPrivateKey).getPublicKey()),
-            new Address(assetProtectionManagerKey.orElse(operatorPrivateKey).getPublicKey())
+            new Address(complianceManagerKey.orElse(operatorPrivateKey).getPublicKey())
         ).toByteArray();
 
         // and finally submit it

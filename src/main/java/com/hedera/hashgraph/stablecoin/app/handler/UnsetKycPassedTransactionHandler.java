@@ -17,8 +17,8 @@ public final class UnsetKycPassedTransactionHandler extends TransactionHandler<U
         // i. Owner != 0x
         ensureOwnerSet(state);
 
-        // ii. caller = assetProtectionManager || caller = owner
-        ensureAssetProtectionManager(state, caller);
+        // ii. caller = ComplianceManager || caller = Owner
+        ensureComplianceManagerOrOwner(state, caller);
 
         // iii. !isPrivilegedRole(addr)
         ensure(!state.isPrivilegedRole(args.address), Status.UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED);

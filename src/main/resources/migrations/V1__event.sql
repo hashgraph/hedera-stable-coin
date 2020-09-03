@@ -24,7 +24,7 @@ CREATE TABLE event
     --  5 = Transfer
     --  6 = ProposeOwner
     --  7 = ClaimOwner
-    --  8 = ChangeAssetProtectionManager
+    --  8 = ChangeComplianceManager
     --  9 = ChangeSupplyManager
     -- 10 = Freeze
     -- 11 = Unfreeze
@@ -37,7 +37,7 @@ CREATE TABLE event
 );
 
 -- Constructed(tokenName, tokenSymbol, tokenDecimal, totalSupply,
---             supplyManager, assetProtectionManager)
+--             supplyManager, complianceManager)
 CREATE TABLE event_construct
 (
     timestamp                INT8           NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE event_construct
     token_decimal            NUMERIC(78, 0) NOT NULL,
     total_supply             NUMERIC(78, 0) NOT NULL,
     supply_manager           BYTEA          NOT NULL,
-    asset_protection_manager BYTEA          NOT NULL
+    COMPLIANCE_manager BYTEA          NOT NULL
 );
 
 -- Approve(caller, spender, value)
@@ -123,8 +123,19 @@ CREATE TABLE event_claim_owner
     address   BYTEA NOT NULL
 );
 
--- ChangeAssetProtectionManager(addr)
-CREATE TABLE event_change_asset_protection_manager
+-- ChangeComplianceManager(addr)
+CREATE TABLE event_change_compliance_manager
+(
+    timestamp INT8  NOT NULL,
+    index     INT2  NOT NULL,
+
+    PRIMARY KEY (timestamp, index),
+
+    address   BYTEA NOT NULL
+);
+
+-- ChangeEnforcementManager(addr)
+CREATE TABLE event_change_enforcement_manager
 (
     timestamp INT8  NOT NULL,
     index     INT2  NOT NULL,

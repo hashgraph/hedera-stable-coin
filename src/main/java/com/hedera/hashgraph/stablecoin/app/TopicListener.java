@@ -5,25 +5,7 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.SubscriptionHandle;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.stablecoin.app.handler.ApproveAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.BurnTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.ChangeAssetProtectionManagerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.ChangeSupplyManagerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.ClaimOwnershipTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.ConstructTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.DecreaseAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.FreezeTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.IncreaseAllowanceTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.MintTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.ProposeOwnerTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.SetKycPassedTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.StableCoinPreCheckException;
-import com.hedera.hashgraph.stablecoin.app.handler.TransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.TransferFromTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.TransferTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.UnfreezeTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.UnsetKycPassedTransactionHandler;
-import com.hedera.hashgraph.stablecoin.app.handler.WipeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.*;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
@@ -54,7 +36,8 @@ public final class TopicListener {
         entry(DataCase.PROPOSEOWNER, new ProposeOwnerTransactionHandler()),
         entry(DataCase.CLAIMOWNERSHIP, new ClaimOwnershipTransactionHandler()),
         entry(DataCase.CHANGESUPPLYMANAGER, new ChangeSupplyManagerTransactionHandler()),
-        entry(DataCase.CHANGEASSETPROTECTIONMANAGER, new ChangeAssetProtectionManagerTransactionHandler()),
+        entry(DataCase.CHANGECOMPLIANCEMANAGER, new ChangeComplianceManagerTransactionHandler()),
+        entry(DataCase.CHANGEENFORCEMENTMANAGER, new ChangeEnforcementManagerTransactionHandler()),
         entry(DataCase.FREEZE, new FreezeTransactionHandler()),
         entry(DataCase.UNFREEZE, new UnfreezeTransactionHandler()),
         entry(DataCase.WIPE, new WipeTransactionHandler()),

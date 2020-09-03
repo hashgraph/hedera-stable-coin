@@ -17,19 +17,25 @@ public final class WipeTransactionHandler extends TransactionHandler<WipeTransac
         // i. Owner != 0x
         ensureOwnerSet(state);
 
-        // ii. caller = assetProtectionManager || caller = owner
-        ensureAssetProtectionManager(state, caller);
+        // ii. value >= 0
+        ensureZeroOrGreater(args.value, Status.INCREASE_ALLOWANCE_VALUE_LESS_THAN_ZERO);
 
-        // iii. Frozen[addr]
-        ensure(state.isFrozen(args.address), Status.WIPE_ADDRESS_NOT_FROZEN);
+        // iii. caller = EnforcementManager || caller = Owner
+        ensureEnforcementManagerOrOwner(state, caller);
+
+        // iv. value <= Balances[addr]
+        ensure(args.value.compareTo(state.getBalanceOf(args.address)) <= 0, Status.WIPE_VALUE_WOULD_RESULT_IN_NEGATIVE_BALANCE);
+
+        // iv. value <= MAX_INT
+        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override
     protected void updateState(State state, Address caller, WipeTransactionArguments args) {
-        // i. TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
-        state.decreaseTotalSupply(state.getBalanceOf(args.address));
+        // i. TotalSupply’ = TotalSupply - value // total supply decreased
+        state.decreaseTotalSupply(args.value);
 
-        // ii. Balances[addr]’ = 0
-        state.clearBalanceOf(args.address);
+        // ii. Balances[addr]’ = Balances[addr] - value // balance “updated”
+        state.decreaseBalanceOf(args.address, args.value);
     }
 }

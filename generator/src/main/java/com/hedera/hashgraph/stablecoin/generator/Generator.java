@@ -38,7 +38,7 @@ public final class Generator {
     int tokenDecimal;
     BigInteger totalSupply;
     PrivateKey supplyManager;
-    PrivateKey assetProtectionManager;
+    PrivateKey complianceManager;
 
     public int count = 0;
 
@@ -64,7 +64,7 @@ public final class Generator {
         tokenDecimal = Integer.parseInt(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
         supplyManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
-        assetProtectionManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_ASSET_PROTECTION_MANAGER_KEY"));
+        complianceManager = PrivateKey.fromString(loadEnvironmentVariable("HSC_COMPLIANCE_MANAGER_KEY"));
         count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
     }
 
@@ -88,7 +88,7 @@ public final class Generator {
             tokenDecimal,
             totalSupply,
             new Address(supplyManager.getPublicKey()),
-            new Address(assetProtectionManager.getPublicKey())
+            new Address(complianceManager.getPublicKey())
         ));
     }
 

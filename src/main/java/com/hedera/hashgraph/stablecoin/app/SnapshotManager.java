@@ -74,7 +74,7 @@ public final class SnapshotManager {
             state.setTotalSupply(new BigInteger(snapshot.getTotalSupply().toByteArray()));
             state.setOwner(new Address(snapshot.getOwner()));
             state.setProposedOwner(new Address(snapshot.getProposedOwner()));
-            state.setAssetProtectionManager(new Address(snapshot.getAssetProtectionManager()));
+            state.setComplianceManager(new Address(snapshot.getComplianceManager()));
             state.setSupplyManager(new Address(snapshot.getSupplyManager()));
 
             for (var addressEntry : snapshot.getAddressesList()) {
@@ -114,7 +114,7 @@ public final class SnapshotManager {
             .setTotalSupply(ByteString.copyFrom(state.getTotalSupply().toByteArray()))
             .setOwner(ByteString.copyFrom(state.getOwner().publicKey.toBytes()))
             .setSupplyManager(ByteString.copyFrom(state.getSupplyManager().publicKey.toBytes()))
-            .setAssetProtectionManager(ByteString.copyFrom(state.getAssetProtectionManager().publicKey.toBytes()))
+            .setComplianceManager(ByteString.copyFrom(state.getComplianceManager().publicKey.toBytes()))
             .setProposedOwner(ByteString.copyFrom(state.getProposedOwner().publicKey.toBytes()));
 
         for (var entry : state.balances.entrySet()) {

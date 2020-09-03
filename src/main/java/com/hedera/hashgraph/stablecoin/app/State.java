@@ -43,7 +43,9 @@ public final class State {
 
     private Address supplyManager = Address.ZERO;
 
-    private Address assetProtectionManager = Address.ZERO;
+    private Address complianceManager = Address.ZERO;
+
+    private Address enforcementManager = Address.ZERO;
 
     /**
      * The proposed owner may be set at any time by the current owner. The proposed owner can then claim their
@@ -119,12 +121,18 @@ public final class State {
         this.supplyManager = supplyManager;
     }
 
-    public Address getAssetProtectionManager() {
-        return assetProtectionManager;
+    public Address getComplianceManager() {
+        return complianceManager;
     }
 
-    public void setAssetProtectionManager(Address assetProtectionManager) {
-        this.assetProtectionManager = assetProtectionManager;
+    public Address getEnforcementManager() { return enforcementManager; }
+
+    public void setComplianceManager(Address complianceManager) {
+        this.complianceManager = complianceManager;
+    }
+
+    public void setEnforcementManager(Address enforcementManager) {
+        this.enforcementManager = enforcementManager;
     }
 
     public BigInteger getAllowance(Address caller, Address spender) {
@@ -181,8 +189,9 @@ public final class State {
 
     public boolean isPrivilegedRole(Address address) {
         return address.equals(getOwner()) ||
+            address.equals(getComplianceManager()) ||
             address.equals(getSupplyManager()) ||
-            address.equals(getAssetProtectionManager());
+            address.equals(getEnforcementManager());
     }
 
     public void setBalance(Address address, BigInteger balance) {

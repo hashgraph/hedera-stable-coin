@@ -29,10 +29,13 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
         // v. supplyManager != 0x
         ensure(!args.supplyManager.isZero(), Status.CONSTRUCTOR_SUPPLY_MANAGER_NOT_SET);
 
-        // vi. assetProtectionManager != 0x
-        ensure(!args.assetProtectionManager.isZero(), Status.CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET);
+        // vi. complianceManager != 0x
+        ensure(!args.complianceManager.isZero(), Status.CONSTRUCTOR_COMPLIANCE_MANAGER_NOT_SET);
 
-        // vii. totalSupply <= MAX_INT
+        // vii. enforcementManager != 0x
+        ensure(!args.enforcementManager.isZero(), Status.CONSTRUCTOR_ENFORCEMENT_MANAGER_NOT_SET);
+
+        // viii. totalSupply <= MAX_INT
         ensureLessThanMaxInt(args.totalSupply, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
@@ -56,22 +59,26 @@ public final class ConstructTransactionHandler extends TransactionHandler<Constr
         // vi. SupplyManager = supplyManager
         state.setSupplyManager(args.supplyManager);
 
-        // vii. AssetProtectionManager = assetProtectionManager
-        state.setAssetProtectionManager(args.assetProtectionManager);
+        // vii. ComplianceManager = complianceManager
+        state.setComplianceManager(args.complianceManager);
 
-        // viii. Balances = { SupplyManager->TotalSupply } (SupplyManager gets the TotalSupply of tokens)
+        // viii. EnforcementManager = enforcementManager
+        state.setEnforcementManager(args.enforcementManager);
+
+        // ix. Balances = { SupplyManager->TotalSupply } (SupplyManager gets the TotalSupply of tokens)
         state.increaseBalanceOf(args.supplyManager, args.totalSupply);
 
-        // ix. Allowances = {}
+        // x. Allowances = {}
         // NOTE: maps are default initialized in State
 
-        // x. Frozen = {}
+        // xi. Frozen = {}
         // NOTE: maps are default initialized in state
 
-        // xi. KycPassed = { Owner->true, SupplyManager->true ,AssetProtectionManager->true }
+        // xii. KycPassed = { Owner->true, SupplyManager->true, ComplianceManager ->true , EnforcementManager->true }
         state.setKycPassed(caller);
         state.setKycPassed(args.supplyManager);
-        state.setKycPassed(args.assetProtectionManager);
+        state.setKycPassed(args.complianceManager);
+        state.setKycPassed(args.enforcementManager);
 
         // xii. ProposedOwner = 0x
         // NOTE: this is default initialized in State

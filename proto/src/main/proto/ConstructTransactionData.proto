@@ -11,5 +11,6 @@ message ConstructTransactionData {
     uint32 tokenDecimal = 3; // int
     bytes totalSupply = 4; //BigInteger
     bytes supplyManager = 5; // Address
-    bytes assetProtectionManager = 6; // Address
+    bytes complianceManager = 6; // Address
+    bytes enforcementManager = 7; // Address
 }

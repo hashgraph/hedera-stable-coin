@@ -46,7 +46,7 @@ public class StateVerticle extends AbstractVerticle {
         var owner = state.getOwner();
         var proposedOwner = state.getProposedOwner();
         var supplyManager = state.getSupplyManager();
-        var assetProtectionManager = state.getAssetProtectionManager();
+        var complianceManager = state.getComplianceManager();
 
         routingContext.response()
             .putHeader("content-type", "application/json")
@@ -59,7 +59,7 @@ public class StateVerticle extends AbstractVerticle {
                 Map.entry("owner", owner.toString()),
                 Map.entry("proposedOwner", proposedOwner.toString()),
                 Map.entry("supplyManager", supplyManager.toString()),
-                Map.entry("assetProtectionManager", assetProtectionManager.toString())
+                Map.entry("complianceManager", complianceManager.toString())
             )).encode());
     }
 

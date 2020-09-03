@@ -27,10 +27,10 @@ public class WipeTest {
     @Test
     public void wipeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
-        var assetProtectionManagerKey = PrivateKey.generate();
+        var complianceManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var assetProtectionManager = new Address(assetProtectionManagerKey.getPublicKey());
+        var complianceManager = new Address(complianceManagerKey.getPublicKey());
         var addr = new Address(addrKey.getPublicKey());
         var value = BigInteger.ONE;
 
@@ -47,22 +47,21 @@ public class WipeTest {
             tokenDecimal,
             totalSupply,
             caller,
-            assetProtectionManager
+            complianceManager
         );
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
-        var transferTransaction = new TransferTransaction(callerKey, addr, value);
-        var freezeTransaction = new FreezeTransaction(callerKey, addr);
+        var transferTransaction = new TransferTransaction(callerKey, addr, BigInteger.TWO);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var wipeTransaction = new WipeTransaction(
             callerKey,
-            addr
+            addr,
+            value
         );
 
         var balance = state.getBalanceOf(addr);
@@ -72,57 +71,68 @@ public class WipeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
+        // ii. value >= 0
+        Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
+
+        // ii. caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
-        // iii. Frozen[addr]
-        Assertions.assertTrue(state.isFrozen(addr));
+        // iv. value <= Balances[addr]
+        Assertions.assertTrue(value.compareTo(state.getBalanceOf(addr)) <= 0);
+
+        // iv. value <= MAX_INT
+        Assertions.assertTrue(value.compareTo(BigInteger.TWO.pow(256)) < 0);
 
         // Update State
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
-        Assertions.assertEquals(totalSupply.subtract(balance), state.getTotalSupply());
+        // i. TotalSupply’ = TotalSupply - value // total supply decreased
+        Assertions.assertEquals(totalSupply.subtract(value), state.getTotalSupply());
 
-        // ii. Balances[addr]’ = 0 // balance “updated” to 0
-        Assertions.assertEquals(BigInteger.ZERO, state.getBalanceOf(addr));
+        // ii. Balances[addr]’ = Balances[addr] - value // balance “updated”
+        Assertions.assertEquals(balance.subtract(value), state.getBalanceOf(addr));
 
-        // re-establish address, transfer to it, then freeze it and check for caller == AssetProtectionManager instead this time
+        // check for caller == complianceManager instead this time
         var totalSupply2 = state.getTotalSupply();
-        var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
+        var balance2 = state.getBalanceOf(addr);
 
         // prepare test transaction
         var wipeTransaction2 = new WipeTransaction(
-            assetProtectionManagerKey,
-            addr
+            complianceManagerKey,
+            addr,
+            value
         );
+
+        // Pre-Check
 
         // Pre-Check
 
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
+        // ii. value >= 0
+        Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
 
-        // iii. Frozen[addr]
-        Assertions.assertTrue(state.isFrozen(addr));
+        // ii. caller = complianceManager || caller = Owner
+        Assertions.assertEquals(caller, state.getOwner());
+
+        // iv. value <= Balances[addr]
+        Assertions.assertTrue(value.compareTo(state.getBalanceOf(addr)) <= 0);
+
+        // iv. value <= MAX_INT
+        Assertions.assertTrue(value.compareTo(BigInteger.TWO.pow(256)) < 0);
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. TotalSupply’ = TotalSupply - Balances[addr] // total supply decreased
-        Assertions.assertEquals(totalSupply2.subtract(balance), state.getTotalSupply());
+        // i. TotalSupply’ = TotalSupply - value // total supply decreased
+        Assertions.assertEquals(totalSupply2.subtract(value), state.getTotalSupply());
 
-        // ii. Balances[addr]’ = 0 // balance “updated” to 0
-        Assertions.assertEquals(BigInteger.ZERO, state.getBalanceOf(addr));
+        // ii. Balances[addr]’ = Balances[addr] - value // balance “updated”
+        Assertions.assertEquals(balance2.subtract(value), state.getBalanceOf(addr));
     }
 }
