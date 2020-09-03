@@ -65,7 +65,7 @@ public class UnsetKycPassedTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
+        // ii. caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
         // iii. !isPrivilegedRole(addr)
@@ -79,7 +79,7 @@ public class UnsetKycPassedTest {
         // i. !KycPassed[addr]
         Assertions.assertFalse(state.isKycPassed(addr));
 
-        // re-set and check for caller == AssetProtectionManager instead this time
+        // re-set and check for caller == complianceManager instead this time
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
 
         Assertions.assertTrue(state.isKycPassed(addr));
@@ -97,8 +97,8 @@ public class UnsetKycPassedTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(assetManager, state.getAssetProtectionManager());
+        // ii. caller = complianceManager || caller = Owner
+        Assertions.assertEquals(assetManager, state.getComplianceManager());
 
         // iii. !isPrivilegedRole(addr)
         Assertions.assertFalse(state.isPrivilegedRole(addr));

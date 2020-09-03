@@ -30,7 +30,7 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
             TRANSACTION_CONSTRUCT.TOKEN_SYMBOL,
             TRANSACTION_CONSTRUCT.TOKEN_DECIMAL,
             TRANSACTION_CONSTRUCT.TOTAL_SUPPLY,
-            TRANSACTION_CONSTRUCT.ASSET_PROTECTION_MANAGER,
+            TRANSACTION_CONSTRUCT.COMPLIANCE_MANAGER,
             TRANSACTION_CONSTRUCT.SUPPLY_MANAGER
         ).values((Long) null, null, null, null, null, null, null));
     }
@@ -42,7 +42,7 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
             arguments.tokenSymbol,
             arguments.tokenDecimal,
             arguments.totalSupply,
-            arguments.assetProtectionManager.toBytes(),
+            arguments.complianceManager.toBytes(),
             arguments.supplyManager.toBytes());
     }
 }

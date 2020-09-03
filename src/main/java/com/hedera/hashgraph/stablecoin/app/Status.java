@@ -41,9 +41,9 @@ public enum Status {
     CALLER_TRANSFER_NOT_ALLOWED(6),
 
     /**
-     * Constructor called with an empty value for asset protection manager.
+     * Constructor called with an empty value for compliance manager.
      */
-    CONSTRUCTOR_ASSET_PROTECTION_MANAGER_NOT_SET(7),
+    CONSTRUCTOR_COMPLIANCE_MANAGER_NOT_SET(7),
 
     /**
      * Constructor called after contract has already been constructed.
@@ -166,14 +166,14 @@ public enum Status {
     CHANGE_SUPPLY_MANAGER_TRANSFER_NOT_ALLOWED(31),
 
     /**
-     * ChangeAssetProtectionManager transaction called with an empty address.
+     * ChangeComplianceManager transaction called with an empty address.
      */
-    CHANGE_ASSET_PROTECTION_MANAGER_ADDRESS_NOT_SET(32),
+    CHANGE_COMPLIANCE_MANAGER_ADDRESS_NOT_SET(32),
 
     /**
-     * ChangeAssetProtectionManager transaction called with address that either is frozen or has not passed KYC.
+     * ChangeComplianceManager transaction called with address that either is frozen or has not passed KYC.
      */
-    CHANGE_ASSET_PROTECTION_MANAGER_TRANSFER_NOT_ALLOWED(33),
+    CHANGE_COMPLIANCE_MANAGER_TRANSFER_NOT_ALLOWED(33),
 
     /**
      * Freeze transaction called with a privileged address.
@@ -181,9 +181,9 @@ public enum Status {
     FREEZE_ADDRESS_IS_PRIVILEGED(34),
 
     /**
-     * Wipe transaction called with address that is not frozen.
+     * Wipe value is larger than the balance of the address, this wipe would result in a negative balance.
      */
-    WIPE_ADDRESS_NOT_FROZEN(35),
+    WIPE_VALUE_WOULD_RESULT_IN_NEGATIVE_BALANCE(35),
 
     /**
      * UnsetKycPassed transaction called with privileged address.
@@ -218,7 +218,24 @@ public enum Status {
     /**
      * Any Transaction called with value or resulting value above the max value for a uint256 number.
      */
-    NUMBER_VALUES_LIMITED_TO_256_BITS(42);
+    NUMBER_VALUES_LIMITED_TO_256_BITS(42),
+
+    /**
+     * Constructor called with an empty value for enforcement manager.
+     */
+    CONSTRUCTOR_ENFORCEMENT_MANAGER_NOT_SET(43),
+
+    /**
+     * ChangeEnforcementManager transaction called with an empty address.
+     */
+    CHANGE_ENFORCEMENT_MANAGER_ADDRESS_NOT_SET(44),
+
+    /**
+     * ChangeEnforcementManager transaction called with address that either is frozen or has not passed KYC.
+     */
+    CHANGE_ENFORCEMENT_MANAGER_TRANSFER_NOT_ALLOWED(45),
+
+    ;
 
     private static final Map<Integer, Status> possibleValues = Arrays.stream(values())
         .collect(Collectors.toMap(Status::getValue, identity()));

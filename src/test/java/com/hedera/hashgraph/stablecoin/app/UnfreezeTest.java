@@ -25,10 +25,10 @@ public class UnfreezeTest {
     @Test
     public void unfreezeTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
-        var assetProtectionManagerKey = PrivateKey.generate();
+        var complianceManagerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
-        var assetProtectionManager = new Address(assetProtectionManagerKey.getPublicKey());
+        var complianceManager = new Address(complianceManagerKey.getPublicKey());
         var addr = new Address(addrKey.getPublicKey());
 
         // prepare state
@@ -44,7 +44,7 @@ public class UnfreezeTest {
             tokenDecimal,
             totalSupply,
             caller,
-            assetProtectionManager
+            complianceManager
         );
 
         var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
@@ -65,7 +65,7 @@ public class UnfreezeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
+        // ii. caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
         // Update State
@@ -73,15 +73,15 @@ public class UnfreezeTest {
 
         // Post-Check
 
-        // i. AssetProtectionManager = addr
+        // i. complianceManager = addr
         Assertions.assertFalse(state.isFrozen(addr));
 
-        // freeze and test for caller == AssetProtectionManager instead this time
+        // freeze and test for caller == complianceManager instead this time
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
         // prepare test transaction
         var unfreezeTransaction2 = new UnfreezeTransaction(
-            assetProtectionManagerKey,
+            complianceManagerKey,
             addr
         );
 
@@ -90,15 +90,15 @@ public class UnfreezeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii.caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
+        // ii.caller = complianceManager || caller = Owner
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
 
         // Update State
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction2.toByteArray()));
 
         // Post-Check
 
-        // i. AssetProtectionManager = addr
+        // i. complianceManager = addr
         Assertions.assertFalse(state.isFrozen(addr));
     }
 }

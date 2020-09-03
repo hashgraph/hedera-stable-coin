@@ -29,8 +29,8 @@ public class StateTest {
         // SupplyManager: Address = {}
         Assertions.assertSame(Address.ZERO, state.getSupplyManager());
 
-        // AssetProtectionManager: Address = {}
-        Assertions.assertSame(Address.ZERO, state.getAssetProtectionManager());
+        // complianceManager: Address = {}
+        Assertions.assertSame(Address.ZERO, state.getComplianceManager());
 
         // Balances: Map::Address->Int = {}
         Assertions.assertTrue(state.isBalanceEmpty());

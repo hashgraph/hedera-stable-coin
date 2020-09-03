@@ -25,7 +25,7 @@ public class ConstructorTest {
         var callerKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
         var supplyManager = caller;
-        var assetProtectionManager= caller;
+        var complianceManager= caller;
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
         var tokenDecimal = 2;
@@ -58,8 +58,8 @@ public class ConstructorTest {
         // v. supplyManager != 0x
         Assertions.assertFalse(supplyManager.isZero());
 
-        // vi. assetProtectionManager != 0x
-        Assertions.assertFalse(assetProtectionManager.isZero());
+        // vi. complianceManager != 0x
+        Assertions.assertFalse(complianceManager.isZero());
 
 
         // Update State
@@ -85,8 +85,8 @@ public class ConstructorTest {
         // vi. SupplyManager = supplyManager
         Assertions.assertEquals(supplyManager, state.getSupplyManager());
 
-        // vii. AssetProtectionManager = assetProtectionManager
-        Assertions.assertEquals(assetProtectionManager, state.getAssetProtectionManager());
+        // vii. complianceManager = complianceManager
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
 
         // viii. Balances = { SupplyManager->TotalSupply } // SupplyManager gets the TotalSupply of tokens
         Assertions.assertEquals(totalSupply, state.getBalanceOf(supplyManager));
@@ -97,10 +97,10 @@ public class ConstructorTest {
         // x. Frozen = {} // no account is frozen by default
         Assertions.assertTrue(state.isFrozenEmpty());
 
-        // xi. KycPassed = { Owner->true, SupplyManager->true ,AssetProtectionManager->true }
+        // xi. KycPassed = { Owner->true, SupplyManager->true ,complianceManager->true }
         Assertions.assertTrue(state.getKycPassed(state.getOwner()));
         Assertions.assertTrue(state.getKycPassed(state.getSupplyManager()));
-        Assertions.assertTrue(state.getKycPassed(state.getAssetProtectionManager()));
+        Assertions.assertTrue(state.getKycPassed(state.getComplianceManager()));
 
         // xii. ProposedOwner = 0x
         Assertions.assertEquals(Address.ZERO, state.getProposedOwner());

@@ -6,7 +6,7 @@ import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.ChangeAssetProtectionManagerTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.ChangeComplianceManagerTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
@@ -16,13 +16,13 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 
-public class ChangeAssetProtectionManagerTest {
+public class ChangeComplianceManagerTest {
     State state = new State();
     Client client = Client.forTestnet();
     TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
 
     @Test
-    public void changeAssetProtectionManagerTest() throws InvalidProtocolBufferException, SQLException {
+    public void changecomplianceManagerTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = PrivateKey.generate();
         var addrKey = PrivateKey.generate();
         var caller = new Address(callerKey.getPublicKey());
@@ -50,7 +50,7 @@ public class ChangeAssetProtectionManagerTest {
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
-        var changeAssetProtectionManagerTransaction = new ChangeAssetProtectionManagerTransaction(
+        var changecomplianceManagerTransaction = new ChangeComplianceManagerTransaction(
             callerKey,
             addr
         );
@@ -70,11 +70,11 @@ public class ChangeAssetProtectionManagerTest {
         Assertions.assertTrue(state.checkTransferAllowed(addr));
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeAssetProtectionManagerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changecomplianceManagerTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. AssetProtectionManager = addr
-        Assertions.assertEquals(addr, state.getAssetProtectionManager());
+        // i. complianceManager = addr
+        Assertions.assertEquals(addr, state.getComplianceManager());
     }
 }

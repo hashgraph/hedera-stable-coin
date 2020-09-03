@@ -14,7 +14,8 @@ import "TransferFromTransactionData.proto";
 import "ProposeOwnerTransactionData.proto";
 import "ClaimOwnershipTransactionData.proto";
 import "ChangeSupplyManagerTransactionData.proto";
-import "ChangeAssetProtectionManagerTransactionData.proto";
+import "ChangeComplianceManagerTransactionData.proto";
+import "ChangeEnforcementManagerTransactionData.proto";
 import "FreezeTransactionData.proto";
 import "UnfreezeTransactionData.proto";
 import "WipeTransactionData.proto";
@@ -42,13 +43,14 @@ message TransactionBody {
         ProposeOwnerTransactionData proposeOwner = 8;
         ClaimOwnershipTransactionData claimOwnership = 9;
         ChangeSupplyManagerTransactionData changeSupplyManager = 10;
-        ChangeAssetProtectionManagerTransactionData changeAssetProtectionManager = 11;
-        FreezeTransactionData freeze = 12;
-        UnfreezeTransactionData unfreeze = 13;
-        WipeTransactionData wipe = 14;
-        SetKycPassedTransactionData setKycPassed = 15;
-        UnsetKycPassedTransactionData unsetKycPassed = 16;
-        IncreaseAllowanceTransactionData increaseAllowance = 17;
-        DecreaseAllowanceTransactionData decreaseAllowance = 18;
+        ChangeComplianceManagerTransactionData changeComplianceManager = 11;
+        ChangeEnforcementManagerTransactionData changeEnforcementManager = 12;
+        FreezeTransactionData freeze = 13;
+        UnfreezeTransactionData unfreeze = 14;
+        WipeTransactionData wipe = 15;
+        SetKycPassedTransactionData setKycPassed = 16;
+        UnsetKycPassedTransactionData unsetKycPassed = 17;
+        IncreaseAllowanceTransactionData increaseAllowance = 18;
+        DecreaseAllowanceTransactionData decreaseAllowance = 19;
     }
 }

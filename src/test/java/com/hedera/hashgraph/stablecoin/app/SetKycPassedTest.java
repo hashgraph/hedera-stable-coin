@@ -59,7 +59,7 @@ public class SetKycPassedTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
+        // ii. caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
         // Update State
@@ -70,7 +70,7 @@ public class SetKycPassedTest {
         // i. KycPassed[addr]
         Assertions.assertTrue(state.isKycPassed(addr));
 
-        // unset and check for caller == AssetProtectionManager instead this time
+        // unset and check for caller == complianceManager instead this time
         var unsetKycPassedTransaction = new UnsetKycPassedTransaction(
             callerKey,
             addr
@@ -94,8 +94,8 @@ public class SetKycPassedTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = AssetProtectionManager || caller = Owner
-        Assertions.assertEquals(assetManager, state.getAssetProtectionManager());
+        // ii. caller = complianceManager || caller = Owner
+        Assertions.assertEquals(assetManager, state.getComplianceManager());
 
         // Post-Check
 

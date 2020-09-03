@@ -25,7 +25,7 @@ CREATE TABLE "transaction"
 
 -- void constructor(String tokenName, String tokenSymbol, Int
 --      tokenDecimal, Int totalSupply, Address supplyManager, Address
---      assetProtectionManager)
+--      complianceManager)
 CREATE TABLE transaction_construct
 (
     "timestamp"              INT8 PRIMARY KEY,
@@ -35,7 +35,7 @@ CREATE TABLE transaction_construct
     token_decimal            NUMERIC(78, 0) NOT NULL,
     total_supply             NUMERIC(78, 0) NOT NULL,
     supply_manager           BYTEA          NOT NULL,
-    asset_protection_manager BYTEA          NOT NULL
+    COMPLIANCE_manager BYTEA          NOT NULL
 );
 
 -- void approveAllowance(Address spender, Int value)
@@ -101,8 +101,16 @@ CREATE TABLE transaction_change_supply_manager
     address     BYTEA NOT NULL
 );
 
--- void changeAssetProtectionManager(Address addr)
-CREATE TABLE transaction_change_asset_protection_manager
+-- void changeComplianceManager(Address addr)
+CREATE TABLE transaction_change_compliance_manager
+(
+    "timestamp" INT8 PRIMARY KEY,
+
+    address     BYTEA NOT NULL
+);
+
+-- void changeEnforcementManager(Address addr)
+CREATE TABLE transaction_change_enforcement_manager
 (
     "timestamp" INT8 PRIMARY KEY,
 
