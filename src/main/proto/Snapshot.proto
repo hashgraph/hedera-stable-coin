@@ -14,17 +14,25 @@ message Snapshot {
     bytes supplyManager = 6;
     bytes complianceManager = 7;
     bytes proposedOwner = 8;
-    repeated AddressEntry addresses = 9;
-    repeated AllowanceEntry allowances = 10;
+    repeated BalanceEntry balances = 9;
+    repeated KycPassedEntry kycPassed = 10;
+    repeated FrozenEntry frozen = 11;
+    repeated AllowanceEntry allowances = 12;
 }
 
-message AddressEntry {
+message BalanceEntry {
     bytes address = 1;
     bytes balance = 2;
+}
 
-    // bit 1 = kyc
-    // bit 2 = frozen
-    int32 flags = 3;
+message KycPassedEntry {
+    bytes address = 1;
+    bool isKycPassed = 2;
+}
+
+message FrozenEntry {
+    bytes address = 1;
+    bool isFrozen = 2;
 }
 
 message AllowanceEntry {

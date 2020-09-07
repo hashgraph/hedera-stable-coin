@@ -33,16 +33,16 @@ public class StateTest {
         Assertions.assertSame(Address.ZERO, state.getComplianceManager());
 
         // Balances: Map::Address->Int = {}
-        Assertions.assertTrue(state.isBalanceEmpty());
+        Assertions.assertTrue(state.balances.isEmpty());
 
         // Allowances: Map::Address->(Map::Address->Int) = {}
-        Assertions.assertTrue(state.isAllowancesEmpty());
+        Assertions.assertTrue(state.allowances.isEmpty());
 
         // Frozen: Map::Address->Bool = {}
         Assertions.assertTrue(state.frozen.isEmpty());
 
         // KycPassed: Map::Address->Bool = {}
-        Assertions.assertTrue(state.isKycPassedEmpty());
+        Assertions.assertTrue(state.kycPassed.isEmpty());
 
         // ProposedOwner: Address = 0x
         Assertions.assertSame(Address.ZERO, state.getProposedOwner());
