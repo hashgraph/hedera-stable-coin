@@ -16,6 +16,7 @@ bin/
 
 # generated code
 src/main/java/com/hedera/hashgraph/stablecoin/app/proto
+src/main/java/com/hedera/hashgraph/stablecoin/app/db
 
 # local environment
 .env

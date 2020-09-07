@@ -1,3 +1,21 @@
+import groovy.xml.MarkupBuilder
+import org.jooq.codegen.GenerationTool
+
+import javax.xml.bind.JAXB
+
+buildscript {
+	repositories {
+		gradlePluginPortal()
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+		classpath "org.postgresql:postgresql:42.2.14"
+		classpath "io.github.jklingsporn:vertx-jooq-generate:5.2.0"
+	}
+}
+
 plugins {
 	id 'idea'
 	id 'com.github.johnrengelman.shadow' version '6.0.0' apply false
@@ -58,7 +76,7 @@ allprojects {
 
 			// Ignore generated and protobuf code
 			disableWarningsInGeneratedCode = true
-			excludedPaths = "(.*proto.*)|(.*generated.*)"
+			excludedPaths = "(.*proto.*)|(.*generated.*)|(.*db.*)"
 		}
 	}
 
@@ -81,6 +99,7 @@ dependencies {
 	implementation 'io.github.cdimascio:java-dotenv:5.2.1'
 	implementation 'io.grpc:grpc-netty-shaded:1.30.2'
 	implementation "io.vertx:vertx-web:3.9.2"
+	implementation "io.vertx:vertx-pg-client:3.9.2"
 	implementation project(":proto")
 	implementation project(":sdk")
 
@@ -120,44 +139,45 @@ flyway {
 	locations = ['filesystem:src/main/resources/migrations']
 }
 
-jooq {
-	configurations {
-		main {
-			generateSchemaSourceOnCompilation = true
+task jooqGenerate {
+	doLast() {
+		def writer = new StringWriter()
 
-			generationTool {
-				logging = org.jooq.meta.jaxb.Logging.WARN
-
+		new MarkupBuilder(writer)
+			.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd') {
 				jdbc {
-					driver = 'org.postgresql.Driver'
-					url = 'jdbc:postgresql://localhost:5432/stable_coin'
-					user = 'postgres'
-					password = 'password'
+					driver('org.postgresql.Driver')
+					url('jdbc:postgresql://localhost:5432/stable_coin')
+					user('postgres')
+					password('password')
 				}
-
 				generator {
-					name = 'org.jooq.codegen.DefaultGenerator'
-
+					name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
 					database {
-						name = 'org.jooq.meta.postgres.PostgresDatabase'
-						inputSchema = 'public'
+						name('org.jooq.meta.postgres.PostgresDatabase')
+						inputSchema('public')
 					}
-
-					generate {
-						deprecated = false
-						records = false
-						immutablePojos = false
-						fluentSetters = false
+					generate([:]) {
+						deprecated(false)
+						records(false)
+						interfaces(false)
+						fluentSetters(false)
+						pojos(false)
+						daos(false)
 					}
-
-					target {
-						packageName = 'com.hedera.hashgraph.stablecoin.app.db'
+					target() {
+						packageName('com.hedera.hashgraph.stablecoin.app.db')
+						directory("$projectDir/src/main/java")
 					}
-
-					strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+					strategy {
+						name('io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy')
+					}
 				}
 			}
-		}
+
+		GenerationTool.generate(
+			JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.meta.jaxb.Configuration.class)
+		)
 	}
 }
 
