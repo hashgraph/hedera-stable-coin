@@ -61,6 +61,8 @@ public class CommitInterval {
 
                 snapshotManager.write();
 
+                snapshotManager.prunePrevious();
+
                 lastCommitTime = state.getTimestamp();
             } catch (IOException e) {
                 e.printStackTrace();

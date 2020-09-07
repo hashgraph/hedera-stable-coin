@@ -1,10 +1,11 @@
 package com.hedera.hashgraph.stablecoin.app;
 
-import com.google.errorprone.annotations.Var;
 import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
-import com.hedera.hashgraph.stablecoin.app.proto.AddressEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.AllowanceEntry;
+import com.hedera.hashgraph.stablecoin.app.proto.BalanceEntry;
+import com.hedera.hashgraph.stablecoin.app.proto.FrozenEntry;
+import com.hedera.hashgraph.stablecoin.app.proto.KycPassedEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.Snapshot;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -26,6 +27,8 @@ public final class SnapshotManager {
 
     private final Path stateDir;
 
+    private final int stateHistorySize;
+
     public SnapshotManager(Dotenv env, State state) throws IOException {
         this.state = state;
 
@@ -34,12 +37,13 @@ public final class SnapshotManager {
 
         // create directories if they do not exist
         Files.createDirectories(stateDir);
+
+        // number of state files to keep
+        stateHistorySize = Integer.parseInt(env.get("HSC_STATE_HISTORY_SIZE", "10"));
     }
 
     public void tryReadLatest() throws IOException {
         var snapshotFiles = stateDir.toFile().listFiles();
-
-        // only null on an invalid path
         assert snapshotFiles != null;
 
         // sort
@@ -72,17 +76,29 @@ public final class SnapshotManager {
             state.setComplianceManager(new Address(snapshot.getComplianceManager()));
             state.setSupplyManager(new Address(snapshot.getSupplyManager()));
 
-            for (var addressEntry : snapshot.getAddressesList()) {
-                var address = new Address(addressEntry.getAddress());
-                var publicKey = address.publicKey;
-                var balance = new BigInteger(addressEntry.getBalance().toByteArray());
-                var flags = addressEntry.getFlags();
-                var isFrozen = (flags & 0x01) != 0;
-                var isKycPassed = (flags & 0x02) != 0;
+            for (var balanceEntry : snapshot.getBalancesList()) {
+                var address = new Address(balanceEntry.getAddress());
+                var balance = new BigInteger(balanceEntry.getBalance().toByteArray());
 
-                state.balances.put(publicKey, balance);
-                if (isFrozen) state.frozen.put(publicKey, true);
-                if (isKycPassed) state.kycPassed.put(publicKey, true);
+                state.balances.put(address.publicKey, balance);
+            }
+
+            for (var kycPassedEntry : snapshot.getKycPassedList()) {
+                var address = new Address(kycPassedEntry.getAddress());
+                var isKycPassed = kycPassedEntry.getIsKycPassed();
+
+                if (isKycPassed) {
+                    state.kycPassed.put(address.publicKey, true);
+                }
+            }
+
+            for (var frozenEntry : snapshot.getFrozenList()) {
+                var address = new Address(frozenEntry.getAddress());
+                var isFrozen = frozenEntry.getIsFrozen();
+
+                if (isFrozen) {
+                    state.frozen.put(address.publicKey, true);
+                }
             }
 
             for (var allowance : snapshot.getAllowancesList()) {
@@ -113,21 +129,21 @@ public final class SnapshotManager {
             .setProposedOwner(ByteString.copyFrom(state.getProposedOwner().publicKey.toBytes()));
 
         for (var entry : state.balances.entrySet()) {
-            var address = entry.getKey();
-            @Var var flags = 0;
+            snapshot.addBalances(BalanceEntry.newBuilder()
+                .setAddress(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setBalance(ByteString.copyFrom(entry.getValue().toByteArray())));
+        }
 
-            if (state.frozen.getOrDefault(address, false)) {
-                flags |= 0x01;
-            }
+        for (var entry : state.kycPassed.entrySet()) {
+            snapshot.addKycPassed(KycPassedEntry.newBuilder()
+                .setAddress(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setIsKycPassed(entry.getValue()));
+        }
 
-            if (state.kycPassed.getOrDefault(address, false)) {
-                flags |= 0x02;
-            }
-
-            snapshot.addAddresses(AddressEntry.newBuilder()
-                .setAddress(ByteString.copyFrom(address.toBytes()))
-                .setBalance(ByteString.copyFrom(entry.getValue().toByteArray()))
-                .setFlags(flags));
+        for (var entry : state.frozen.entrySet()) {
+            snapshot.addFrozen(FrozenEntry.newBuilder()
+                .setAddress(ByteString.copyFrom(entry.getKey().toBytes()))
+                .setIsFrozen(entry.getValue()));
         }
 
         for (var entry : state.allowances.entrySet()) {
@@ -151,6 +167,20 @@ public final class SnapshotManager {
 
         Files.write(stateFilename, snapshotBytes,
             StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    void prunePrevious() {
+        var snapshotFiles = stateDir.toFile().listFiles();
+        assert snapshotFiles != null;
+
+        Arrays.sort(snapshotFiles);
+
+        if (snapshotFiles.length > stateHistorySize) {
+            for (var i = 0; i < (snapshotFiles.length - stateHistorySize); i++) {
+                // noinspection ResultOfMethodCallIgnored
+                snapshotFiles[i].delete();
+            }
+        }
     }
 
     private Path getFilename(Instant timestamp) {
