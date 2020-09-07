@@ -13,7 +13,7 @@
 Create the development database. Assumes that TimescaleDB is running on `localhost:5432`.
 
 ```
-createdb -h localhost -U postgres stable_coin_dev
+createdb -h localhost -U postgres stable_coin
 ```
 
 Run database migrations.

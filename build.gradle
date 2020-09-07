@@ -111,7 +111,7 @@ protobuf {
 }
 
 flyway {
-	url = 'jdbc:postgresql://localhost:5432/stable_coin_dev'
+	url = 'jdbc:postgresql://localhost:5432/stable_coin'
 	user = 'postgres'
 	password = 'password'
 	locations = ['filesystem:src/main/resources/migrations']
@@ -127,7 +127,7 @@ jooq {
 
 				jdbc {
 					driver = 'org.postgresql.Driver'
-					url = 'jdbc:postgresql://localhost:5432/stable_coin_dev'
+					url = 'jdbc:postgresql://localhost:5432/stable_coin'
 					user = 'postgres'
 					password = 'password'
 				}
