@@ -6,6 +6,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -21,6 +22,8 @@ public class StateVerticle extends AbstractVerticle {
     public void start(Promise<Void> promise) {
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
+
+        router.route().handler(CorsHandler.create("*"));
 
         router.get("/").handler(this::getToken);
         router.get("/:address").handler(this::getAddress);
