@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.app;
 
+import com.google.common.io.BaseEncoding;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.SubscriptionHandle;
@@ -11,10 +12,12 @@ import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import org.jooq.meta.derby.sys.Sys;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -98,42 +101,37 @@ public final class TopicListener {
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
         var caller = new Address(transactionBody.getCaller());
 
-        if (caller.isZero()) {
-            // when transaction logging is added, log this as a failed transaction
-            throw new IllegalStateException("validation failed with status " + Status.CALLER_NOT_SET);
-        }
-
-        var signature = transaction.getSignature().toByteArray();
-
-        // verify that this transaction was signed by the identified caller
-        if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), signature)) {
-            // when transaction logging is added, log this as a failed transaction
-            throw new IllegalStateException("validation failed with status " + Status.INVALID_SIGNATURE);
-        }
-
         @SuppressWarnings("unchecked")
         var transactionHandler = (TransactionHandler<Object>) transactionHandlers.get(transactionBody.getDataCase());
-
-        if (transactionHandler == null) {
-            throw new IllegalStateException("unimplemented transaction type " + transactionBody.getDataCase());
-        }
-
-        Status transactionStatus;
+        assert transactionHandler != null;
 
         var transactionArguments = transactionHandler.parseArguments(transactionBody);
 
+        Status transactionStatus;
+
         try {
+            if (caller.isZero()) {
+                throw new StableCoinPreCheckException(Status.CALLER_NOT_SET);
+            }
+
+            var signature = transaction.getSignature().toByteArray();
+
+            // verify that this transaction was signed by the identified caller
+            if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), signature)) {
+                throw new StableCoinPreCheckException(Status.INVALID_SIGNATURE);
+            }
+
             // attempt to handle the transaction
             transactionHandler.handle(state, caller, transactionArguments);
-
-            // state has now successfully transitioned
             transactionStatus = Status.OK;
-            state.setTimestamp(consensusTimestamp);
         } catch (StableCoinPreCheckException e) {
             // when a pre-check validation failure happens, we still need to log the
             // transaction but the status is adjusted
             transactionStatus = e.status;
         }
+
+        // state has now transitioned
+        state.setTimestamp(consensusTimestamp);
 
         // persist the transaction to our database if there is a configured
         // transaction repository available
