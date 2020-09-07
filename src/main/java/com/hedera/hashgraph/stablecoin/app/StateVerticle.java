@@ -23,7 +23,7 @@ public class StateVerticle extends AbstractVerticle {
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
 
-        router.route().handler(CorsHandler.create("*"));
+        router.route().handler(CorsHandler.create("*")).failureHandler(StateVerticle::failureHandler);
 
         router.get("/").handler(this::getToken);
         router.get("/:address").handler(this::getAddress);
@@ -102,5 +102,23 @@ public class StateVerticle extends AbstractVerticle {
                 Map.entry("isFrozen", isFrozen),
                 Map.entry("isKycPassed", isKycPassed)
             )).encode());
+    }
+
+    private static void failureHandler(RoutingContext routingContext) {
+        var response = routingContext.response();
+
+        // if we got into the failure handler the status code
+        // has likely been populated
+        if (routingContext.statusCode() > 0) {
+            response.setStatusCode(routingContext.statusCode());
+        }
+
+        var cause = routingContext.failure();
+        if (cause != null) {
+            cause.printStackTrace();
+            response.setStatusCode(500);
+        }
+
+        response.end();
     }
 }
