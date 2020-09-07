@@ -73,7 +73,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.google.protobuf'
 
 group = "com.hedera.hashgraph.stablecoin.app"
-version = "0.0.1"
+version = "0.2.0"
 description = "Hedera™ Hashgraph Stable Coin"
 
 dependencies {
@@ -166,9 +166,14 @@ application {
 }
 
 jar {
+	enabled = false
 	manifest {
 		attributes 'Main-Class': 'com.hedera.hashgraph.stablecoin.app.App'
 	}
+}
+
+tasks.shadowJar.configure {
+	classifier = null
 }
 
 tasks.withType(Test) {
