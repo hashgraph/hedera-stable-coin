@@ -118,6 +118,15 @@ public final class TopicListener {
                     throw new RuntimeException(e);
                 }
             }, e -> {
+                System.err.println("topic listener failed: " + e.getMessage());
+
+                try {
+                    // wait 1s before we try again
+                    Thread.sleep(1000);
+                } catch (InterruptedException interruptedException) {
+                    // continue on
+                }
+
                 // listener failed, restart the listener
                 startListening();
             });
