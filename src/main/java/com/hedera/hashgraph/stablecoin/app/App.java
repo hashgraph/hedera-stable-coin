@@ -9,6 +9,7 @@ import com.hedera.hashgraph.sdk.consensus.ConsensusTopicCreateTransaction;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.sdk.mirror.MirrorClient;
+import com.hedera.hashgraph.stablecoin.app.api.ApiVerticle;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -16,6 +17,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.PgConnectOptions;
+import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.PoolOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +51,8 @@ public class App {
     // SQL connection manager
     final SqlConnectionManager connectionManager = new SqlConnectionManager(env);
 
+    final PgPool pgPool = createPgPool();
+
     // repository for interaction with transactions in the database
     final TransactionRepository transactionRepository = new TransactionRepository(connectionManager);
 
@@ -61,7 +67,7 @@ public class App {
     final TopicListener topicListener = new TopicListener(contractState, mirrorHederaClient, topicId, transactionRepository);
 
     // verticle providing the read-only contract state API
-    final StateVerticle stateVerticle = new StateVerticle(contractState);
+    final ApiVerticle apiVerticle = new ApiVerticle(contractState, pgPool);
 
     // on an interval, we commit our state
     final CommitInterval commitInterval = new CommitInterval(
@@ -100,6 +106,10 @@ public class App {
         while (true) Thread.sleep(0);
     }
 
+    private String requireEnv(String name) {
+        return Objects.requireNonNull(env.get(name), "missing environment variable " + name);
+    }
+
     Client createHederaClient() {
         // we need an .env variable to allow switching network
         var network = new HashMap<AccountId, String>();
@@ -130,25 +140,26 @@ public class App {
         return new MirrorClient("hcs.testnet.mirrornode.hedera.com:5600");
     }
 
+    PgPool createPgPool() {
+        return PgPool.pool(
+            PgConnectOptions.fromUri(requireEnv("HSC_DATABASE_URL"))
+                .setUser(requireEnv("HSC_DATABASE_USERNAME"))
+                .setPassword(requireEnv("HSC_DATABASE_PASSWORD")),
+            new PoolOptions()
+                .setMaxSize(10)
+        );
+    }
+
     ConsensusTopicId createContractInstance() throws HederaStatusException, InterruptedException {
         // if we were not given a topic ID
         // we need to create a new topic, and send a construct message,
         // which establishes our operator as the owner
 
-        var operatorPrivateKey = Ed25519PrivateKey.fromString(Objects.requireNonNull(
-            env.get("HSC_OPERATOR_KEY"), "missing environment variable HSC_OPERATOR_KEY"));
-
-        var tokenName = Objects.requireNonNull(
-            env.get("HSC_TOKEN_NAME"), "missing environment variable HSC_TOKEN_NAME");
-
-        var tokenSymbol = Objects.requireNonNull(
-            env.get("HSC_TOKEN_SYMBOL"), "missing environment variable HSC_TOKEN_SYMBOL");
-
-        var tokenDecimal = Integer.parseInt(Objects.requireNonNull(
-            env.get("HSC_TOKEN_DECIMAL"), "missing environment variable HSC_TOKEN_DECIMAL"));
-
-        var totalSupply = new BigInteger(Objects.requireNonNull(
-            env.get("HSC_TOTAL_SUPPLY"), "missing environment variable HSC_TOTAL_SUPPLY"));
+        var operatorPrivateKey = Ed25519PrivateKey.fromString(requireEnv("HSC_OPERATOR_KEY"));
+        var tokenName = requireEnv("HSC_TOKEN_NAME");
+        var tokenSymbol = requireEnv("HSC_TOKEN_SYMBOL");
+        var tokenDecimal = Integer.parseInt(requireEnv("HSC_TOKEN_DECIMAL"));
+        var totalSupply = new BigInteger(requireEnv("HSC_TOTAL_SUPPLY"));
 
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
             .map(Ed25519PrivateKey::fromString);
@@ -216,7 +227,7 @@ public class App {
             // the port for this API should be configurable
             .setConfig(new JsonObject().put("HTTP_PORT", 9000));
 
-        vertx.deployVerticle(stateVerticle, deploymentOptions);
+        vertx.deployVerticle(apiVerticle, deploymentOptions);
     }
 
     void runBenchmark(String inputFile) throws IOException, SQLException {

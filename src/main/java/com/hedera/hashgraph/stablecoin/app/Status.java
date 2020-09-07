@@ -250,7 +250,7 @@ public enum Status {
     }
 
     @SuppressWarnings("NullAway")
-    public Status valueOf(int value) {
+    public static Status valueOf(int value) {
         return possibleValues.get(value);
     }
 }

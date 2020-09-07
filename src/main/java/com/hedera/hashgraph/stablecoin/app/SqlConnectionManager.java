@@ -44,6 +44,6 @@ public class SqlConnectionManager {
     }
 
     private Connection newConnection() throws SQLException {
-        return DriverManager.getConnection(url, username, password);
+        return DriverManager.getConnection("jdbc:" + url, username, password);
     }
 }

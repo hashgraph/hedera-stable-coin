@@ -28,14 +28,15 @@ CREATE TABLE "transaction"
 --      complianceManager)
 CREATE TABLE transaction_construct
 (
-    "timestamp"              INT8 PRIMARY KEY,
+    "timestamp"         INT8 PRIMARY KEY,
 
-    token_name               TEXT           NOT NULL,
-    token_symbol             TEXT           NOT NULL,
-    token_decimal            NUMERIC(78, 0) NOT NULL,
-    total_supply             NUMERIC(78, 0) NOT NULL,
-    supply_manager           BYTEA          NOT NULL,
-    COMPLIANCE_manager BYTEA          NOT NULL
+    token_name          TEXT           NOT NULL,
+    token_symbol        TEXT           NOT NULL,
+    token_decimal       NUMERIC(78, 0) NOT NULL,
+    total_supply        NUMERIC(78, 0) NOT NULL,
+    supply_manager      BYTEA          NOT NULL,
+    compliance_manager  BYTEA          NOT NULL,
+    enforcement_manager BYTEA          NOT NULL
 );
 
 -- void approveAllowance(Address spender, Int value)
@@ -138,7 +139,9 @@ CREATE TABLE transaction_wipe
 (
     "timestamp" INT8 PRIMARY KEY,
 
-    address     BYTEA NOT NULL
+    address     BYTEA          NOT NULL,
+
+    value       NUMERIC(78, 0) NOT NULL
 );
 
 -- void setKycPassed(Address addr)
