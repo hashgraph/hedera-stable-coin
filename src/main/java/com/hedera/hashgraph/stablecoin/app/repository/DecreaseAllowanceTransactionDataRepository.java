@@ -28,7 +28,7 @@ public final class DecreaseAllowanceTransactionDataRepository extends Transactio
             TRANSACTION_DECREASE_ALLOWANCE.TIMESTAMP,
             TRANSACTION_DECREASE_ALLOWANCE.SPENDER,
             TRANSACTION_DECREASE_ALLOWANCE.VALUE
-        ).values((Long) null, null, null));
+        ).values((Long) null, null, null).onConflictDoNothing());
     }
 
     @Override

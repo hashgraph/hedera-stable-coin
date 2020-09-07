@@ -27,7 +27,7 @@ public final class UnfreezeTransactionDataRepository extends TransactionDataRepo
         return cx.batch(cx.insertInto(TRANSACTION_UNFREEZE,
             TRANSACTION_UNFREEZE.TIMESTAMP,
             TRANSACTION_UNFREEZE.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

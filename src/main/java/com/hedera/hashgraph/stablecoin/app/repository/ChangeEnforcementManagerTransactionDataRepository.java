@@ -27,7 +27,7 @@ public final class ChangeEnforcementManagerTransactionDataRepository extends Tra
         return cx.batch(cx.insertInto(TRANSACTION_CHANGE_ENFORCEMENT_MANAGER,
             TRANSACTION_CHANGE_ENFORCEMENT_MANAGER.TIMESTAMP,
             TRANSACTION_CHANGE_ENFORCEMENT_MANAGER.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

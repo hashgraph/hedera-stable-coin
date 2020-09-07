@@ -29,7 +29,7 @@ public final class TransferFromTransactionDataRepository extends TransactionData
             TRANSACTION_TRANSFER_FROM.SENDER,
             TRANSACTION_TRANSFER_FROM.RECEIVER,
             TRANSACTION_TRANSFER_FROM.VALUE
-        ).values((Long) null, null, null, null));
+        ).values((Long) null, null, null, null).onConflictDoNothing());
     }
 
     @Override

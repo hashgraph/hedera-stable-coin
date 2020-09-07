@@ -27,7 +27,7 @@ public final class WipeTransactionDataRepository extends TransactionDataReposito
         return cx.batch(cx.insertInto(TRANSACTION_WIPE,
             TRANSACTION_WIPE.TIMESTAMP,
             TRANSACTION_WIPE.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

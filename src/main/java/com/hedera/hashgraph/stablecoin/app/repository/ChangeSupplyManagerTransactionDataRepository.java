@@ -27,7 +27,7 @@ public final class ChangeSupplyManagerTransactionDataRepository extends Transact
         return cx.batch(cx.insertInto(TRANSACTION_CHANGE_SUPPLY_MANAGER,
             TRANSACTION_CHANGE_SUPPLY_MANAGER.TIMESTAMP,
             TRANSACTION_CHANGE_SUPPLY_MANAGER.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

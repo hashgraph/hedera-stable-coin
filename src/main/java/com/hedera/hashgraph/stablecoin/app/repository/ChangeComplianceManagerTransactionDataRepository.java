@@ -27,7 +27,7 @@ public final class ChangeComplianceManagerTransactionDataRepository extends Tran
         return cx.batch(cx.insertInto(TRANSACTION_CHANGE_COMPLIANCE_MANAGER,
             TRANSACTION_CHANGE_COMPLIANCE_MANAGER.TIMESTAMP,
             TRANSACTION_CHANGE_COMPLIANCE_MANAGER.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

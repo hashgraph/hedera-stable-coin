@@ -27,7 +27,7 @@ public final class ProposeOwnerTransactionDataRepository extends TransactionData
         return cx.batch(cx.insertInto(TRANSACTION_PROPOSE_OWNER,
             TRANSACTION_PROPOSE_OWNER.TIMESTAMP,
             TRANSACTION_PROPOSE_OWNER.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

@@ -28,7 +28,7 @@ public final class TransferTransactionDataRepository extends TransactionDataRepo
             TRANSACTION_TRANSFER.TIMESTAMP,
             TRANSACTION_TRANSFER.RECEIVER,
             TRANSACTION_TRANSFER.VALUE
-        ).values((Long) null, null, null));
+        ).values((Long) null, null, null).onConflictDoNothing());
     }
 
     @Override

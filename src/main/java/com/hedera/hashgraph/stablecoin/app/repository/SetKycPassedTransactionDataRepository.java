@@ -27,7 +27,7 @@ public final class SetKycPassedTransactionDataRepository extends TransactionData
         return cx.batch(cx.insertInto(TRANSACTION_SET_KYC_PASSED,
             TRANSACTION_SET_KYC_PASSED.TIMESTAMP,
             TRANSACTION_SET_KYC_PASSED.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

@@ -57,7 +57,7 @@ public final class TransactionRepository {
             TRANSACTION.KIND,
             TRANSACTION.CALLER,
             TRANSACTION.STATUS
-        ).values((Long) null, null, null, null));
+        ).values((Long) null, null, null, null).onConflictDoNothing());
     }
 
     public synchronized <ArgumentsT> void bindTransaction(

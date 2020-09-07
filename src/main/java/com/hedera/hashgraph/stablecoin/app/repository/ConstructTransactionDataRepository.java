@@ -32,7 +32,7 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
             TRANSACTION_CONSTRUCT.TOTAL_SUPPLY,
             TRANSACTION_CONSTRUCT.COMPLIANCE_MANAGER,
             TRANSACTION_CONSTRUCT.SUPPLY_MANAGER
-        ).values((Long) null, null, null, null, null, null, null));
+        ).values((Long) null, null, null, null, null, null, null).onConflictDoNothing());
     }
 
     @Override

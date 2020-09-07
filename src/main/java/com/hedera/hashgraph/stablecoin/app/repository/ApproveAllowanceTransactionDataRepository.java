@@ -28,7 +28,7 @@ public final class ApproveAllowanceTransactionDataRepository extends Transaction
             TRANSACTION_APPROVE_ALLOWANCE.TIMESTAMP,
             TRANSACTION_APPROVE_ALLOWANCE.SPENDER,
             TRANSACTION_APPROVE_ALLOWANCE.VALUE
-        ).values((Long) null, null, null));
+        ).values((Long) null, null, null).onConflictDoNothing());
     }
 
     @Override

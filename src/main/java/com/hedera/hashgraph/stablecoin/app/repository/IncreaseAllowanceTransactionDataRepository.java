@@ -28,7 +28,7 @@ public final class IncreaseAllowanceTransactionDataRepository extends Transactio
             TRANSACTION_INCREASE_ALLOWANCE.TIMESTAMP,
             TRANSACTION_INCREASE_ALLOWANCE.SPENDER,
             TRANSACTION_INCREASE_ALLOWANCE.VALUE
-        ).values((Long) null, null, null));
+        ).values((Long) null, null, null).onConflictDoNothing());
     }
 
     @Override

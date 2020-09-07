@@ -28,7 +28,7 @@ public final class BurnTransactionDataRepository extends TransactionDataReposito
         return cx.batch(cx.insertInto(TRANSACTION_BURN,
             TRANSACTION_BURN.TIMESTAMP,
             TRANSACTION_BURN.VALUE
-        ).values(null, (BigInteger) null));
+        ).values(null, (BigInteger) null).onConflictDoNothing());
     }
 
     @Override

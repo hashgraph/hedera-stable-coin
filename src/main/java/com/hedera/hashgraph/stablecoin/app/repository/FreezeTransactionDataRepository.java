@@ -27,7 +27,7 @@ public final class FreezeTransactionDataRepository extends TransactionDataReposi
         return cx.batch(cx.insertInto(TRANSACTION_FREEZE,
             TRANSACTION_FREEZE.TIMESTAMP,
             TRANSACTION_FREEZE.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

@@ -27,7 +27,7 @@ public final class UnsetKycPassedTransactionDataRepository extends TransactionDa
         return cx.batch(cx.insertInto(TRANSACTION_UNSET_KYC_PASSED,
             TRANSACTION_UNSET_KYC_PASSED.TIMESTAMP,
             TRANSACTION_UNSET_KYC_PASSED.ADDRESS
-        ).values((Long) null, null));
+        ).values((Long) null, null).onConflictDoNothing());
     }
 
     @Override

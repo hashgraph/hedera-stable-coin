@@ -28,7 +28,7 @@ public final class MintTransactionDataRepository extends TransactionDataReposito
         return cx.batch(cx.insertInto(TRANSACTION_MINT,
             TRANSACTION_MINT.TIMESTAMP,
             TRANSACTION_MINT.VALUE
-        ).values(null, (BigInteger) null));
+        ).values(null, (BigInteger) null).onConflictDoNothing());
     }
 
     @Override
