@@ -17,7 +17,7 @@ public final class ChangeEnforcementManagerTransactionDataRepository extends Tra
 
     @Override
     public TransactionKind getTransactionKind() {
-        return TransactionKind.CHANGE_COMPLIANCE_MANAGER;
+        return TransactionKind.CHANGE_ENFORCEMENT_MANAGER;
     }
 
     @Override

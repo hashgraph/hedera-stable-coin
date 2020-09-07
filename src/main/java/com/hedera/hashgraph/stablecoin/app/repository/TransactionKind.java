@@ -23,7 +23,8 @@ public enum TransactionKind {
     SET_KYC_PASSED(14),
     UNSET_KYC_PASSED(15),
     INCREASE_ALLOWANCE(16),
-    DECREASE_ALLOWANCE(17);
+    DECREASE_ALLOWANCE(17),
+    CHANGE_ENFORCEMENT_MANAGER(18);
 
     private static final Map<Integer, TransactionKind> possibleValues = Arrays.stream(values())
         .collect(Collectors.toMap(TransactionKind::getValue, identity()));

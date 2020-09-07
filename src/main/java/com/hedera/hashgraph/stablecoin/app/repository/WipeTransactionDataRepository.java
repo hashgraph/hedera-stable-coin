@@ -26,15 +26,17 @@ public final class WipeTransactionDataRepository extends TransactionDataReposito
 
         return cx.batch(cx.insertInto(TRANSACTION_WIPE,
             TRANSACTION_WIPE.TIMESTAMP,
-            TRANSACTION_WIPE.ADDRESS
-        ).values((Long) null, null).onConflictDoNothing());
+            TRANSACTION_WIPE.ADDRESS,
+            TRANSACTION_WIPE.VALUE
+        ).values((Long) null, null, null).onConflictDoNothing());
     }
 
     @Override
     public BatchBindStep bindArguments(BatchBindStep batch, Instant consensusTimestamp, WipeTransactionArguments arguments) {
         return batch.bind(
             ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
-            arguments.address.toBytes()
+            arguments.address.toBytes(),
+            arguments.value.toByteArray()
         );
     }
 }

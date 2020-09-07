@@ -31,8 +31,9 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
             TRANSACTION_CONSTRUCT.TOKEN_DECIMAL,
             TRANSACTION_CONSTRUCT.TOTAL_SUPPLY,
             TRANSACTION_CONSTRUCT.COMPLIANCE_MANAGER,
-            TRANSACTION_CONSTRUCT.SUPPLY_MANAGER
-        ).values((Long) null, null, null, null, null, null, null).onConflictDoNothing());
+            TRANSACTION_CONSTRUCT.SUPPLY_MANAGER,
+            TRANSACTION_CONSTRUCT.ENFORCEMENT_MANAGER
+        ).values((Long) null, null, null, null, null, null, null, null).onConflictDoNothing());
     }
 
     @Override
@@ -43,6 +44,7 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
             arguments.tokenDecimal,
             arguments.totalSupply,
             arguments.complianceManager.toBytes(),
-            arguments.supplyManager.toBytes());
+            arguments.supplyManager.toBytes(),
+            arguments.enforcementManager.toBytes());
     }
 }
