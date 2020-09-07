@@ -38,6 +38,7 @@ public enum TransactionKind {
         return value;
     }
 
+    @SuppressWarnings("NullAway")
     public TransactionKind valueOf(int value) {
         return possibleValues.get(value);
     }

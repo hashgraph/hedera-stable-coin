@@ -1,6 +1,7 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.common.base.Stopwatch;
+import com.google.errorprone.annotations.Var;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
@@ -43,8 +44,8 @@ public class Benchmark {
     }
 
     static void processTransactions(TopicListener topicListener, TransactionRepository transactionRepository, List<Transaction> transactions) throws IOException, SQLException {
-        var fakeConsensusTimestamp = Instant.EPOCH;
-        var counter = 0;
+        @Var var fakeConsensusTimestamp = Instant.EPOCH;
+        @Var var counter = 0;
 
         for (var tx : transactions) {
             fakeConsensusTimestamp = fakeConsensusTimestamp.plusNanos(1);

@@ -36,7 +36,6 @@ public final class TransactionRepository {
             Map.entry(TransactionBody.DataCase.TRANSFER, new TransferTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.TRANSFERFROM, new TransferFromTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.PROPOSEOWNER, new ProposeOwnerTransactionDataRepository(connectionManager)),
-            // Map.entry(TransactionBody.DataCase.CLAIMOWNERSHIP, null),
             Map.entry(TransactionBody.DataCase.CHANGESUPPLYMANAGER, new ChangeSupplyManagerTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.CHANGECOMPLIANCEMANAGER, new ChangeComplianceManagerTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.CHANGEENFORCEMENTMANAGER, new ChangeEnforcementManagerTransactionDataRepository(connectionManager)),
@@ -76,6 +75,7 @@ public final class TransactionRepository {
         var repository = (TransactionDataRepository<ArgumentsT>) transactionDataBatch.get(dataCase);
 
         // <claim ownership> does not have any associated data
+        @SuppressWarnings("NullAway")
         var transactionKind = (dataCase == TransactionBody.DataCase.CLAIMOWNERSHIP
             ? TransactionKind.CLAIM_OWNERSHIP : repository.getTransactionKind()).getValue();
 
@@ -107,9 +107,9 @@ public final class TransactionRepository {
 
         for (var dataCase : transactionsWithData) {
             var repository = transactionDataBatch.get(dataCase);
-            assert repository != null;
-
-            repository.execute();
+            if (repository != null) {
+                repository.execute();
+            }
         }
 
         transactionsWithData.clear();

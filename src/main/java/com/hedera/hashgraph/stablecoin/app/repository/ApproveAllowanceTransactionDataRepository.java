@@ -2,10 +2,8 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ApproveAllowanceTransactionArguments;
-import com.hedera.hashgraph.stablecoin.app.handler.arguments.BurnTransactionArguments;
 import org.jooq.BatchBindStep;
 
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

@@ -39,7 +39,7 @@ public class StateTest {
         Assertions.assertTrue(state.isAllowancesEmpty());
 
         // Frozen: Map::Address->Bool = {}
-        Assertions.assertTrue(state.isFrozenEmpty());
+        Assertions.assertTrue(state.frozen.isEmpty());
 
         // KycPassed: Map::Address->Bool = {}
         Assertions.assertTrue(state.isKycPassedEmpty());

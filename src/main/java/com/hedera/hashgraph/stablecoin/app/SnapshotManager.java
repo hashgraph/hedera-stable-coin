@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.app;
 
+import com.google.errorprone.annotations.Var;
 import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.app.proto.AddressEntry;
@@ -8,7 +9,6 @@ import com.hedera.hashgraph.stablecoin.app.proto.Snapshot;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -26,8 +26,6 @@ public final class SnapshotManager {
 
     private final Path stateDir;
 
-    private final int stateHistorySize;
-
     public SnapshotManager(Dotenv env, State state) throws IOException {
         this.state = state;
 
@@ -36,9 +34,6 @@ public final class SnapshotManager {
 
         // create directories if they do not exist
         Files.createDirectories(stateDir);
-
-        // number of state files to keep
-        stateHistorySize = Integer.parseInt(env.get("HSC_STATE_HISTORY_SIZE", "10"));
     }
 
     public void tryReadLatest() throws IOException {
@@ -119,7 +114,7 @@ public final class SnapshotManager {
 
         for (var entry : state.balances.entrySet()) {
             var address = entry.getKey();
-            var flags = 0;
+            @Var var flags = 0;
 
             if (state.frozen.getOrDefault(address, false)) {
                 flags |= 0x01;
@@ -156,10 +151,6 @@ public final class SnapshotManager {
 
         Files.write(stateFilename, snapshotBytes,
             StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-    }
-
-    void prunePrevious() {
-        // list files and delete state files if there are more than X
     }
 
     private Path getFilename(Instant timestamp) {

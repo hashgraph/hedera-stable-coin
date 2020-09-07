@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.app;
 
+import com.google.errorprone.annotations.Var;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
@@ -122,7 +123,7 @@ public final class TopicListener {
             });
     }
 
-    private boolean verifySignature(Ed25519PublicKey publicKey, byte[] message, byte[] signature) {
+    private static boolean verifySignature(Ed25519PublicKey publicKey, byte[] message, byte[] signature) {
         // NOTE: The Hedera SDK v1 does not directly expose the verify method
         return Ed25519.verify(signature, 0, publicKey.toBytes(), 0, message, 0, message.length);
     }
@@ -134,11 +135,14 @@ public final class TopicListener {
 
         @SuppressWarnings("unchecked")
         var transactionHandler = (TransactionHandler<Object>) transactionHandlers.get(transactionBody.getDataCase());
-        assert transactionHandler != null;
+
+        if (transactionHandler == null) {
+            throw new RuntimeException("transaction handler not implemented for " + transactionBody.getDataCase());
+        }
 
         var transactionArguments = transactionHandler.parseArguments(transactionBody);
 
-        Status transactionStatus;
+        @Var Status transactionStatus;
 
         try {
             if (caller.isZero()) {

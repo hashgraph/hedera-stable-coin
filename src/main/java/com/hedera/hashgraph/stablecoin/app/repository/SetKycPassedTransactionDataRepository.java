@@ -2,7 +2,6 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.SetKycPassedTransactionArguments;
-import com.hedera.hashgraph.stablecoin.app.handler.arguments.UnfreezeTransactionArguments;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;

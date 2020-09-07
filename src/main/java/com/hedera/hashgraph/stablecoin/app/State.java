@@ -125,10 +125,12 @@ public final class State {
         return complianceManager;
     }
 
-    public Address getEnforcementManager() { return enforcementManager; }
-
     public void setComplianceManager(Address complianceManager) {
         this.complianceManager = complianceManager;
+    }
+
+    public Address getEnforcementManager() {
+        return enforcementManager;
     }
 
     public void setEnforcementManager(Address enforcementManager) {
@@ -159,10 +161,6 @@ public final class State {
         this.timestamp = timestamp;
     }
 
-    public boolean getKycPassed(Address address) {
-        return kycPassed.get(address.publicKey);
-    }
-
     public boolean isFrozen(Address address) {
         return frozen.getOrDefault(address.publicKey, false);
     }
@@ -171,31 +169,11 @@ public final class State {
         return kycPassed.getOrDefault(address.publicKey, false);
     }
 
-    public boolean isAllowancesEmpty() {
-        return allowances.isEmpty();
-    }
-
-    public boolean isFrozenEmpty() {
-        return frozen.isEmpty();
-    }
-
-    public boolean isBalanceEmpty() {
-        return balances.isEmpty();
-    }
-
-    public boolean isKycPassedEmpty() {
-        return kycPassed.isEmpty();
-    }
-
     public boolean isPrivilegedRole(Address address) {
         return address.equals(getOwner()) ||
             address.equals(getComplianceManager()) ||
             address.equals(getSupplyManager()) ||
             address.equals(getEnforcementManager());
-    }
-
-    public void setBalance(Address address, BigInteger balance) {
-        balances.put(address.publicKey, balance);
     }
 
     public void setKycPassed(Address address) {
@@ -230,10 +208,6 @@ public final class State {
 
     public void decreaseAllowanceOf(Address allowanceOf, Address allowanceFor, BigInteger value) {
         allowances.merge(new SimpleImmutableEntry<>(allowanceOf.publicKey, allowanceFor.publicKey), value, BigInteger::subtract);
-    }
-
-    public void clearBalanceOf(Address caller) {
-        balances.remove(caller.publicKey);
     }
 
     public void decreaseBalanceOf(Address caller, BigInteger value) {

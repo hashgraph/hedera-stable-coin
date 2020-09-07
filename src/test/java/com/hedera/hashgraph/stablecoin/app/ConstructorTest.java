@@ -91,15 +91,15 @@ public class ConstructorTest {
         Assertions.assertEquals(totalSupply, state.getBalanceOf(supplyManager));
 
         // ix. Allowances = {}
-        Assertions.assertTrue(state.isAllowancesEmpty());
+        Assertions.assertTrue(state.allowances.isEmpty());
 
         // x. Frozen = {} // no account is frozen by default
-        Assertions.assertTrue(state.isFrozenEmpty());
+        Assertions.assertTrue(state.frozen.isEmpty());
 
         // xi. KycPassed = { Owner->true, SupplyManager->true ,complianceManager->true }
-        Assertions.assertTrue(state.getKycPassed(state.getOwner()));
-        Assertions.assertTrue(state.getKycPassed(state.getSupplyManager()));
-        Assertions.assertTrue(state.getKycPassed(state.getComplianceManager()));
+        Assertions.assertTrue(state.isKycPassed(state.getOwner()));
+        Assertions.assertTrue(state.isKycPassed(state.getSupplyManager()));
+        Assertions.assertTrue(state.isKycPassed(state.getComplianceManager()));
 
         // xii. ProposedOwner = 0x
         Assertions.assertEquals(Address.ZERO, state.getProposedOwner());

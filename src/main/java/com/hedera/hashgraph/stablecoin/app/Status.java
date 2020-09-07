@@ -2,7 +2,6 @@ package com.hedera.hashgraph.stablecoin.app;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -250,6 +249,7 @@ public enum Status {
         return value;
     }
 
+    @SuppressWarnings("NullAway")
     public Status valueOf(int value) {
         return possibleValues.get(value);
     }

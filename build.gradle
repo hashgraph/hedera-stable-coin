@@ -52,6 +52,9 @@ allprojects {
 			allDisabledChecksAsWarnings = true
 			disable("Java7ApiChecker")
 			disable("AndroidJdkLibsChecker")
+			disable("FieldMissingNullable")
+			disable("CatchAndPrintStackTrace")
+			disable("ThrowSpecificExceptions")
 
 			// Ignore generated and protobuf code
 			disableWarningsInGeneratedCode = true

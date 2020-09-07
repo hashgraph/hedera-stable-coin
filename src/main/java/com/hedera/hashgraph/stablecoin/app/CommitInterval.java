@@ -10,6 +10,7 @@ import java.time.Instant;
 public class CommitInterval {
     private final int interval;
 
+    @SuppressWarnings("FieldCanBeLocal")
     private final Thread commitThread;
 
     private final State state;
@@ -59,8 +60,6 @@ public class CommitInterval {
                 transactionRepository.execute();
 
                 snapshotManager.write();
-
-                snapshotManager.prunePrevious();
 
                 lastCommitTime = state.getTimestamp();
             } catch (IOException e) {
