@@ -45,7 +45,7 @@ public class CommitInterval {
             state.lock();
 
             try {
-                if (state.getTimestamp().isBefore(Instant.EPOCH)) {
+                if (!state.getTimestamp().isAfter(Instant.EPOCH)) {
                     // nothing has happened yet
                     continue;
                 }

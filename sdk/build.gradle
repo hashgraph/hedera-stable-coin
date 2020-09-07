@@ -5,6 +5,6 @@ version = "1.0.0"
 description = "Hedera™ Hashgraph Stable Coin SDK"
 
 dependencies {
-	api 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
+	api 'com.hedera.hashgraph:sdk:1.1.4'
 	implementation project(":proto")
 }

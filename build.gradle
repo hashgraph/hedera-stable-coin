@@ -74,7 +74,7 @@ version = "0.0.1"
 description = "Hedera™ Hashgraph Stable Coin"
 
 dependencies {
-	implementation 'com.hedera.hashgraph:sdk:2.0.0-beta.2'
+	implementation 'com.hedera.hashgraph:sdk:1.1.4'
 	implementation 'io.github.cdimascio:java-dotenv:5.2.1'
 	implementation 'io.grpc:grpc-netty-shaded:1.30.2'
 	implementation "io.vertx:vertx-web:3.9.2"

@@ -1,8 +1,7 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.common.base.Stopwatch;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 
@@ -19,15 +18,12 @@ import java.util.concurrent.TimeUnit;
 public class Benchmark {
     private final State state;
 
-    private final Client hederaClient;
-
     private final TransactionRepository transactionRepository;
 
     private final File inputFile;
 
-    public Benchmark(State state, Client hederaClient, TransactionRepository transactionRepository, File inputFile) {
+    public Benchmark(State state, TransactionRepository transactionRepository, File inputFile) {
         this.state = state;
-        this.hederaClient = hederaClient;
         this.transactionRepository = transactionRepository;
         this.inputFile = inputFile;
     }
@@ -67,7 +63,7 @@ public class Benchmark {
     public void run() throws IOException, SQLException {
         var transactions = readTransactions(inputFile);
 
-        var topicListener = new TopicListener(state, hederaClient, new TopicId(0), transactionRepository);
+        var topicListener = new TopicListener(state, null, new ConsensusTopicId(0, 0, 0), transactionRepository);
 
         Stopwatch timeKeeper = Stopwatch.createUnstarted();
 

@@ -1,12 +1,11 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
-import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,16 +15,15 @@ import java.time.Instant;
 
 public class ConstructorTest {
     State state = new State();
-    Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
     @Test
     public void constructorTest() throws InvalidProtocolBufferException, SQLException {
         // prepare test transaction
-        var callerKey = PrivateKey.generate();
-        var caller = new Address(callerKey.getPublicKey());
+        var callerKey = Ed25519PrivateKey.generate();
+        var caller = new Address(callerKey);
         var supplyManager = caller;
-        var complianceManager= caller;
+        var complianceManager = caller;
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
         var tokenDecimal = 2;
@@ -68,7 +66,8 @@ public class ConstructorTest {
         // Post-Check
 
         // i. TokenName = tokenName
-        Assertions.assertEquals(tokenName, state.getTokenName()); ;
+        Assertions.assertEquals(tokenName, state.getTokenName());
+        ;
 
         // ii. TokenSymbol = tokenSymbol
         Assertions.assertEquals(tokenSymbol, state.getTokenSymbol());

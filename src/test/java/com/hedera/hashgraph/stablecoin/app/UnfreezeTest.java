@@ -1,9 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -19,17 +18,16 @@ import java.time.Instant;
 
 public class UnfreezeTest {
     State state = new State();
-    Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
     @Test
     public void unfreezeTest() throws InvalidProtocolBufferException, SQLException {
-        var callerKey = PrivateKey.generate();
-        var complianceManagerKey = PrivateKey.generate();
-        var addrKey = PrivateKey.generate();
-        var caller = new Address(callerKey.getPublicKey());
-        var complianceManager = new Address(complianceManagerKey.getPublicKey());
-        var addr = new Address(addrKey.getPublicKey());
+        var callerKey = Ed25519PrivateKey.generate();
+        var complianceManagerKey = Ed25519PrivateKey.generate();
+        var addrKey = Ed25519PrivateKey.generate();
+        var caller = new Address(callerKey);
+        var complianceManager = new Address(complianceManagerKey);
+        var addr = new Address(addrKey);
 
         // prepare state
         var tokenName = "tokenName";

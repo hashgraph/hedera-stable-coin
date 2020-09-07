@@ -1,9 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ApproveAllowanceTransaction;
@@ -23,22 +22,21 @@ import java.time.Instant;
 
 public class GettersTest {
     State state = new State();
-    Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
-    PrivateKey ownerKey = PrivateKey.generate();
-    PrivateKey supplyManagerKey = PrivateKey.generate();
-    PrivateKey complianceManagerKey = PrivateKey.generate();
-    PrivateKey toKey = PrivateKey.generate();
-    PrivateKey spenderKey = PrivateKey.generate();
-    PrivateKey proposedOwnerKey = PrivateKey.generate();
-    PrivateKey addrKey = PrivateKey.generate();
-    Address owner = new Address(ownerKey.getPublicKey());
-    Address supplyManager = new Address(supplyManagerKey.getPublicKey());
-    Address complianceManager = new Address(complianceManagerKey.getPublicKey());
-    Address to = new Address(toKey.getPublicKey());
-    Address spender = new Address(spenderKey.getPublicKey());
-    Address proposedOwner = new Address(proposedOwnerKey.getPublicKey());
-    Address addr = new Address(addrKey.getPublicKey());
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0,0, 1), null);
+    Ed25519PrivateKey ownerKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey supplyManagerKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey complianceManagerKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey toKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey spenderKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey proposedOwnerKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey addrKey = Ed25519PrivateKey.generate();
+    Address owner = new Address(ownerKey.publicKey);
+    Address supplyManager = new Address(supplyManagerKey.publicKey);
+    Address complianceManager = new Address(complianceManagerKey.publicKey);
+    Address to = new Address(toKey.publicKey);
+    Address spender = new Address(spenderKey.publicKey);
+    Address proposedOwner = new Address(proposedOwnerKey.publicKey);
+    Address addr = new Address(addrKey.publicKey);
     BigInteger value = BigInteger.ONE;
 
     // prepare state

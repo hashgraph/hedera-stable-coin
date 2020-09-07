@@ -1,15 +1,14 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.HederaPreCheckStatusException;
-import com.hedera.hashgraph.sdk.HederaReceiptStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.PublicKey;
-import com.hedera.hashgraph.sdk.TopicCreateTransaction;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
+import com.hedera.hashgraph.sdk.HederaStatusException;
+import com.hedera.hashgraph.sdk.account.AccountId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusMessageSubmitTransaction;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicCreateTransaction;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.sdk.mirror.MirrorClient;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -23,19 +22,20 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 
 public class App {
     // access to the system environment overlaid with a .env file, if present
     final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
 
     // client to the Hedera(tm) Hashgraph network
-    // used when submitting transactions to hedera and to listen
-    // for messages from the mirror node
+    // used when submitting transactions to hedera
     final Client hederaClient = createHederaClient();
+
+    // client to a Hedera mirror node
+    // used to listen for messages from the mirror node
+    final MirrorClient mirrorHederaClient = createMirrorHederaClient();
 
     // handle to the vert.x event loop
     // used for interaction with postgresql and to setup API servers
@@ -55,10 +55,10 @@ public class App {
     final SnapshotManager snapshotManager = new SnapshotManager(env, contractState);
 
     // topic ID of the contract instance
-    final TopicId topicId = getOrCreateContractInstance();
+    final ConsensusTopicId topicId = getOrCreateContractInstance();
 
     // listener to the Hedera topic
-    final TopicListener topicListener = new TopicListener(contractState, hederaClient, topicId, transactionRepository);
+    final TopicListener topicListener = new TopicListener(contractState, mirrorHederaClient, topicId, transactionRepository);
 
     // verticle providing the read-only contract state API
     final StateVerticle stateVerticle = new StateVerticle(contractState);
@@ -72,10 +72,10 @@ public class App {
     );
 
     @SuppressWarnings("CheckedExceptionNotThrown") // false positive in errorprone
-    private App() throws InterruptedException, TimeoutException, HederaReceiptStatusException, HederaPreCheckStatusException, IOException {
+    private App() throws IOException, HederaStatusException, InterruptedException {
     }
 
-    public static void main(String[] args) throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException, IOException, SQLException {
+    public static void main(String[] args) throws InterruptedException, IOException, SQLException, HederaStatusException {
         var app = new App();
 
         // should add a real arg parser
@@ -108,8 +108,7 @@ public class App {
         network.put(new AccountId(5), "2.testnet.hedera.com:50211");
         network.put(new AccountId(6), "3.testnet.hedera.com:50211");
 
-        var client = Client.forNetwork(network);
-        client.setMirrorNetwork(List.of("hcs.testnet.mirrornode.hedera.com:5600"));
+        var client = new Client(network);
 
         // if an OPERATOR_ID and OPERATOR_KEY were provided, set them
         // on the client; this is only needed when we are creating a new
@@ -121,18 +120,22 @@ public class App {
         if (operatorIdVar != null && operatorKeyVar != null) {
             client.setOperator(
                 AccountId.fromString(operatorIdVar),
-                PrivateKey.fromString(operatorKeyVar));
+                Ed25519PrivateKey.fromString(operatorKeyVar));
         }
 
         return client;
     }
 
-    TopicId createContractInstance() throws TimeoutException, HederaPreCheckStatusException, HederaReceiptStatusException, InterruptedException {
+    MirrorClient createMirrorHederaClient() {
+        return new MirrorClient("hcs.testnet.mirrornode.hedera.com:5600");
+    }
+
+    ConsensusTopicId createContractInstance() throws HederaStatusException, InterruptedException {
         // if we were not given a topic ID
         // we need to create a new topic, and send a construct message,
         // which establishes our operator as the owner
 
-        var operatorPrivateKey = PrivateKey.fromString(Objects.requireNonNull(
+        var operatorPrivateKey = Ed25519PrivateKey.fromString(Objects.requireNonNull(
             env.get("HSC_OPERATOR_KEY"), "missing environment variable HSC_OPERATOR_KEY"));
 
         var tokenName = Objects.requireNonNull(
@@ -148,26 +151,21 @@ public class App {
             env.get("HSC_TOTAL_SUPPLY"), "missing environment variable HSC_TOTAL_SUPPLY"));
 
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
-            .map(PrivateKey::fromString);
+            .map(Ed25519PrivateKey::fromString);
 
         var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
-            .map(PrivateKey::fromString);
+            .map(Ed25519PrivateKey::fromString);
 
         var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY"))
-            .map(PrivateKey::fromString);
+            .map(Ed25519PrivateKey::fromString);
 
         // create the new topic ID
-        var topicId = Optional.ofNullable(new TopicCreateTransaction()
+        var topicId = new ConsensusTopicCreateTransaction()
             .execute(hederaClient)
-            .transactionId
             .getReceipt(hederaClient)
-            .topicId);
+            .getConsensusTopicId();
 
-        // after a topic create transaction, this will be set
-        // or we would have died elsewhere
-        assert topicId.isPresent();
-
-        System.out.println("created topic " + topicId.get());
+        System.out.println("created topic " + topicId);
 
         // now we need to create a <Construct> transaction
 
@@ -177,28 +175,27 @@ public class App {
             tokenSymbol,
             tokenDecimal,
             totalSupply,
-            new Address(supplyManagerKey.orElse(operatorPrivateKey).getPublicKey()),
-            new Address(complianceManagerKey.orElse(operatorPrivateKey).getPublicKey())
+            new Address(supplyManagerKey.orElse(operatorPrivateKey).publicKey),
+            new Address(complianceManagerKey.orElse(operatorPrivateKey).publicKey)
         ).toByteArray();
 
         // and finally submit it
 
-        new TopicMessageSubmitTransaction()
-            .setTopicId(topicId.get())
+        new ConsensusMessageSubmitTransaction()
+            .setTopicId(topicId)
             .setMessage(constructTransactionBytes)
             .execute(hederaClient)
-            .transactionId
             .getReceipt(hederaClient);
 
         // wait 10s because subscribe retries on the SDK v2 are not working
         // so we need to wait until the topic is fully established on the mirror node
         Thread.sleep(10_000);
 
-        return topicId.get();
+        return topicId;
     }
 
-    TopicId getOrCreateContractInstance() throws HederaReceiptStatusException, TimeoutException, HederaPreCheckStatusException, InterruptedException {
-        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(TopicId::fromString);
+    ConsensusTopicId getOrCreateContractInstance() throws InterruptedException, HederaStatusException {
+        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(ConsensusTopicId::fromString);
 
         if (maybeTopicId.isPresent()) {
             return maybeTopicId.get();
@@ -225,7 +222,6 @@ public class App {
     void runBenchmark(String inputFile) throws IOException, SQLException {
         new Benchmark(
             contractState,
-            hederaClient,
             transactionRepository,
             new File(inputFile)
         ).run();

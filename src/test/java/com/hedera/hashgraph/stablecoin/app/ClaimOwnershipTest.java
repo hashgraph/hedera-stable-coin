@@ -1,9 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ClaimOwnershipTransaction;
@@ -19,15 +18,14 @@ import java.time.Instant;
 
 public class ClaimOwnershipTest {
     State state = new State();
-    Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
     @Test
     public void claimOwnershipTest() throws InvalidProtocolBufferException, SQLException {
-        var ownerKey = PrivateKey.generate();
-        var callerKey = PrivateKey.generate();
-        var owner = new Address(callerKey.getPublicKey());
-        var caller = new Address(callerKey.getPublicKey());
+        var ownerKey = Ed25519PrivateKey.generate();
+        var callerKey = Ed25519PrivateKey.generate();
+        var owner = new Address(callerKey);
+        var caller = new Address(callerKey);
 
         // prepare state
         var tokenName = "tokenName";

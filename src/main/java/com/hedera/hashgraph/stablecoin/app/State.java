@@ -1,6 +1,6 @@
 package com.hedera.hashgraph.stablecoin.app;
 
-import com.hedera.hashgraph.sdk.PublicKey;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 import java.math.BigInteger;
@@ -12,10 +12,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public final class State {
-    final Map<PublicKey, BigInteger> balances = new HashMap<>();
-    final Map<PublicKey, Boolean> frozen = new HashMap<>();
-    final Map<PublicKey, Boolean> kycPassed = new HashMap<>();
-    final Map<SimpleImmutableEntry<PublicKey, PublicKey>, BigInteger> allowances = new HashMap<>();
+    final Map<Ed25519PublicKey, BigInteger> balances = new HashMap<>();
+    final Map<Ed25519PublicKey, Boolean> frozen = new HashMap<>();
+    final Map<Ed25519PublicKey, Boolean> kycPassed = new HashMap<>();
+    final Map<SimpleImmutableEntry<Ed25519PublicKey, Ed25519PublicKey>, BigInteger> allowances = new HashMap<>();
 
     /**
      * Used to lock write access to state during state snapshot

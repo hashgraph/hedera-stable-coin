@@ -1,7 +1,7 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.ByteString;
-import com.hedera.hashgraph.sdk.PublicKey;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.app.proto.AddressEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.AllowanceEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.Snapshot;
@@ -50,9 +50,9 @@ public final class SnapshotManager {
         // sort
         Arrays.sort(snapshotFiles);
 
-        // read the first one
+        // read the greatest one
         if (snapshotFiles.length > 0) {
-            read(snapshotFiles[0]);
+            read(snapshotFiles[snapshotFiles.length - 1]);
         }
     }
 
@@ -93,8 +93,8 @@ public final class SnapshotManager {
             for (var allowance : snapshot.getAllowancesList()) {
                 state.allowances.put(
                     new AbstractMap.SimpleImmutableEntry<>(
-                        PublicKey.fromBytes(allowance.getAddress().toByteArray()),
-                        PublicKey.fromBytes(allowance.getOtherAddress().toByteArray())
+                        Ed25519PublicKey.fromBytes(allowance.getAddress().toByteArray()),
+                        Ed25519PublicKey.fromBytes(allowance.getOtherAddress().toByteArray())
                     ),
                     new BigInteger(allowance.getAllowance().toByteArray())
                 );

@@ -1,9 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ApproveAllowanceTransaction;
@@ -13,20 +12,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.security.PrivateKey;
 import java.sql.SQLException;
 import java.time.Instant;
 
 public class ApproveTest {
     State state = new State();
-    Client client = Client.forTestnet();
-    TopicListener topicListener = new TopicListener(state, client, new TopicId(1), null);
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
     @Test
     public void approveTest() throws InvalidProtocolBufferException, SQLException {
-        var callerKey = PrivateKey.generate();
-        var spenderKey = PrivateKey.generate();
-        var caller = new Address(callerKey.getPublicKey());
-        var spender = new Address(spenderKey.getPublicKey());
+        var callerKey = Ed25519PrivateKey.generate();
+        var spenderKey = Ed25519PrivateKey.generate();
+        var caller = new Address(callerKey.publicKey);
+        var spender = new Address(spenderKey.publicKey);
         var value = BigInteger.ONE;
 
         // prepare state

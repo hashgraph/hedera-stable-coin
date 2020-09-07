@@ -1,23 +1,41 @@
 package com.hedera.hashgraph.stablecoin.app;
 
-import com.google.common.io.BaseEncoding;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.SubscriptionHandle;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.stablecoin.app.handler.*;
+import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
+import com.hedera.hashgraph.sdk.mirror.MirrorClient;
+import com.hedera.hashgraph.sdk.mirror.MirrorConsensusTopicQuery;
+import com.hedera.hashgraph.sdk.mirror.MirrorSubscriptionHandle;
+import com.hedera.hashgraph.stablecoin.app.handler.ApproveAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.BurnTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ChangeComplianceManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ChangeEnforcementManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ChangeSupplyManagerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ClaimOwnershipTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ConstructTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.DecreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.FreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.IncreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.MintTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ProposeOwnerTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.SetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.StableCoinPreCheckException;
+import com.hedera.hashgraph.stablecoin.app.handler.TransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.TransferFromTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.TransferTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.UnfreezeTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.UnsetKycPassedTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.WipeTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import org.jooq.meta.derby.sys.Sys;
+import org.bouncycastle.math.ec.rfc8032.Ed25519;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -50,19 +68,20 @@ public final class TopicListener {
         entry(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler())
     );
 
-    private final Client client;
-
-    private final TopicId topicId;
-
     @Nullable
-    private SubscriptionHandle handle;
+    private final MirrorClient mirrorClient;
+
+    private final ConsensusTopicId topicId;
 
     @Nullable
     private final TransactionRepository transactionRepository;
 
-    public TopicListener(State state, Client client, TopicId topicId, @Nullable TransactionRepository transactionRepository) {
+    @Nullable
+    private MirrorSubscriptionHandle handle;
+
+    public TopicListener(State state, @Nullable MirrorClient mirrorClient, ConsensusTopicId topicId, @Nullable TransactionRepository transactionRepository) {
         this.state = state;
-        this.client = client;
+        this.mirrorClient = mirrorClient;
         this.topicId = topicId;
         this.transactionRepository = transactionRepository;
     }
@@ -75,15 +94,19 @@ public final class TopicListener {
     }
 
     public synchronized void startListening() {
+        if (mirrorClient == null) {
+            return;
+        }
+
         System.out.println("listening on topic " + topicId + " from " + state.getTimestamp());
 
-        handle = new TopicMessageQuery()
+        handle = new MirrorConsensusTopicQuery()
             .setTopicId(topicId)
             // add 1 ns so we don't pull in the same message
             .setStartTime(state.getTimestamp().plusNanos(1))
-            .subscribe(client, topicMessage -> {
+            .subscribe(mirrorClient, topicMessage -> {
                 try {
-                    handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.contents));
+                    handleTransaction(topicMessage.consensusTimestamp, Transaction.parseFrom(topicMessage.message));
                 } catch (InvalidProtocolBufferException e) {
                     // log the failure, this is a parsing failure of an incoming message
                     // likely someone posted to our topic by mistake
@@ -93,7 +116,15 @@ public final class TopicListener {
                     // a programming error or the database is gone
                     throw new RuntimeException(e);
                 }
+            }, e -> {
+                // listener failed, restart the listener
+                startListening();
             });
+    }
+
+    private boolean verifySignature(Ed25519PublicKey publicKey, byte[] message, byte[] signature) {
+        // NOTE: The Hedera SDK v1 does not directly expose the verify method
+        return Ed25519.verify(signature, 0, publicKey.toBytes(), 0, message, 0, message.length);
     }
 
     void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException, SQLException {
@@ -117,7 +148,8 @@ public final class TopicListener {
             var signature = transaction.getSignature().toByteArray();
 
             // verify that this transaction was signed by the identified caller
-            if (!caller.publicKey.verify(transactionBodyBytes.toByteArray(), signature)) {
+
+            if (!verifySignature(caller.publicKey, transactionBodyBytes.toByteArray(), signature)) {
                 throw new StableCoinPreCheckException(Status.INVALID_SIGNATURE);
             }
 

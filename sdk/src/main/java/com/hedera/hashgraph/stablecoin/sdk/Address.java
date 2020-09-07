@@ -2,26 +2,31 @@ package com.hedera.hashgraph.stablecoin.sdk;
 
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
-import com.hedera.hashgraph.sdk.PublicKey;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public final class Address {
-    public static final Address ZERO = new Address(PublicKey.fromBytes(new byte[32]));
+    public static final Address ZERO = new Address(Ed25519PublicKey.fromBytes(new byte[32]));
 
-    public final PublicKey publicKey;
+    public final Ed25519PublicKey publicKey;
 
-    public Address(PublicKey publicKey) {
+    public Address(Ed25519PublicKey publicKey) {
         this.publicKey = publicKey;
     }
 
+    public Address(Ed25519PrivateKey privateKey) {
+        this(privateKey.publicKey);
+    }
+
     public Address(@Nullable ByteString bytes) {
-        this((bytes == null || bytes.isEmpty()) ? ZERO.publicKey : PublicKey.fromBytes(bytes.toByteArray()));
+        this((bytes == null || bytes.isEmpty()) ? ZERO.publicKey : Ed25519PublicKey.fromBytes(bytes.toByteArray()));
     }
 
     public static Address fromString(String s) {
-        return new Address(PublicKey.fromString(s));
+        return new Address(Ed25519PublicKey.fromString(s));
     }
 
     public boolean isZero() {
