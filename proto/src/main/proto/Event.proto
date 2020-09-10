@@ -5,10 +5,46 @@ package proto;
 option java_package = "com.hedera.hashgraph.stablecoin.proto";
 option java_multiple_files = true;
 
+import "ApproveEventData.proto";
 import "ApproveExternalTransferEventData.proto";
+import "BurnEventData.proto";
+import "ChangeComplianceManagerEventData.proto";
+import "ChangeEnforcementManagerEventData.proto";
+import "ChangeSupplyManagerEventData.proto";
+import "ClaimOwnershipEventData.proto";
+import "ConstructEventData.proto";
+import "DecreaseAllowanceEventData.proto";
+import "ExternalTransferEventData.proto";
+import "FreezeEventData.proto";
+import "IncreaseAllowanceEventData.proto";
+import "MintEventData.proto";
+import "ProposeOwnerEventData.proto";
+import "SetKycPassedEventData.proto";
+import "TransferEventData.proto";
+import "UnfreezeEventData.proto";
+import "UnsetKycPassedEventData.proto";
+import "WipeEventData.proto";
 
 message Event {
     oneof data {
-        ApproveExternalTransferEventData approveExternalTransfer = 22;
+        ApproveEventData approve = 1;
+        ApproveExternalTransferEventData approveExternalTransfer = 2;
+        BurnEventData burn = 3;
+        ChangeComplianceManagerEventData changeComplianceManager = 4;
+        ChangeEnforcementManagerEventData changeEnforcementManager = 5;
+        ChangeSupplyManagerEventData changeSupplyManager = 6;
+        ClaimOwnershipEventData claimOwnership = 7;
+        ConstructEventData construct = 8;
+        DecreaseAllowanceEventData decreaseAllowance = 9;
+        ExternalTransferEventData externalTransfer = 10;
+        FreezeEventData freeze = 11;
+        IncreaseAllowanceEventData increaseAllowance = 12;
+        MintEventData mint = 13;
+        ProposeOwnerEventData proposeOwner = 14;
+        SetKycPassedEventData setKycPassed = 15;
+        TransferEventData transfer = 16;
+        UnfreezeEventData unfreeze = 17;
+        UnsetKycPassedEventData unsetKycPassed = 18;
+        WipeEventData wipe = 19;
     }
 }
