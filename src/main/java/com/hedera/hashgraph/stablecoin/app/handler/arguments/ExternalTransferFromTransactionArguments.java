@@ -23,8 +23,5 @@ public class ExternalTransferFromTransactionArguments {
         networkURI = data.getNetworkURI();
         to = new Address(data.getTo());
         amount = new BigInteger(data.getAmount().toByteArray());
-
-        System.out.println("<ExternalTransferFrom> to = " + to.publicKey.toString());
-        System.out.println("<ExternalTransferFrom> to = " + data.getTo().size());
     }
 }
