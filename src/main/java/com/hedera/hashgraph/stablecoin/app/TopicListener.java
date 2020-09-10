@@ -7,6 +7,7 @@ import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.sdk.mirror.MirrorClient;
 import com.hedera.hashgraph.sdk.mirror.MirrorConsensusTopicQuery;
 import com.hedera.hashgraph.sdk.mirror.MirrorSubscriptionHandle;
+import com.hedera.hashgraph.stablecoin.app.emitter.Emitter;
 import com.hedera.hashgraph.stablecoin.app.handler.ApproveAllowanceTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.ApproveExternalTransferTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.BurnTransactionHandler;
@@ -82,6 +83,8 @@ public final class TopicListener {
 
     @Nullable
     private final TransactionRepository transactionRepository;
+
+    private final Emitter emitter = new Emitter();
 
     @Nullable
     private MirrorSubscriptionHandle handle;
@@ -197,5 +200,8 @@ public final class TopicListener {
                 transactionArguments
             );
         }
+
+        // emit any events for the transaction
+        emitter.emit(transactionBody.getDataCase(), state, caller, transactionArguments);
     }
 }

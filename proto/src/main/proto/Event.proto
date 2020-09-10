@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "com.hedera.hashgraph.stablecoin.proto";
+option java_multiple_files = true;
+
+import "ApproveExternalTransferEventData.proto";
+
+message Event {
+    oneof data {
+        ApproveExternalTransferEventData approveExternalTransfer = 22;
+    }
+}
