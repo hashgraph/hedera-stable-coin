@@ -6,6 +6,8 @@ import com.hedera.hashgraph.stablecoin.app.handler.arguments.ExternalTransferTra
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
+import java.util.Arrays;
+
 public final class ExternalTransferTransactionHandler extends TransactionHandler<ExternalTransferTransactionArguments> {
     @Override
     public ExternalTransferTransactionArguments parseArguments(TransactionBody transactionBody) {

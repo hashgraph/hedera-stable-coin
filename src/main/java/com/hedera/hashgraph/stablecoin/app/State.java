@@ -6,6 +6,7 @@ import com.hedera.hashgraph.stablecoin.sdk.Address;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -20,7 +21,7 @@ public final class State {
 
     final Map<SimpleImmutableEntry<Ed25519PublicKey, Ed25519PublicKey>, BigInteger> allowances = new HashMap<>();
 
-    final Map<Tuple3<Ed25519PublicKey, String, byte[]>, BigInteger> externalAllowances = new HashMap<>();
+    final Map<Tuple3, BigInteger> externalAllowances = new HashMap<>();
 
     /**
      * Used to lock write access to state during state snapshot
@@ -147,7 +148,7 @@ public final class State {
     }
 
     public BigInteger getExternalAllowance(Address from, String networkURI, byte[] to) {
-        return externalAllowances.getOrDefault(new Tuple3<>(from.publicKey, networkURI, to), BigInteger.ZERO);
+        return externalAllowances.getOrDefault(new Tuple3(from.publicKey, networkURI, to), BigInteger.ZERO);
     }
 
     public BigInteger getBalanceOf(Address address) {
@@ -206,7 +207,7 @@ public final class State {
     }
 
     public void setExternalAllowance(Address caller, String networkURI, byte[] to, BigInteger amount) {
-        externalAllowances.put(new Tuple3<>(caller.publicKey, networkURI, to), amount);
+        externalAllowances.put(new Tuple3(caller.publicKey, networkURI, to), amount);
     }
 
     public void increaseAllowanceOf(Address allowanceOf, Address allowanceFor, BigInteger value) {
