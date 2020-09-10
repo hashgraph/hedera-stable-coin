@@ -23,6 +23,8 @@ import "SetKycPassedTransactionData.proto";
 import "UnsetKycPassedTransactionData.proto";
 import "IncreaseAllowanceTransactionData.proto";
 import "DecreaseAllowanceTransactionData.proto";
+import "ApproveExternalTransferTransactionData.proto";
+import "ExternalTransferTransactionData.proto";
 
 message TransactionBody {
     bytes caller = 1;
@@ -52,5 +54,8 @@ message TransactionBody {
         UnsetKycPassedTransactionData unsetKycPassed = 17;
         IncreaseAllowanceTransactionData increaseAllowance = 18;
         DecreaseAllowanceTransactionData decreaseAllowance = 19;
+        ApproveExternalTransferTransactionData approveExternalTransfer = 20;
+        ExternalTransferTransactionData externalTransfer = 21;
+        ExternalTransferTransactionData externalTransferFrom = 22;
     }
 }

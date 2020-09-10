@@ -8,6 +8,7 @@ import com.hedera.hashgraph.sdk.mirror.MirrorClient;
 import com.hedera.hashgraph.sdk.mirror.MirrorConsensusTopicQuery;
 import com.hedera.hashgraph.sdk.mirror.MirrorSubscriptionHandle;
 import com.hedera.hashgraph.stablecoin.app.handler.ApproveAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ApproveExternalTransferTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.BurnTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.ChangeComplianceManagerTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.ChangeEnforcementManagerTransactionHandler;
@@ -15,6 +16,8 @@ import com.hedera.hashgraph.stablecoin.app.handler.ChangeSupplyManagerTransactio
 import com.hedera.hashgraph.stablecoin.app.handler.ClaimOwnershipTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.ConstructTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.DecreaseAllowanceTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ExternalTransferFromTransactionHandler;
+import com.hedera.hashgraph.stablecoin.app.handler.ExternalTransferTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.FreezeTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.IncreaseAllowanceTransactionHandler;
 import com.hedera.hashgraph.stablecoin.app.handler.MintTransactionHandler;
@@ -66,7 +69,10 @@ public final class TopicListener {
         entry(DataCase.SETKYCPASSED, new SetKycPassedTransactionHandler()),
         entry(DataCase.UNSETKYCPASSED, new UnsetKycPassedTransactionHandler()),
         entry(DataCase.INCREASEALLOWANCE, new IncreaseAllowanceTransactionHandler()),
-        entry(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler())
+        entry(DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionHandler()),
+        entry(DataCase.APPROVEEXTERNALTRANSFER, new ApproveExternalTransferTransactionHandler()),
+        entry(DataCase.EXTERNALTRANSFER, new ExternalTransferTransactionHandler()),
+        entry(DataCase.EXTERNALTRANSFERFROM, new ExternalTransferFromTransactionHandler())
     );
 
     @Nullable
@@ -119,6 +125,8 @@ public final class TopicListener {
                 }
             }, e -> {
                 System.err.println("topic listener failed: " + e.getMessage());
+
+                e.printStackTrace();
 
                 try {
                     // wait 1s before we try again

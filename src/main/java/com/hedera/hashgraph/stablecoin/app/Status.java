@@ -234,6 +234,8 @@ public enum Status {
      */
     CHANGE_ENFORCEMENT_MANAGER_TRANSFER_NOT_ALLOWED(45),
 
+    EXTERNAL_TRANSFER_NOT_ALLOWED(46),
+
     ;
 
     private static final Map<Integer, Status> possibleValues = Arrays.stream(values())

@@ -13,9 +13,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class State {
     final Map<Ed25519PublicKey, BigInteger> balances = new HashMap<>();
+
     final Map<Ed25519PublicKey, Boolean> frozen = new HashMap<>();
+
     final Map<Ed25519PublicKey, Boolean> kycPassed = new HashMap<>();
+
     final Map<SimpleImmutableEntry<Ed25519PublicKey, Ed25519PublicKey>, BigInteger> allowances = new HashMap<>();
+
+    final Map<Tuple3<Ed25519PublicKey, String, byte[]>, BigInteger> externalAllowances = new HashMap<>();
 
     /**
      * Used to lock write access to state during state snapshot
@@ -141,6 +146,10 @@ public final class State {
         return allowances.getOrDefault(new SimpleImmutableEntry<>(caller.publicKey, spender.publicKey), BigInteger.ZERO);
     }
 
+    public BigInteger getExternalAllowance(Address from, String networkURI, byte[] to) {
+        return externalAllowances.getOrDefault(new Tuple3<>(from.publicKey, networkURI, to), BigInteger.ZERO);
+    }
+
     public BigInteger getBalanceOf(Address address) {
         return balances.getOrDefault(address.publicKey, BigInteger.ZERO);
     }
@@ -194,6 +203,10 @@ public final class State {
 
     public void setAllowance(Address caller, Address spender, BigInteger value) {
         allowances.put(new SimpleImmutableEntry<>(caller.publicKey, spender.publicKey), value);
+    }
+
+    public void setExternalAllowance(Address caller, String networkURI, byte[] to, BigInteger amount) {
+        externalAllowances.put(new Tuple3<>(caller.publicKey, networkURI, to), amount);
     }
 
     public void increaseAllowanceOf(Address allowanceOf, Address allowanceFor, BigInteger value) {

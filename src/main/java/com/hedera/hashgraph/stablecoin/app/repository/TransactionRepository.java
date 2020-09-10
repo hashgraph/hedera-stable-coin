@@ -45,7 +45,10 @@ public final class TransactionRepository {
             Map.entry(TransactionBody.DataCase.SETKYCPASSED, new SetKycPassedTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.UNSETKYCPASSED, new UnsetKycPassedTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.INCREASEALLOWANCE, new IncreaseAllowanceTransactionDataRepository(connectionManager)),
-            Map.entry(TransactionBody.DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionDataRepository(connectionManager))
+            Map.entry(TransactionBody.DataCase.DECREASEALLOWANCE, new DecreaseAllowanceTransactionDataRepository(connectionManager)),
+            Map.entry(TransactionBody.DataCase.APPROVEEXTERNALTRANSFER, new ApproveExternalTransferTransactionDataRepository(connectionManager)),
+            Map.entry(TransactionBody.DataCase.EXTERNALTRANSFER, new ExternalTransferTransactionDataRepository(connectionManager)),
+            Map.entry(TransactionBody.DataCase.EXTERNALTRANSFERFROM, new ExternalTransferFromTransactionDataRepository(connectionManager))
         );
     }
 

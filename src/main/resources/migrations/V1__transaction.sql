@@ -177,3 +177,35 @@ CREATE TABLE transaction_decrease_allowance
     spender     BYTEA          NOT NULL,
     value       NUMERIC(78, 0) NOT NULL
 );
+
+-- void approveExternalTransfer(String networkURI, Bytes to, Int value)
+CREATE TABLE transaction_approve_external_transfer
+(
+    "timestamp" INT8 PRIMARY KEY,
+
+    network_uri TEXT           NOT NULL,
+    address_to  BYTEA          NOT NULL,
+    amount      NUMERIC(78, 0) NOT NULL
+);
+
+-- void externalTransfer(Address from, String networkURI, Bytes to, Int value)
+CREATE TABLE transaction_external_transfer
+(
+    "timestamp"  INT8 PRIMARY KEY,
+
+    address_from BYTEA          NOT NULL,
+    network_uri  TEXT           NOT NULL,
+    address_to   BYTEA          NOT NULL,
+    amount       NUMERIC(78, 0) NOT NULL
+);
+
+-- void externalTransferFrom(Bytes from, String networkURI, Address to, Int value)
+CREATE TABLE transaction_external_transfer_from
+(
+    "timestamp"  INT8 PRIMARY KEY,
+
+    address_from BYTEA          NOT NULL,
+    network_uri  TEXT           NOT NULL,
+    address_to   BYTEA          NOT NULL,
+    amount       NUMERIC(78, 0) NOT NULL
+);

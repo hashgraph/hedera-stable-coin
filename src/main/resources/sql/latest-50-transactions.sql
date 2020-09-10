@@ -20,6 +20,9 @@ select t.timestamp,
            when 16 then 'increaseAllowance'
            when 17 then 'decreaseAllowance'
            when 18 then 'changeEnforcementManager'
+           when 19 then 'approveExternalTransfer'
+           when 20 then 'externalTransfer'
+           when 21 then 'externalTransferFrom'
            end as transaction,
        case t.kind
            when 1 then (
@@ -116,6 +119,35 @@ select t.timestamp,
                select jsonb_build_object('address', encode(tcem.address, 'hex'))
                from transaction_change_enforcement_manager tcem
                where tcem.timestamp = t.timestamp
+           )
+           when 19 then (
+               select jsonb_build_object(
+                              'network', taet.network_uri,
+                              'to', convert_from(taet.address_to, 'UTF-8'),
+                              'value', '' || taet.amount
+                          )
+               from transaction_approve_external_transfer taet
+               where taet.timestamp = t.timestamp
+           )
+           when 20 then (
+               select jsonb_build_object(
+                              'network', tet.network_uri,
+                              'from', encode(tet.address_from, 'hex'),
+                              'to', convert_from(tet.address_to, 'UTF-8'),
+                              'value', '' || tet.amount
+                          )
+               from transaction_external_transfer tet
+               where tet.timestamp = t.timestamp
+           )
+           when 21 then (
+               select jsonb_build_object(
+                              'network', tet.network_uri,
+                              'to', encode(tet.address_to, 'hex'),
+                              'from', convert_from(tet.address_from, 'UTF-8'),
+                              'value', '' || tet.amount
+                          )
+               from transaction_external_transfer_from tet
+               where tet.timestamp = t.timestamp
            )
            end as data
 from transaction t
