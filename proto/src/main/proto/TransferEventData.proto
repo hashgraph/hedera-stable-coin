@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "com.hedera.hashgraph.stablecoin.proto";
+option java_multiple_files = true;
+
+message TransferEventData {
+    bytes from = 1; // Address
+    bytes to = 2; // remote address
+    bytes value = 4; // BigInteger
+}
