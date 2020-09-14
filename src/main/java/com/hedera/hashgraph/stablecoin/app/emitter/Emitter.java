@@ -27,7 +27,6 @@ public class Emitter {
         Map.entry(TransactionBody.DataCase.INCREASEALLOWANCE, new IncreaseAllowanceEmitter()),
         Map.entry(TransactionBody.DataCase.DECREASEALLOWANCE, new DecreaseAllowanceEmitter()),
         Map.entry(TransactionBody.DataCase.APPROVEEXTERNALTRANSFER, new ApproveExternalTransferEmitter()),
-        Map.entry(TransactionBody.DataCase.EXTERNALTRANSFER, new ExternalTransferEmitter()),
         Map.entry(TransactionBody.DataCase.EXTERNALTRANSFER, new ExternalTransferEmitter())
     );
 
