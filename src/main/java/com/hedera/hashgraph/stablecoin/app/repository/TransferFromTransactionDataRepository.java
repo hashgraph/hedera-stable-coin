@@ -2,11 +2,15 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.TransferFromTransactionArguments;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.List;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_TRANSFER_FROM;
 
@@ -18,6 +22,11 @@ public final class TransferFromTransactionDataRepository extends TransactionData
     @Override
     public TransactionKind getTransactionKind() {
         return TransactionKind.TRANSFER_FROM;
+    }
+
+    @Override
+    public Collection<Address> getAddressList(TransferFromTransactionArguments arguments) {
+        return List.of(arguments.from, arguments.to);
     }
 
     @Override

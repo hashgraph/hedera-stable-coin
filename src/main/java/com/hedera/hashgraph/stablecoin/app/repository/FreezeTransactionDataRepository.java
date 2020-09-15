@@ -2,11 +2,15 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.FreezeTransactionArguments;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_FREEZE;
 
@@ -18,6 +22,11 @@ public final class FreezeTransactionDataRepository extends TransactionDataReposi
     @Override
     public TransactionKind getTransactionKind() {
         return TransactionKind.FREEZE;
+    }
+
+    @Override
+    public Collection<Address> getAddressList(FreezeTransactionArguments arguments) {
+        return Collections.singletonList(arguments.address);
     }
 
     @Override

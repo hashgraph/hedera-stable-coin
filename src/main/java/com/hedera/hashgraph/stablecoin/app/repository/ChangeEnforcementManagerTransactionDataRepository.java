@@ -2,11 +2,15 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ChangeEnforcementManagerTransactionArguments;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_CHANGE_ENFORCEMENT_MANAGER;
 
@@ -18,6 +22,11 @@ public final class ChangeEnforcementManagerTransactionDataRepository extends Tra
     @Override
     public TransactionKind getTransactionKind() {
         return TransactionKind.CHANGE_ENFORCEMENT_MANAGER;
+    }
+
+    @Override
+    public Collection<Address> getAddressList(ChangeEnforcementManagerTransactionArguments arguments) {
+        return Collections.singletonList(arguments.address);
     }
 
     @Override

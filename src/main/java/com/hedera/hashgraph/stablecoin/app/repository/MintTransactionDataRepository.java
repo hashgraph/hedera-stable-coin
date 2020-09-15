@@ -2,12 +2,16 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.MintTransactionArguments;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+
 import org.jooq.BatchBindStep;
 
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_MINT;
 
@@ -19,6 +23,11 @@ public final class MintTransactionDataRepository extends TransactionDataReposito
     @Override
     public TransactionKind getTransactionKind() {
         return TransactionKind.MINT;
+    }
+
+    @Override
+    public Collection<Address> getAddressList(MintTransactionArguments arguments) {
+        return Collections.emptyList();
     }
 
     @Override

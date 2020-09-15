@@ -61,18 +61,18 @@ public class TransactionHandler implements Handler<RoutingContext> {
     }
 
     private static class TransactionResponse {
-        public List<TransactionResponseItem> transactions;
+        public List<TransactionResponseItem> transactions = new ArrayList<>();
     }
 
     private static class TransactionResponseItem {
-        public Instant consensusAt;
+        public Instant consensusAt = Instant.EPOCH;
 
-        public String caller;
+        public String caller = "";
 
-        public Status status;
+        public Status status = Status.OK;
 
-        public String transaction;
+        public String transaction = "";
 
-        public JsonObject data;
+        public JsonObject data = null;
     }
 }

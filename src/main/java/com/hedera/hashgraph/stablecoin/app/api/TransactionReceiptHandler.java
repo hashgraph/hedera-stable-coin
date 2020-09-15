@@ -1,6 +1,7 @@
 package com.hedera.hashgraph.stablecoin.app.api;
 
 import com.hedera.hashgraph.stablecoin.app.State;
+import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
@@ -37,7 +38,7 @@ public class TransactionReceiptHandler implements Handler<RoutingContext> {
         response.id = Long.toString(id);
         response.caller = address.toString();
         response.consensusAt = receipt.consensusAt;
-        response.status = receipt.status.toString();
+        response.status = receipt.status;
 
         routingContext.response()
             .putHeader("content-type", "application/json")
@@ -45,12 +46,12 @@ public class TransactionReceiptHandler implements Handler<RoutingContext> {
     }
 
     private static class TransactionReceiptResponse {
-        public String id;
+        public String id = "";
 
-        public String caller;
+        public String caller = "";
 
-        public Instant consensusAt;
+        public Instant consensusAt = Instant.EPOCH;
 
-        public String status;
+        public Status status = Status.OK;
     }
 }

@@ -1,11 +1,14 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Collection;
 
 public abstract class TransactionDataRepository<ArgumentsT> {
     protected SqlConnectionManager connectionManager;
@@ -20,6 +23,8 @@ public abstract class TransactionDataRepository<ArgumentsT> {
     public abstract BatchBindStep newBatch() throws SQLException;
 
     public abstract TransactionKind getTransactionKind();
+
+    public abstract Collection<Address> getAddressList(ArgumentsT arguments);
 
     public synchronized void bindTransaction(Instant consensusTimestamp, ArgumentsT arguments) throws SQLException {
         if (batch == null) {

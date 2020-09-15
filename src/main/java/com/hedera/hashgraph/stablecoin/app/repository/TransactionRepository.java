@@ -6,6 +6,7 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
+import org.jooq.Batch;
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION;
+import static com.hedera.hashgraph.stablecoin.app.db.Tables.ADDRESS_TRANSACTION;
 
 public final class TransactionRepository {
     private final SqlConnectionManager connectionManager;
@@ -27,6 +29,9 @@ public final class TransactionRepository {
 
     @Nullable
     private BatchBindStep transactionBatch;
+
+    @Nullable
+    private BatchBindStep addressBatch;
 
     public TransactionRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -66,6 +71,15 @@ public final class TransactionRepository {
         ).values((Long) null, null, null, null, null).onConflictDoNothing());
     }
 
+    private BatchBindStep newAddressBatch() throws SQLException {
+        var cx = connectionManager.dsl();
+
+        return cx.batch(cx.insertInto(ADDRESS_TRANSACTION,
+            ADDRESS_TRANSACTION.TRANSACTION_TIMESTAMP,
+            ADDRESS_TRANSACTION.ADDRESS
+        ).values((Long) null, null).onConflictDoNothing());
+    }
+
     public synchronized <ArgumentsT> void bindTransaction(
         Instant consensusTimestamp,
         TransactionId transactionId,
@@ -75,6 +89,10 @@ public final class TransactionRepository {
     ) throws SQLException {
         if (transactionBatch == null) {
             transactionBatch = newBatch();
+        }
+
+        if (addressBatch == null) {
+            addressBatch = newBatch();
         }
 
         @SuppressWarnings("unchecked")
@@ -89,8 +107,10 @@ public final class TransactionRepository {
         // have became null since the start of the method
         assert transactionBatch != null;
 
+        var transactionTimestamp = ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp);
+
         transactionBatch = transactionBatch.bind(
-            ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
+            transactionTimestamp,
             transactionKind,
             transactionId.address.toBytes(),
             ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart),
@@ -100,20 +120,28 @@ public final class TransactionRepository {
         if (repository != null) {
             repository.bindTransaction(consensusTimestamp, arguments);
 
+            for (var address : repository.getAddressList(arguments)) {
+                addressBatch = addressBatch.bind(transactionTimestamp, address.toBytes());
+            }
+
             transactionsWithData.add(dataCase);
         }
     }
 
     public synchronized void execute() {
-        if (transactionBatch == null) {
-            return;
+        if (transactionBatch != null) {
+            transactionBatch.execute();
+            transactionBatch = null;
         }
 
-        transactionBatch.execute();
-        transactionBatch = null;
+        if (addressBatch != null) {
+            addressBatch.execute();
+            addressBatch = null;
+        }
 
         for (var dataCase : transactionsWithData) {
             var repository = transactionDataBatch.get(dataCase);
+
             if (repository != null) {
                 repository.execute();
             }

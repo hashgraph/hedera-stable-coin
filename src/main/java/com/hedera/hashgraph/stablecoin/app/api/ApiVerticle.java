@@ -49,6 +49,7 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/event").handler(new EventHandler());
         router.get("/transaction").handler(new TransactionHandler(pgPool));
         router.get("/:address").handler(new AddressHandler(state));
+        // TODO: router.get("/:address/transaction").handler(new AddressTransactionHandler(state));
         router.get("/:address/transaction/:id/receipt").handler(new TransactionReceiptHandler(state));
         router.get("/:address/allowance/:of").handler(new AllowanceHandler(state));
         router.get("/:address/balance").handler(new BalanceHandler(state));
