@@ -236,6 +236,15 @@ public enum Status {
 
     EXTERNAL_TRANSFER_NOT_ALLOWED(46),
 
+    /** transactionId property on the TransactionBody proto is not set */
+    TRANSACTION_ID_NOT_SET(47),
+
+    /** this transaction has been processed before */
+    TRANSACTION_DUPLICATE(48),
+
+    /** this transaction has expired, transactions are only valid for 2 minutes */
+    TRANSACTION_EXPIRED(49),
+
     ;
 
     private static final Map<Integer, Status> possibleValues = Arrays.stream(values())

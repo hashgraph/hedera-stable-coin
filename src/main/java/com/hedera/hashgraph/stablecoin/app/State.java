@@ -2,26 +2,34 @@ package com.hedera.hashgraph.stablecoin.app;
 
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.Nullable;
 
 public final class State {
     final Map<Ed25519PublicKey, BigInteger> balances = new HashMap<>();
 
-    final Map<Ed25519PublicKey, Boolean> frozen = new HashMap<>();
+    final Set<Ed25519PublicKey> frozen = new HashSet<>();
 
-    final Map<Ed25519PublicKey, Boolean> kycPassed = new HashMap<>();
+    final Set<Ed25519PublicKey> kycPassed = new HashSet<>();
 
     final Map<SimpleImmutableEntry<Ed25519PublicKey, Ed25519PublicKey>, BigInteger> allowances = new HashMap<>();
 
     final Map<Tuple3, BigInteger> externalAllowances = new HashMap<>();
+
+    final Map<TransactionId, TransactionReceipt> transactionReceipts = new TreeMap<>();
 
     /**
      * Used to lock write access to state during state snapshot
@@ -72,7 +80,7 @@ public final class State {
 
     public void setOwner(Address owner) {
         this.owner = owner;
-        this.kycPassed.put(owner.publicKey, true);
+        this.kycPassed.add(owner.publicKey);
     }
 
     public String getTokenName() {
@@ -172,11 +180,11 @@ public final class State {
     }
 
     public boolean isFrozen(Address address) {
-        return frozen.getOrDefault(address.publicKey, false);
+        return frozen.contains(address.publicKey);
     }
 
     public boolean isKycPassed(Address address) {
-        return kycPassed.getOrDefault(address.publicKey, false);
+        return kycPassed.contains(address.publicKey);
     }
 
     public boolean isPrivilegedRole(Address address) {
@@ -187,7 +195,7 @@ public final class State {
     }
 
     public void setKycPassed(Address address) {
-        kycPassed.put(address.publicKey, true);
+        kycPassed.add(address.publicKey);
     }
 
     public void unsetKycPassed(Address address) {
@@ -195,7 +203,7 @@ public final class State {
     }
 
     public void freeze(Address address) {
-        frozen.put(address.publicKey, true);
+        frozen.add(address.publicKey);
     }
 
     public void unfreeze(Address address) {
@@ -254,5 +262,46 @@ public final class State {
 
     public void unlock() {
         this.lock.unlock();
+    }
+
+    /**
+     * Adds the transaction receipt.
+     * Returns `false` if the ID already existed.
+     */
+    public void addTransactionReceipt(TransactionId transactionId, TransactionReceipt transactionReceipt) {
+        transactionReceipts.putIfAbsent(transactionId, transactionReceipt);
+    }
+
+    /**
+     * Get a transaction receipt by ID.
+     */
+    @Nullable
+    public TransactionReceipt getTransactionReceipt(TransactionId transactionId) {
+        return transactionReceipts.get(transactionId);
+    }
+
+    /**
+     * Returns `false` if there is an existing ID.
+     */
+    public boolean hasTransactionId(TransactionId transactionId) {
+        return transactionReceipts.containsKey(transactionId);
+    }
+
+    /**
+     * Clean up memory by removing expired transaction IDs. No need to keep
+     * them in memory to prevent duplicates after the ID expires.
+     */
+    void removeExpiredTransactionReceipts() {
+        var receipts = transactionReceipts.entrySet().iterator();
+
+        while (receipts.hasNext()) {
+            var receipt = receipts.next();
+
+            if (!receipt.getKey().isExpired()) {
+                break;
+            }
+
+            receipts.remove();
+        }
     }
 }

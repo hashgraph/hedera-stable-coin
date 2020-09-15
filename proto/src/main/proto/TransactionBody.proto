@@ -5,6 +5,7 @@ package proto;
 option java_package = "com.hedera.hashgraph.stablecoin.proto";
 option java_multiple_files = true;
 
+import "TransactionId.proto";
 import "ConstructTransactionData.proto";
 import "ApproveAllowanceTransactionData.proto";
 import "MintTransactionData.proto";
@@ -27,13 +28,7 @@ import "ApproveExternalTransferTransactionData.proto";
 import "ExternalTransferTransactionData.proto";
 
 message TransactionBody {
-    bytes caller = 1;
-
-    // we need a way to prevent repeat attacks
-    //        1) add a validUntil timestamp
-    //        2) require validUntil to be within ~1 minute
-    //        3) add a nonce which is a random 8-byte value
-    //        4) keep track of nonces within the last minute so they don't get retried
+    TransactionId transactionId = 1;
 
     oneof data {
         ConstructTransactionData construct = 2;

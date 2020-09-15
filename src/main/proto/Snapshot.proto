@@ -13,11 +13,14 @@ message Snapshot {
     bytes owner = 5;
     bytes supplyManager = 6;
     bytes complianceManager = 7;
-    bytes proposedOwner = 8;
-    repeated BalanceEntry balances = 9;
-    repeated KycPassedEntry kycPassed = 10;
-    repeated FrozenEntry frozen = 11;
-    repeated AllowanceEntry allowances = 12;
+    bytes enforcementManager = 8;
+    bytes proposedOwner = 9;
+    repeated BalanceEntry balances = 10;
+    repeated KycPassedEntry kycPassed = 11;
+    repeated FrozenEntry frozen = 12;
+    repeated AllowanceEntry allowances = 13;
+    repeated ExternalAllowanceEntry externalAllowances = 14;
+    repeated TransactionReceiptEntry transactionReceipts = 15;
 }
 
 message BalanceEntry {
@@ -27,16 +30,28 @@ message BalanceEntry {
 
 message KycPassedEntry {
     bytes address = 1;
-    bool isKycPassed = 2;
 }
 
 message FrozenEntry {
     bytes address = 1;
-    bool isFrozen = 2;
 }
 
 message AllowanceEntry {
     bytes address = 1;
     bytes otherAddress = 2;
     bytes allowance = 3;
+}
+
+message ExternalAllowanceEntry {
+    bytes address = 1;
+    bytes otherAddress = 2;
+    string networkURI = 3;
+    bytes allowance = 4;
+}
+
+message TransactionReceiptEntry {
+    bytes address = 1;
+    uint64 validStart = 2;
+    uint64 consensus = 3;
+    uint32 status = 4;
 }

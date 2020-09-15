@@ -59,6 +59,8 @@ public class CommitInterval {
 
                 transactionRepository.execute();
 
+                state.removeExpiredTransactionReceipts();
+
                 snapshotManager.write();
 
                 snapshotManager.prunePrevious();

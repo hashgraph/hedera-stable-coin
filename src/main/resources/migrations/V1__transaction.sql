@@ -1,7 +1,7 @@
 CREATE TABLE address_transaction
 (
-    "address"             BYTEA NOT NULL,
-    transaction_timestamp INT8  NOT NULL,
+    "address"               BYTEA NOT NULL,
+    "transaction_timestamp" INT8  NOT NULL,
 
     PRIMARY KEY (address, transaction_timestamp)
 );
@@ -20,8 +20,16 @@ CREATE TABLE "transaction"
     "kind"      INT2  NOT NULL,
 
     -- address of the caller
-    "caller"    BYTEA NOT NULL
+    "caller"    BYTEA NOT NULL,
+
+    -- valid start time for the transaction
+    -- nanos since epoch
+    "valid_start"  INT8 NOT NULL
 );
+
+CREATE INDEX ON "transaction" ( "caller", "valid_start" );
+CREATE INDEX ON "transaction" ( "status" );
+CREATE INDEX ON "transaction" ( "kind" );
 
 -- void constructor(String tokenName, String tokenSymbol, Int
 --      tokenDecimal, Int totalSupply, Address supplyManager, Address

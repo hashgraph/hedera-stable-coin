@@ -2,7 +2,7 @@ package com.hedera.hashgraph.stablecoin.app.emitter;
 
 import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public class Emitter {
         Map.entry(TransactionBody.DataCase.EXTERNALTRANSFER, new ExternalTransferEmitter())
     );
 
-    public <ArgumentsT> void emit(TransactionBody.DataCase dataCase, State state, Address caller, ArgumentsT arguments) {
+    public <ArgumentsT> void emit(TransactionBody.DataCase dataCase, State state, TransactionId transactionId, ArgumentsT arguments) {
         @SuppressWarnings("unchecked")
         var emitter = (AbstractEmitter<ArgumentsT>) emitters.get(dataCase);
 
@@ -39,6 +39,6 @@ public class Emitter {
             return;
         }
 
-        emitter.emit(state, caller, arguments);
+        emitter.emit(state, transactionId, arguments);
     }
 }

@@ -6,11 +6,11 @@ import com.hedera.hashgraph.stablecoin.app.handler.arguments.TransferFromTransac
 import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.TransferEventData;
 import com.hedera.hashgraph.stablecoin.proto.ApproveEventData;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 public class TransferFromEmitter extends AbstractEmitter<TransferFromTransactionArguments> {
     @Override
-    public void emit(State state, Address caller, TransferFromTransactionArguments args) {
+    public void emit(State state, TransactionId transactionId, TransferFromTransactionArguments args) {
         var transfer = Event.newBuilder()
             .setTransfer(TransferEventData.newBuilder()
                 .setFrom(ByteString.copyFrom(args.from.toBytes()))
@@ -21,8 +21,8 @@ public class TransferFromEmitter extends AbstractEmitter<TransferFromTransaction
         var approve = Event.newBuilder()
             .setApprove(ApproveEventData.newBuilder()
                 .setFrom(ByteString.copyFrom(args.from.toBytes()))
-                .setTo(ByteString.copyFrom(caller.toBytes()))
-                .setValue(ByteString.copyFrom(state.getAllowance(args.from, caller).toByteArray()))
+                .setTo(ByteString.copyFrom(transactionId.address.toBytes()))
+                .setValue(ByteString.copyFrom(state.getAllowance(args.from, transactionId.address).toByteArray()))
             ).build();
 
         publish(transfer);

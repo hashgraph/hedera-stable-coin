@@ -4,6 +4,8 @@ import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
+
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;
@@ -59,13 +61,14 @@ public final class TransactionRepository {
             TRANSACTION.TIMESTAMP,
             TRANSACTION.KIND,
             TRANSACTION.CALLER,
+            TRANSACTION.VALID_START,
             TRANSACTION.STATUS
-        ).values((Long) null, null, null, null).onConflictDoNothing());
+        ).values((Long) null, null, null, null, null).onConflictDoNothing());
     }
 
     public synchronized <ArgumentsT> void bindTransaction(
         Instant consensusTimestamp,
-        Address caller,
+        TransactionId transactionId,
         Status status,
         TransactionBody.DataCase dataCase,
         ArgumentsT arguments
@@ -89,7 +92,8 @@ public final class TransactionRepository {
         transactionBatch = transactionBatch.bind(
             ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
             transactionKind,
-            caller.toBytes(),
+            transactionId.address.toBytes(),
+            ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart),
             status.getValue()
         );
 

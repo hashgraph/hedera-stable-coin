@@ -4,6 +4,7 @@
 package com.hedera.hashgraph.stablecoin.app.db.tables;
 
 
+import com.hedera.hashgraph.stablecoin.app.db.Indexes;
 import com.hedera.hashgraph.stablecoin.app.db.Keys;
 import com.hedera.hashgraph.stablecoin.app.db.Public;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Schema;
@@ -29,7 +31,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Transaction extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 842756058;
+    private static final long serialVersionUID = -2115392655;
 
     /**
      * The reference instance of <code>public.transaction</code>
@@ -63,6 +65,11 @@ public class Transaction extends TableImpl<Record> {
      * The column <code>public.transaction.caller</code>.
      */
     public final TableField<Record, byte[]> CALLER = createField(DSL.name("caller"), org.jooq.impl.SQLDataType.BLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.transaction.valid_start</code>.
+     */
+    public final TableField<Record, Long> VALID_START = createField(DSL.name("valid_start"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * Create a <code>public.transaction</code> table reference
@@ -100,6 +107,11 @@ public class Transaction extends TableImpl<Record> {
     @Override
     public Schema getSchema() {
         return Public.PUBLIC;
+    }
+
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.TRANSACTION_CALLER_VALID_START_IDX, Indexes.TRANSACTION_KIND_IDX, Indexes.TRANSACTION_STATUS_IDX);
     }
 
     @Override

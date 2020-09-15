@@ -36,6 +36,8 @@ import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
+
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
 
 import javax.annotation.Nullable;
@@ -151,7 +153,7 @@ public final class TopicListener {
     void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException, SQLException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
-        var caller = new Address(transactionBody.getCaller());
+        var transactionId = TransactionId.parse(transactionBody.getTransactionId());
 
         @SuppressWarnings("unchecked")
         var transactionHandler = (TransactionHandler<Object>) transactionHandlers.get(transactionBody.getDataCase());
@@ -162,14 +164,38 @@ public final class TopicListener {
 
         var transactionArguments = transactionHandler.parseArguments(transactionBody);
 
+        @Var var generateReceipt = false;
+
         @Var Status transactionStatus;
 
         try {
-            if (caller.isZero()) {
+            // check that transaction ID and its caller property were set
+
+            if (transactionId == null) {
+                throw new StableCoinPreCheckException(Status.TRANSACTION_ID_NOT_SET);
+            }
+
+            if (transactionId.address.isZero()) {
                 throw new StableCoinPreCheckException(Status.CALLER_NOT_SET);
             }
 
+            // check that the transaction ID is not expired
+
+            if (transactionId.isExpired()) {
+                throw new StableCoinPreCheckException(Status.TRANSACTION_EXPIRED);
+            }
+
+            // try to add the transaction ID to the state
+            // and flag if its been added before
+
+            if (state.hasTransactionId(transactionId)) {
+                throw new StableCoinPreCheckException(Status.TRANSACTION_DUPLICATE);
+            }
+
+            var caller = transactionId.address;
             var signature = transaction.getSignature().toByteArray();
+
+            generateReceipt = true;
 
             // verify that this transaction was signed by the identified caller
 
@@ -189,19 +215,27 @@ public final class TopicListener {
         // state has now transitioned
         state.setTimestamp(consensusTimestamp);
 
+        if (generateReceipt) {
+            // record the transaction receipt
+            state.addTransactionReceipt(transactionId, new TransactionReceipt(
+                consensusTimestamp, transactionId, transactionStatus));
+        }
+
         // persist the transaction to our database if there is a configured
         // transaction repository available
         if (transactionRepository != null) {
             transactionRepository.bindTransaction(
                 consensusTimestamp,
-                caller,
+                transactionId,
                 transactionStatus,
                 transactionBody.getDataCase(),
                 transactionArguments
             );
         }
 
-        // emit any events for the transaction
-        emitter.emit(transactionBody.getDataCase(), state, caller, transactionArguments);
+        if (transactionStatus.equals(Status.OK)) {
+            // emit any events for the transaction
+            emitter.emit(transactionBody.getDataCase(), state, transactionId, transactionArguments);
+        }
     }
 }

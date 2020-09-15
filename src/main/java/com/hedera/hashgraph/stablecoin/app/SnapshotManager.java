@@ -4,10 +4,14 @@ import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.app.proto.AllowanceEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.BalanceEntry;
+import com.hedera.hashgraph.stablecoin.app.proto.ExternalAllowanceEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.FrozenEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.KycPassedEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.Snapshot;
+import com.hedera.hashgraph.stablecoin.app.proto.TransactionReceiptEntry;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
@@ -75,31 +79,44 @@ public final class SnapshotManager {
             state.setProposedOwner(new Address(snapshot.getProposedOwner()));
             state.setComplianceManager(new Address(snapshot.getComplianceManager()));
             state.setSupplyManager(new Address(snapshot.getSupplyManager()));
+            state.setEnforcementManager(new Address(snapshot.getEnforcementManager()));
+
+            state.transactionReceipts.clear();
+
+            for (var receiptEntry : snapshot.getTransactionReceiptsList()) {
+                var validStart = Instant.ofEpochSecond(0, receiptEntry.getValidStart());
+                var consensus = Instant.ofEpochSecond(0, receiptEntry.getConsensus());
+                var address = new Address(receiptEntry.getAddress());
+                var status = Status.valueOf(receiptEntry.getStatus());
+
+                var id = new TransactionId(address, validStart);
+                var receipt = new TransactionReceipt(consensus, id, status);
+
+                state.transactionReceipts.put(id, receipt);
+            }
+
+            state.balances.clear();
 
             for (var balanceEntry : snapshot.getBalancesList()) {
                 var address = new Address(balanceEntry.getAddress());
                 var balance = new BigInteger(balanceEntry.getBalance().toByteArray());
 
-                state.balances.put(address.publicKey, balance);
+                state.increaseBalanceOf(address, balance);
             }
+
+            state.kycPassed.clear();
 
             for (var kycPassedEntry : snapshot.getKycPassedList()) {
-                var address = new Address(kycPassedEntry.getAddress());
-                var isKycPassed = kycPassedEntry.getIsKycPassed();
-
-                if (isKycPassed) {
-                    state.kycPassed.put(address.publicKey, true);
-                }
+                state.setKycPassed(new Address(kycPassedEntry.getAddress()));
             }
+
+            state.frozen.clear();
 
             for (var frozenEntry : snapshot.getFrozenList()) {
-                var address = new Address(frozenEntry.getAddress());
-                var isFrozen = frozenEntry.getIsFrozen();
-
-                if (isFrozen) {
-                    state.frozen.put(address.publicKey, true);
-                }
+                state.freeze(new Address(frozenEntry.getAddress()));
             }
+
+            state.allowances.clear();
 
             for (var allowance : snapshot.getAllowancesList()) {
                 state.allowances.put(
@@ -108,6 +125,19 @@ public final class SnapshotManager {
                         Ed25519PublicKey.fromBytes(allowance.getOtherAddress().toByteArray())
                     ),
                     new BigInteger(allowance.getAllowance().toByteArray())
+                );
+            }
+
+            state.externalAllowances.clear();
+
+            for (var externalAllowance : snapshot.getExternalAllowancesList()) {
+                state.externalAllowances.put(
+                    new Tuple3(
+                        Ed25519PublicKey.fromBytes(externalAllowance.getAddress().toByteArray()),
+                        externalAllowance.getNetworkURI(),
+                        externalAllowance.getOtherAddress().toByteArray()
+                    ),
+                    new BigInteger(externalAllowance.getAllowance().toByteArray())
                 );
             }
         } finally {
@@ -126,7 +156,18 @@ public final class SnapshotManager {
             .setOwner(ByteString.copyFrom(state.getOwner().publicKey.toBytes()))
             .setSupplyManager(ByteString.copyFrom(state.getSupplyManager().publicKey.toBytes()))
             .setComplianceManager(ByteString.copyFrom(state.getComplianceManager().publicKey.toBytes()))
-            .setProposedOwner(ByteString.copyFrom(state.getProposedOwner().publicKey.toBytes()));
+            .setProposedOwner(ByteString.copyFrom(state.getProposedOwner().publicKey.toBytes()))
+            .setEnforcementManager(ByteString.copyFrom(state.getEnforcementManager().toBytes()));
+
+        for (var transactionReceipt : state.transactionReceipts.values()) {
+            var transactionId = transactionReceipt.transactionId;
+
+            snapshot.addTransactionReceipts(TransactionReceiptEntry.newBuilder()
+                .setStatus(transactionReceipt.status.getValue())
+                .setConsensus(ChronoUnit.NANOS.between(Instant.EPOCH, transactionReceipt.consensusAt))
+                .setAddress(ByteString.copyFrom(transactionId.address.toBytes()))
+                .setValidStart(ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart)));
+        }
 
         for (var entry : state.balances.entrySet()) {
             snapshot.addBalances(BalanceEntry.newBuilder()
@@ -134,16 +175,14 @@ public final class SnapshotManager {
                 .setBalance(ByteString.copyFrom(entry.getValue().toByteArray())));
         }
 
-        for (var entry : state.kycPassed.entrySet()) {
+        for (var address : state.kycPassed) {
             snapshot.addKycPassed(KycPassedEntry.newBuilder()
-                .setAddress(ByteString.copyFrom(entry.getKey().toBytes()))
-                .setIsKycPassed(entry.getValue()));
+                .setAddress(ByteString.copyFrom(address.toBytes())));
         }
 
-        for (var entry : state.frozen.entrySet()) {
+        for (var address : state.frozen) {
             snapshot.addFrozen(FrozenEntry.newBuilder()
-                .setAddress(ByteString.copyFrom(entry.getKey().toBytes()))
-                .setIsFrozen(entry.getValue()));
+                .setAddress(ByteString.copyFrom(address.toBytes())));
         }
 
         for (var entry : state.allowances.entrySet()) {
@@ -159,6 +198,25 @@ public final class SnapshotManager {
             snapshot.addAllowances(AllowanceEntry.newBuilder()
                 .setAddress(ByteString.copyFrom(address.toBytes()))
                 .setOtherAddress(ByteString.copyFrom(otherAddress.toBytes()))
+                .setAllowance(ByteString.copyFrom(allowance.toByteArray()))
+                .build());
+        }
+
+        for (var entry : state.externalAllowances.entrySet()) {
+            var key = (Tuple3) entry.getKey();
+            var address = key.first;
+            var otherAddress = key.third;
+            var networkUri = key.second;
+            var allowance = entry.getValue();
+
+            if (allowance.equals(BigInteger.ZERO)) {
+                continue;
+            }
+
+            snapshot.addExternalAllowances(ExternalAllowanceEntry.newBuilder()
+                .setAddress(ByteString.copyFrom(address.toBytes()))
+                .setOtherAddress(ByteString.copyFrom(otherAddress))
+                .setNetworkURI(networkUri)
                 .setAllowance(ByteString.copyFrom(allowance.toByteArray()))
                 .build());
         }

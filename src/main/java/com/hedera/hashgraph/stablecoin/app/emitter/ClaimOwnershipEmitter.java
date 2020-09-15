@@ -7,13 +7,14 @@ import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.ClaimOwnershipEventData;
 import com.hedera.hashgraph.stablecoin.proto.ProposeOwnerEventData;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 public class ClaimOwnershipEmitter extends AbstractEmitter<ClaimOwnershipTransactionArguments> {
     @Override
-    public void emit(State state, Address caller, ClaimOwnershipTransactionArguments args) {
+    public void emit(State state, TransactionId transactionId, ClaimOwnershipTransactionArguments args) {
         var claim = Event.newBuilder()
             .setClaimOwnership(ClaimOwnershipEventData.newBuilder()
-                .setCaller(ByteString.copyFrom(caller.toBytes()))
+                .setCaller(ByteString.copyFrom(transactionId.address.toBytes()))
             ).build();
 
         var propose = Event.newBuilder()

@@ -5,14 +5,14 @@ import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.MintTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.MintEventData;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 public class MintEmitter extends AbstractEmitter<MintTransactionArguments> {
     @Override
-    public void emit(State state, Address caller, MintTransactionArguments args) {
+    public void emit(State state, TransactionId transactionId, MintTransactionArguments args) {
         var event = Event.newBuilder()
             .setMint(MintEventData.newBuilder()
-                .setSupplyManager(ByteString.copyFrom(caller.toBytes()))
+                .setSupplyManager(ByteString.copyFrom(transactionId.address.toBytes()))
                 .setValue(ByteString.copyFrom(args.value.toByteArray()))
             ).build();
 

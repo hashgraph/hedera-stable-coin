@@ -5,16 +5,16 @@ import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ExternalTransferTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.ExternalTransferEventData;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 public class ExternalTransferEmitter extends AbstractEmitter<ExternalTransferTransactionArguments> {
     @Override
-    public void emit(State state, Address caller, ExternalTransferTransactionArguments args) {
+    public void emit(State state, TransactionId transactionId, ExternalTransferTransactionArguments args) {
         var event = Event.newBuilder()
             .setExternalTransfer(ExternalTransferEventData.newBuilder()
                 .setAmount(ByteString.copyFrom(args.amount.toByteArray()))
                 .setNetworkURI(args.networkURI)
-                .setFrom(ByteString.copyFrom(caller.publicKey.toBytes()))
+                .setFrom(ByteString.copyFrom(transactionId.address.toBytes()))
                 .setTo(args.to))
             .build();
 
