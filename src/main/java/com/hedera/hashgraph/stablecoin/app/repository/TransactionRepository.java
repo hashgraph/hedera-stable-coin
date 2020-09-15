@@ -92,7 +92,7 @@ public final class TransactionRepository {
         }
 
         if (addressBatch == null) {
-            addressBatch = newBatch();
+            addressBatch = newAddressBatch();
         }
 
         @SuppressWarnings("unchecked")
@@ -106,6 +106,7 @@ public final class TransactionRepository {
         // this is a <synchronized> method and `transactionBatch` should not
         // have became null since the start of the method
         assert transactionBatch != null;
+        assert addressBatch != null;
 
         var transactionTimestamp = ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp);
 
@@ -115,6 +116,11 @@ public final class TransactionRepository {
             transactionId.address.toBytes(),
             ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart),
             status.getValue()
+        );
+
+        addressBatch = addressBatch.bind(
+            transactionTimestamp,
+            transactionId.address.toBytes()
         );
 
         if (repository != null) {

@@ -1,5 +1,6 @@
 package com.hedera.hashgraph.stablecoin.sdk;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -14,15 +15,20 @@ public class TransactionId implements Comparable<TransactionId> {
         this.validStart = validStart;
     }
 
-    public static TransactionId parse(com.hedera.hashgraph.stablecoin.proto.TransactionId id) {
+    @Nullable
+    public static TransactionId parse(@Nullable com.hedera.hashgraph.stablecoin.proto.TransactionId id) {
+        if (id == null) {
+            return null;
+        }
+
         var address = new Address(id.getAddress());
         var validStart = Instant.ofEpochSecond(0, id.getValidStart());
 
         return new TransactionId(address, validStart);
     }
 
-    public boolean isExpired() {
-        return ChronoUnit.MINUTES.between(validStart, Instant.now()) > 2;
+    public boolean isExpired(Instant fromTimestamp) {
+        return ChronoUnit.MINUTES.between(validStart, fromTimestamp) > 2;
     }
 
     @Override

@@ -18,8 +18,8 @@ public class TransactionReceipt implements Comparable<TransactionReceipt> {
         this.status = status;
     }
 
-    public boolean isExpired() {
-        return transactionId.isExpired();
+    public boolean isExpired(Instant fromTimestamp) {
+        return transactionId.isExpired(fromTimestamp);
     }
 
     @Override

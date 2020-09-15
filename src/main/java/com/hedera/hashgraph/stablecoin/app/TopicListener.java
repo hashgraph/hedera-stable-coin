@@ -181,7 +181,7 @@ public final class TopicListener {
 
             // check that the transaction ID is not expired
 
-            if (transactionId.isExpired()) {
+            if (transactionId.isExpired(consensusTimestamp)) {
                 throw new StableCoinPreCheckException(Status.TRANSACTION_EXPIRED);
             }
 

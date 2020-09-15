@@ -292,12 +292,13 @@ public final class State {
      * them in memory to prevent duplicates after the ID expires.
      */
     void removeExpiredTransactionReceipts() {
+        var now = Instant.now();
         var receipts = transactionReceipts.entrySet().iterator();
 
         while (receipts.hasNext()) {
             var receipt = receipts.next();
 
-            if (!receipt.getKey().isExpired()) {
+            if (!receipt.getKey().isExpired(now)) {
                 break;
             }
 
