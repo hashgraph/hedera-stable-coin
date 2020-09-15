@@ -2,6 +2,7 @@ package com.hedera.hashgraph.stablecoin.sdk;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 import com.google.errorprone.annotations.Var;
 import com.google.protobuf.ByteString;
@@ -43,9 +44,11 @@ public abstract class Transaction {
     }
 
     private static synchronized long getMonotonicNanoseconds() {
-        @Var var validStart = ChronoUnit.NANOS.between(Instant.EPOCH, Instant.now());
+        var now = Instant.now().minus(10, ChronoUnit.SECONDS);
 
-        if (lastValidStart <= validStart) {
+        @Var var validStart = ChronoUnit.NANOS.between(Instant.EPOCH, now);
+
+        if (validStart <= lastValidStart) {
             validStart = lastValidStart + 1;
         }
 

@@ -50,8 +50,14 @@ public class IncreaseAllowanceTest {
         // get allowance before test
         var allowance = state.getAllowance(caller, spender);
 
-        // prepare test transaction
+        // prepare test transactions
         var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(
+            callerKey,
+            spender,
+            value
+        );
+
+        var secondIncreaseAllowanceTransaction = new IncreaseAllowanceTransaction(
             callerKey,
             spender,
             value
@@ -101,7 +107,7 @@ public class IncreaseAllowanceTest {
         // Overflow not possible
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(secondIncreaseAllowanceTransaction.toByteArray()));
 
         // Post-Check
 

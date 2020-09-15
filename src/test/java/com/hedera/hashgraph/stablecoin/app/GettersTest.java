@@ -113,6 +113,12 @@ public class GettersTest {
             value
         );
 
+        var secondTransferTransaction = new TransferTransaction(
+            supplyManagerKey,
+            to,
+            value
+        );
+
         var setKycTransaction = new SetKycPassedTransaction(ownerKey, to);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
@@ -125,7 +131,7 @@ public class GettersTest {
         Assertions.assertEquals(value, state.getBalanceOf(to));
 
         // Transfer and check again
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(secondTransferTransaction.toByteArray()));
 
         // Post-conditions: i. result =  Balances[addr]
         Assertions.assertEquals(value.add(value), state.getBalanceOf(to));

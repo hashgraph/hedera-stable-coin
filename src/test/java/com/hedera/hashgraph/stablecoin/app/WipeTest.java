@@ -121,7 +121,7 @@ public class WipeTest {
         Assertions.assertTrue(value.compareTo(BigInteger.TWO.pow(256)) < 0);
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransaction2.toByteArray()));
 
         // Post-Check
 

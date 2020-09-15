@@ -49,11 +49,21 @@ public class UnsetKycPassedTest {
             addr
         );
 
+        var setKycPassedTransaction2 = new SetKycPassedTransaction(
+            callerKey,
+            addr
+        );
+
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
 
         // prepare test transaction
         var unsetKycPassedTransaction = new UnsetKycPassedTransaction(
+            callerKey,
+            addr
+        );
+
+        var unsetKycPassedTransaction3 = new UnsetKycPassedTransaction(
             callerKey,
             addr
         );
@@ -78,7 +88,7 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.isKycPassed(addr));
 
         // re-set and check for caller == complianceManager instead this time
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
 
         Assertions.assertTrue(state.isKycPassed(addr));
 
@@ -102,7 +112,7 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction3.toByteArray()));
 
         // Post-Check
 
