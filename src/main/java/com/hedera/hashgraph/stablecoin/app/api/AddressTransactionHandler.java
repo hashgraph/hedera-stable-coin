@@ -44,8 +44,6 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
                 var rows = ar.result();
                 var transactions = new ArrayList<TransactionResponseItem>(rows.rowCount());
 
-                System.out.println("rows names = " + rows.columnsNames());
-
                 for (var row : rows) {
                     var item = new TransactionResponseItem();
 
