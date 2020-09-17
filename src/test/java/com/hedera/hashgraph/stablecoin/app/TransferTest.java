@@ -34,6 +34,7 @@ public class TransferTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -43,13 +44,14 @@ public class TransferTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, to);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, to);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var transferTransaction = new TransferTransaction(
+            0,
             callerKey,
             to,
             value

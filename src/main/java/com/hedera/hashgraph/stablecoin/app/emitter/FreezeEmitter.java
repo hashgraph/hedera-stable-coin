@@ -5,11 +5,11 @@ import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.FreezeTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.FreezeEventData;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 public class FreezeEmitter extends AbstractEmitter<FreezeTransactionArguments> {
     @Override
-    public void emit(State state, TransactionId transactionId, FreezeTransactionArguments args) {
+    public void emit(State state, Address caller, FreezeTransactionArguments args) {
         var event = Event.newBuilder()
             .setFreeze(FreezeEventData.newBuilder()
                 .setAddress(ByteString.copyFrom(args.address.toBytes()))

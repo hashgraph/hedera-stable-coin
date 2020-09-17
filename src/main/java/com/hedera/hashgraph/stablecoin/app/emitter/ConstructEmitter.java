@@ -5,11 +5,11 @@ import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ConstructTransactionArguments;
 import com.hedera.hashgraph.stablecoin.proto.Event;
 import com.hedera.hashgraph.stablecoin.proto.ConstructEventData;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 public class ConstructEmitter extends AbstractEmitter<ConstructTransactionArguments> {
     @Override
-    public void emit(State state, TransactionId transactionId, ConstructTransactionArguments args) {
+    public void emit(State state, Address caller, ConstructTransactionArguments args) {
         var event = Event.newBuilder()
             .setConstruct(ConstructEventData.newBuilder()
                 .setTokenName(args.tokenName)

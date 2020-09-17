@@ -35,6 +35,7 @@ public class DecreaseAllowanceTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -44,8 +45,8 @@ public class DecreaseAllowanceTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
-        var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(callerKey, spender, BigInteger.TWO);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, spender);
+        var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(0, callerKey, spender, BigInteger.TWO);
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(increaseAllowanceTransaction.toByteArray()));
@@ -54,7 +55,7 @@ public class DecreaseAllowanceTest {
         var allowance = state.getAllowance(caller, spender);
 
         // prepare test transaction
-        var decreaseAllowanceTransaction = new DecreaseAllowanceTransaction(callerKey, spender, value);
+        var decreaseAllowanceTransaction = new DecreaseAllowanceTransaction(0, callerKey, spender, value);
 
         // Pre-Check
 

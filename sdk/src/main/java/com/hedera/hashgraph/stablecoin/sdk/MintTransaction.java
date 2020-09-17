@@ -9,10 +9,11 @@ import java.math.BigInteger;
 
 public final class MintTransaction extends Transaction {
     public MintTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey supplyManager,
         BigInteger amount
     ) {
-        super(supplyManager, TransactionBody.newBuilder()
+        super(operatorAccountNum, supplyManager, TransactionBody.newBuilder()
             .setMint(MintTransactionData.newBuilder()
                 .setValue(ByteString.copyFrom(amount.toByteArray()))));
     }

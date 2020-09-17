@@ -23,8 +23,8 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index FLYWAY_SCHEMA_HISTORY_S_IDX = Indexes0.FLYWAY_SCHEMA_HISTORY_S_IDX;
-    public static final Index TRANSACTION_CALLER_VALID_START_IDX = Indexes0.TRANSACTION_CALLER_VALID_START_IDX;
     public static final Index TRANSACTION_KIND_IDX = Indexes0.TRANSACTION_KIND_IDX;
+    public static final Index TRANSACTION_OPERATOR_ACCOUNT_NUM_VALID_START_NANOS_IDX = Indexes0.TRANSACTION_OPERATOR_ACCOUNT_NUM_VALID_START_NANOS_IDX;
     public static final Index TRANSACTION_STATUS_IDX = Indexes0.TRANSACTION_STATUS_IDX;
 
     // -------------------------------------------------------------------------
@@ -33,8 +33,8 @@ public class Indexes {
 
     private static class Indexes0 {
         public static Index FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex("flyway_schema_history_s_idx", FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
-        public static Index TRANSACTION_CALLER_VALID_START_IDX = Internal.createIndex("transaction_caller_valid_start_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.CALLER, Transaction.TRANSACTION.VALID_START }, false);
         public static Index TRANSACTION_KIND_IDX = Internal.createIndex("transaction_kind_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.KIND }, false);
+        public static Index TRANSACTION_OPERATOR_ACCOUNT_NUM_VALID_START_NANOS_IDX = Internal.createIndex("transaction_operator_account_num_valid_start_nanos_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.OPERATOR_ACCOUNT_NUM, Transaction.TRANSACTION.VALID_START_NANOS }, false);
         public static Index TRANSACTION_STATUS_IDX = Internal.createIndex("transaction_status_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.STATUS }, false);
     }
 }

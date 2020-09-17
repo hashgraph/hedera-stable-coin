@@ -34,6 +34,7 @@ public class ClaimOwnershipTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             ownerKey,
             tokenName,
             tokenSymbol,
@@ -43,8 +44,8 @@ public class ClaimOwnershipTest {
             owner
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, caller);
-        var proposeOwnerTransaction = new ProposeOwnerTransaction(ownerKey, caller);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, caller);
+        var proposeOwnerTransaction = new ProposeOwnerTransaction(0, ownerKey, caller);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
@@ -52,6 +53,7 @@ public class ClaimOwnershipTest {
 
         // prepare test transaction
         var claimOwnershipTransaction = new ClaimOwnershipTransaction(
+            0,
             callerKey
         );
 

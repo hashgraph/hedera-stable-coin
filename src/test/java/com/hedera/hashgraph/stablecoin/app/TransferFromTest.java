@@ -38,6 +38,7 @@ public class TransferFromTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -47,10 +48,10 @@ public class TransferFromTest {
             caller
         );
 
-        var setKycTransactionTo = new SetKycPassedTransaction(callerKey, to);
-        var setKycTransactionFrom = new SetKycPassedTransaction(callerKey, from);
-        var transferTransaction = new TransferTransaction(callerKey, from, value);
-        var approveAllowanceTransaction = new ApproveAllowanceTransaction(fromKey, caller, value);
+        var setKycTransactionTo = new SetKycPassedTransaction(0, callerKey, to);
+        var setKycTransactionFrom = new SetKycPassedTransaction(0, callerKey, from);
+        var transferTransaction = new TransferTransaction(0, callerKey, from, value);
+        var approveAllowanceTransaction = new ApproveAllowanceTransaction(0, fromKey, caller, value);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionTo.toByteArray()));
@@ -60,6 +61,7 @@ public class TransferFromTest {
 
         // prepare test transaction
         var transferFromTransaction = new TransferFromTransaction(
+            0,
             callerKey,
             from,
             to,

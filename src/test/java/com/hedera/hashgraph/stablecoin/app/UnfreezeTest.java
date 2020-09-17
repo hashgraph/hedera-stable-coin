@@ -36,6 +36,7 @@ public class UnfreezeTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -45,8 +46,8 @@ public class UnfreezeTest {
             complianceManager
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
-        var freezeTransaction = new FreezeTransaction(callerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
+        var freezeTransaction = new FreezeTransaction(0, callerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
@@ -54,6 +55,7 @@ public class UnfreezeTest {
 
         // prepare test transaction
         var unfreezeTransaction = new UnfreezeTransaction(
+            0,
             callerKey,
             addr
         );
@@ -79,6 +81,7 @@ public class UnfreezeTest {
 
         // prepare test transaction
         var unfreezeTransaction2 = new UnfreezeTransaction(
+            0,
             complianceManagerKey,
             addr
         );

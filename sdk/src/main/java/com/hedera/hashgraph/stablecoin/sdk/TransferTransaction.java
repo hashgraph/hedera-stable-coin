@@ -9,11 +9,12 @@ import java.math.BigInteger;
 
 public final class TransferTransaction extends Transaction {
     public TransferTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey transferFrom,
         Address transferTo,
         BigInteger amount
     ) {
-        super(transferFrom, TransactionBody.newBuilder()
+        super(operatorAccountNum, transferFrom, TransactionBody.newBuilder()
             .setTransfer(TransferTransactionData.newBuilder()
                 .setTo(ByteString.copyFrom(transferTo.publicKey.toBytes()))
                 .setValue(ByteString.copyFrom(amount.toByteArray()))));

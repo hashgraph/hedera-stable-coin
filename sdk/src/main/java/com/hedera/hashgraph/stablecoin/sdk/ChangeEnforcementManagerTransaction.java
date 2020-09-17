@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public class ChangeEnforcementManagerTransaction extends Transaction {
     public ChangeEnforcementManagerTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey caller,
         Address address
     ) {
-        super(caller, TransactionBody.newBuilder()
+        super(operatorAccountNum, caller, TransactionBody.newBuilder()
             .setChangeEnforcementManager(ChangeEnforcementManagerTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

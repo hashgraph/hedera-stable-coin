@@ -31,7 +31,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Transaction extends TableImpl<Record> {
 
-    private static final long serialVersionUID = -2115392655;
+    private static final long serialVersionUID = -972922112;
 
     /**
      * The reference instance of <code>public.transaction</code>
@@ -67,9 +67,14 @@ public class Transaction extends TableImpl<Record> {
     public final TableField<Record, byte[]> CALLER = createField(DSL.name("caller"), org.jooq.impl.SQLDataType.BLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.transaction.valid_start</code>.
+     * The column <code>public.transaction.operator_account_num</code>.
      */
-    public final TableField<Record, Long> VALID_START = createField(DSL.name("valid_start"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<Record, Long> OPERATOR_ACCOUNT_NUM = createField(DSL.name("operator_account_num"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.transaction.valid_start_nanos</code>.
+     */
+    public final TableField<Record, Long> VALID_START_NANOS = createField(DSL.name("valid_start_nanos"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * Create a <code>public.transaction</code> table reference
@@ -111,7 +116,7 @@ public class Transaction extends TableImpl<Record> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.TRANSACTION_CALLER_VALID_START_IDX, Indexes.TRANSACTION_KIND_IDX, Indexes.TRANSACTION_STATUS_IDX);
+        return Arrays.<Index>asList(Indexes.TRANSACTION_KIND_IDX, Indexes.TRANSACTION_OPERATOR_ACCOUNT_NUM_VALID_START_NANOS_IDX, Indexes.TRANSACTION_STATUS_IDX);
     }
 
     @Override

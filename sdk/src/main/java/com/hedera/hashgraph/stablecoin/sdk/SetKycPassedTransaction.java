@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.SetKycPassedTransactionData;
 
 public final class SetKycPassedTransaction extends Transaction {
     public SetKycPassedTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey owner,
         Address address
     ) {
-        super(owner, TransactionBody.newBuilder()
+        super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setSetKycPassed(SetKycPassedTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

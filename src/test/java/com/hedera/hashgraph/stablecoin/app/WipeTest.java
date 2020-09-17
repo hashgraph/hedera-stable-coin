@@ -37,6 +37,7 @@ public class WipeTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -46,8 +47,8 @@ public class WipeTest {
             complianceManager
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
-        var transferTransaction = new TransferTransaction(callerKey, addr, BigInteger.TWO);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
+        var transferTransaction = new TransferTransaction(0, callerKey, addr, BigInteger.TWO);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
@@ -55,6 +56,7 @@ public class WipeTest {
 
         // prepare test transaction
         var wipeTransaction = new WipeTransaction(
+            0,
             callerKey,
             addr,
             value
@@ -96,6 +98,7 @@ public class WipeTest {
 
         // prepare test transaction
         var wipeTransaction2 = new WipeTransaction(
+            0,
             complianceManagerKey,
             addr,
             value

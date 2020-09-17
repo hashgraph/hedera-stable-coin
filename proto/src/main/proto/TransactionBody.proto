@@ -5,7 +5,6 @@ package proto;
 option java_package = "com.hedera.hashgraph.stablecoin.proto";
 option java_multiple_files = true;
 
-import "TransactionId.proto";
 import "ConstructTransactionData.proto";
 import "ApproveAllowanceTransactionData.proto";
 import "MintTransactionData.proto";
@@ -28,29 +27,35 @@ import "ApproveExternalTransferTransactionData.proto";
 import "ExternalTransferTransactionData.proto";
 
 message TransactionBody {
-    TransactionId transactionId = 1;
+    bytes caller = 1;
+
+    // HederaTransactionId.accountId
+    uint64 operatorAccountNum = 2;
+
+    // HederaTransactionId.validStart
+    uint64 validStartNanos = 3;
 
     oneof data {
-        ConstructTransactionData construct = 2;
-        ApproveAllowanceTransactionData approve = 3;
-        MintTransactionData mint = 4;
-        BurnTransactionData burn = 5;
-        TransferTransactionData transfer = 6;
-        TransferFromTransactionData transferFrom = 7;
-        ProposeOwnerTransactionData proposeOwner = 8;
-        ClaimOwnershipTransactionData claimOwnership = 9;
-        ChangeSupplyManagerTransactionData changeSupplyManager = 10;
-        ChangeComplianceManagerTransactionData changeComplianceManager = 11;
-        ChangeEnforcementManagerTransactionData changeEnforcementManager = 12;
-        FreezeTransactionData freeze = 13;
-        UnfreezeTransactionData unfreeze = 14;
-        WipeTransactionData wipe = 15;
-        SetKycPassedTransactionData setKycPassed = 16;
-        UnsetKycPassedTransactionData unsetKycPassed = 17;
-        IncreaseAllowanceTransactionData increaseAllowance = 18;
-        DecreaseAllowanceTransactionData decreaseAllowance = 19;
-        ApproveExternalTransferTransactionData approveExternalTransfer = 20;
-        ExternalTransferTransactionData externalTransfer = 21;
-        ExternalTransferTransactionData externalTransferFrom = 22;
+        ConstructTransactionData construct = 10;
+        ApproveAllowanceTransactionData approve = 11;
+        MintTransactionData mint = 12;
+        BurnTransactionData burn = 13;
+        TransferTransactionData transfer = 14;
+        TransferFromTransactionData transferFrom = 15;
+        ProposeOwnerTransactionData proposeOwner = 16;
+        ClaimOwnershipTransactionData claimOwnership = 17;
+        ChangeSupplyManagerTransactionData changeSupplyManager = 18;
+        ChangeComplianceManagerTransactionData changeComplianceManager = 19;
+        ChangeEnforcementManagerTransactionData changeEnforcementManager = 20;
+        FreezeTransactionData freeze = 21;
+        UnfreezeTransactionData unfreeze = 22;
+        WipeTransactionData wipe = 23;
+        SetKycPassedTransactionData setKycPassed = 24;
+        UnsetKycPassedTransactionData unsetKycPassed = 25;
+        IncreaseAllowanceTransactionData increaseAllowance = 26;
+        DecreaseAllowanceTransactionData decreaseAllowance = 27;
+        ApproveExternalTransferTransactionData approveExternalTransfer = 28;
+        ExternalTransferTransactionData externalTransfer = 29;
+        ExternalTransferTransactionData externalTransferFrom = 30;
     }
 }

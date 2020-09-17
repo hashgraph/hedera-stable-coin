@@ -9,12 +9,13 @@ import java.math.BigInteger;
 
 public final class ApproveExternalTransferTransaction extends Transaction {
     public ApproveExternalTransferTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey caller,
         String networkURI, // pointer to the network
         byte[] to, // within the external network
         BigInteger amount // how much is being transferred
     ) {
-        super(caller, TransactionBody.newBuilder()
+        super(operatorAccountNum, caller, TransactionBody.newBuilder()
             .setApproveExternalTransfer(ApproveExternalTransferTransactionData.newBuilder()
                 .setNetworkURI(networkURI)
                 .setTo(ByteString.copyFrom(to))

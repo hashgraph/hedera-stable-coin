@@ -51,7 +51,8 @@ message ExternalAllowanceEntry {
 
 message TransactionReceiptEntry {
     bytes address = 1;
-    uint64 validStart = 2;
-    uint64 consensus = 3;
-    uint32 status = 4;
+    uint64 operatorAccountNum = 2;
+    uint64 validStartNanos = 3;
+    uint64 consensus = 4;
+    uint32 status = 5;
 }

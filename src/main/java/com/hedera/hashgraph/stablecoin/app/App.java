@@ -155,6 +155,7 @@ public class App {
         // we need to create a new topic, and send a construct message,
         // which establishes our operator as the owner
 
+        var operatorId = AccountId.fromString(requireEnv("HSC_OPERATOR_ID"));
         var operatorPrivateKey = Ed25519PrivateKey.fromString(requireEnv("HSC_OPERATOR_KEY"));
         var tokenName = requireEnv("HSC_TOKEN_NAME");
         var tokenSymbol = requireEnv("HSC_TOKEN_SYMBOL");
@@ -181,6 +182,7 @@ public class App {
         // now we need to create a <Construct> transaction
 
         var constructTransactionBytes = new ConstructTransaction(
+            operatorId.account,
             ownerKey.orElse(operatorPrivateKey),
             tokenName,
             tokenSymbol,

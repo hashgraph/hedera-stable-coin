@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.UnsetKycPassedTransactionData;
 
 public final class UnsetKycPassedTransaction extends Transaction {
     public UnsetKycPassedTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey owner,
         Address address
     ) {
-        super(owner, TransactionBody.newBuilder()
+        super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setUnsetKycPassed(UnsetKycPassedTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

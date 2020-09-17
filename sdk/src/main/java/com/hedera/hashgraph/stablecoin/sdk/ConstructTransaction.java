@@ -9,6 +9,7 @@ import java.math.BigInteger;
 
 public final class ConstructTransaction extends Transaction {
     public ConstructTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey owner,
         String tokenName,
         String tokenSymbol,
@@ -17,7 +18,7 @@ public final class ConstructTransaction extends Transaction {
         Address supplyManager,
         Address complianceManager
     ) {
-        super(owner, TransactionBody.newBuilder()
+        super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setConstruct(ConstructTransactionData.newBuilder()
                 .setTokenSymbol(tokenSymbol)
                 .setTokenName(tokenName)

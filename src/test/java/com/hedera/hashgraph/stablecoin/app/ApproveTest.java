@@ -35,6 +35,7 @@ public class ApproveTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -44,13 +45,14 @@ public class ApproveTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, spender);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var approveTransaction = new ApproveAllowanceTransaction(
+            0,
             callerKey,
             spender,
             value

@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.FreezeTransactionData;
 
 public final class FreezeTransaction extends Transaction {
     public FreezeTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey owner,
         Address address
     ) {
-        super(owner, TransactionBody.newBuilder()
+        super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setFreeze(FreezeTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

@@ -35,6 +35,7 @@ public class UnsetKycPassedTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -45,11 +46,13 @@ public class UnsetKycPassedTest {
         );
 
         var setKycPassedTransaction = new SetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
 
         var setKycPassedTransaction2 = new SetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
@@ -59,11 +62,13 @@ public class UnsetKycPassedTest {
 
         // prepare test transaction
         var unsetKycPassedTransaction = new UnsetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
 
         var unsetKycPassedTransaction3 = new UnsetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
@@ -93,6 +98,7 @@ public class UnsetKycPassedTest {
         Assertions.assertTrue(state.isKycPassed(addr));
 
         var unsetKycPassedTransaction2 = new SetKycPassedTransaction(
+            0,
             assetManagerKey,
             addr
         );

@@ -1,6 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.protobuf.ByteString;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.account.AccountId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.app.proto.AllowanceEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.BalanceEntry;
@@ -10,8 +12,6 @@ import com.hedera.hashgraph.stablecoin.app.proto.KycPassedEntry;
 import com.hedera.hashgraph.stablecoin.app.proto.Snapshot;
 import com.hedera.hashgraph.stablecoin.app.proto.TransactionReceiptEntry;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
-
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
@@ -84,13 +84,14 @@ public final class SnapshotManager {
             state.transactionReceipts.clear();
 
             for (var receiptEntry : snapshot.getTransactionReceiptsList()) {
-                var validStart = Instant.ofEpochSecond(0, receiptEntry.getValidStart());
+                var operatorAccountNum = receiptEntry.getOperatorAccountNum();
+                var validStart = Instant.ofEpochSecond(0, receiptEntry.getValidStartNanos());
                 var consensus = Instant.ofEpochSecond(0, receiptEntry.getConsensus());
                 var address = new Address(receiptEntry.getAddress());
                 var status = Status.valueOf(receiptEntry.getStatus());
 
-                var id = new TransactionId(address, validStart);
-                var receipt = new TransactionReceipt(consensus, id, status);
+                var id = TransactionId.withValidStart(new AccountId(operatorAccountNum), validStart);
+                var receipt = new TransactionReceipt(consensus, address, id, status);
 
                 state.transactionReceipts.put(id, receipt);
             }
@@ -165,8 +166,9 @@ public final class SnapshotManager {
             snapshot.addTransactionReceipts(TransactionReceiptEntry.newBuilder()
                 .setStatus(transactionReceipt.status.getValue())
                 .setConsensus(ChronoUnit.NANOS.between(Instant.EPOCH, transactionReceipt.consensusAt))
-                .setAddress(ByteString.copyFrom(transactionId.address.toBytes()))
-                .setValidStart(ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart)));
+                .setOperatorAccountNum(transactionId.accountId.account)
+                .setAddress(ByteString.copyFrom(transactionReceipt.caller.toBytes()))
+                .setValidStartNanos(ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart)));
         }
 
         for (var entry : state.balances.entrySet()) {

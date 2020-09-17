@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.ProposeOwnerTransactionData;
 
 public final class ProposeOwnerTransaction extends Transaction {
     public ProposeOwnerTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey owner,
         Address address
     ) {
-        super(owner, TransactionBody.newBuilder()
+        super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setProposeOwner(ProposeOwnerTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

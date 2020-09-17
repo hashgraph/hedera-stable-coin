@@ -36,6 +36,7 @@ public class FreezeTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -45,13 +46,14 @@ public class FreezeTest {
             complianceManager
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var freezeTransaction = new FreezeTransaction(
+            0,
             callerKey,
             addr
         );
@@ -76,11 +78,12 @@ public class FreezeTest {
         Assertions.assertTrue(state.isFrozen(addr));
 
         // unfreeze and check for caller == complianceManager instead this time
-        var unfreezeTransaction = new UnfreezeTransaction(callerKey, addr);
+        var unfreezeTransaction = new UnfreezeTransaction(0, callerKey, addr);
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
         // prepare test transaction
         var freezeTransaction2 = new FreezeTransaction(
+            0,
             complianceManagerKey,
             addr
         );

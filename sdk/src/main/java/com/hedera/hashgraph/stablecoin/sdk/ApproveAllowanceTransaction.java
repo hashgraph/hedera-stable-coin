@@ -9,11 +9,12 @@ import java.math.BigInteger;
 
 public final class ApproveAllowanceTransaction extends Transaction {
     public ApproveAllowanceTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey caller,
         Address spender,
         BigInteger value
     ) {
-        super(caller, TransactionBody.newBuilder()
+        super(operatorAccountNum, caller, TransactionBody.newBuilder()
             .setApprove(ApproveAllowanceTransactionData.newBuilder()
                 .setSpender(ByteString.copyFrom(spender.publicKey.toBytes()))
                 .setValue(ByteString.copyFrom(value.toByteArray()))));

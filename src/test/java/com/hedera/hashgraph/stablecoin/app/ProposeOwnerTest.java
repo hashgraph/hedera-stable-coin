@@ -33,6 +33,7 @@ public class ProposeOwnerTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -42,13 +43,14 @@ public class ProposeOwnerTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var proposeOwnerTransaction = new ProposeOwnerTransaction(
+            0,
             callerKey,
             addr
         );

@@ -34,6 +34,7 @@ public class MintTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -47,6 +48,7 @@ public class MintTest {
 
         // prepare test transaction
         var mintTransaction = new MintTransaction(
+            0,
             callerKey,
             value
         );

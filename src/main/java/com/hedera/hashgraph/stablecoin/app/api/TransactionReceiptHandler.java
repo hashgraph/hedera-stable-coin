@@ -1,10 +1,9 @@
 package com.hedera.hashgraph.stablecoin.app.api;
 
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.account.AccountId;
 import com.hedera.hashgraph.stablecoin.app.State;
 import com.hedera.hashgraph.stablecoin.app.Status;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
-
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
@@ -20,10 +19,13 @@ public class TransactionReceiptHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext routingContext) {
-        var address = Address.fromString(routingContext.request().getParam("address"));
-        var id = Long.parseLong(routingContext.request().getParam("id"));
+        var operatorAccountNum = Long.parseLong(routingContext.request().getParam("operatorAccountNum"));
+        var validStartNanos = Long.parseLong(routingContext.request().getParam("validStartNanos"));
+        var validStart = Instant.ofEpochSecond(0, validStartNanos);
 
-        var transactionId = new TransactionId(address, Instant.ofEpochSecond(0, id));
+        var transactionId = TransactionId.withValidStart(
+            new AccountId(operatorAccountNum), validStart);
+
         var receipt = state.getTransactionReceipt(transactionId);
 
         if (receipt == null) {
@@ -35,8 +37,8 @@ public class TransactionReceiptHandler implements Handler<RoutingContext> {
         }
 
         var response = new TransactionReceiptResponse();
-        response.id = Long.toString(id);
-        response.caller = address.toString();
+        response.id = operatorAccountNum + "/" + validStartNanos;
+        response.caller = receipt.caller.toString();
         response.consensusAt = receipt.consensusAt;
         response.status = receipt.status;
 

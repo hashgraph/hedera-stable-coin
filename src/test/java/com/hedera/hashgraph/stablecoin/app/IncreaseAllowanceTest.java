@@ -34,6 +34,7 @@ public class IncreaseAllowanceTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -43,7 +44,7 @@ public class IncreaseAllowanceTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, spender);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, spender);
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
@@ -52,12 +53,14 @@ public class IncreaseAllowanceTest {
 
         // prepare test transactions
         var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(
+            0,
             callerKey,
             spender,
             value
         );
 
         var secondIncreaseAllowanceTransaction = new IncreaseAllowanceTransaction(
+            0,
             callerKey,
             spender,
             value

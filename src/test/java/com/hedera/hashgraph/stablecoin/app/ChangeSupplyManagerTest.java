@@ -33,6 +33,7 @@ public class ChangeSupplyManagerTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -42,13 +43,14 @@ public class ChangeSupplyManagerTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
         var changeSupplyManagerTransaction = new ChangeSupplyManagerTransaction(
+            0,
             callerKey,
             addr
         );

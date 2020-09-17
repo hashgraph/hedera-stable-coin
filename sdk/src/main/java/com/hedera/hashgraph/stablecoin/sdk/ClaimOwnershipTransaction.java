@@ -6,9 +6,10 @@ import com.hedera.hashgraph.stablecoin.proto.ClaimOwnershipTransactionData;
 
 public final class ClaimOwnershipTransaction extends Transaction {
     public ClaimOwnershipTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey claimer
     ) {
-        super(claimer, TransactionBody.newBuilder()
+        super(operatorAccountNum, claimer, TransactionBody.newBuilder()
             .setClaimOwnership(ClaimOwnershipTransactionData.newBuilder()));
     }
 }

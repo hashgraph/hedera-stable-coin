@@ -1,10 +1,10 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
+import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
 import org.jooq.Batch;
 import org.jooq.BatchBindStep;
@@ -66,9 +66,10 @@ public final class TransactionRepository {
             TRANSACTION.TIMESTAMP,
             TRANSACTION.KIND,
             TRANSACTION.CALLER,
-            TRANSACTION.VALID_START,
+            TRANSACTION.OPERATOR_ACCOUNT_NUM,
+            TRANSACTION.VALID_START_NANOS,
             TRANSACTION.STATUS
-        ).values((Long) null, null, null, null, null).onConflictDoNothing());
+        ).values((Long) null, null, null, null, null, null).onConflictDoNothing());
     }
 
     private BatchBindStep newAddressBatch() throws SQLException {
@@ -82,6 +83,7 @@ public final class TransactionRepository {
 
     public synchronized <ArgumentsT> void bindTransaction(
         Instant consensusTimestamp,
+        Address caller,
         TransactionId transactionId,
         Status status,
         TransactionBody.DataCase dataCase,
@@ -113,15 +115,13 @@ public final class TransactionRepository {
         transactionBatch = transactionBatch.bind(
             transactionTimestamp,
             transactionKind,
-            transactionId.address.toBytes(),
+            caller.toBytes(),
+            transactionId.accountId.account,
             ChronoUnit.NANOS.between(Instant.EPOCH, transactionId.validStart),
             status.getValue()
         );
 
-        addressBatch = addressBatch.bind(
-            transactionTimestamp,
-            transactionId.address.toBytes()
-        );
+        addressBatch = addressBatch.bind(transactionTimestamp, caller.toBytes());
 
         if (repository != null) {
             repository.bindTransaction(consensusTimestamp, arguments);

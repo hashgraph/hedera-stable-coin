@@ -46,6 +46,7 @@ public class GettersTest {
     BigInteger totalSupply = new BigInteger("10000");
 
     ConstructTransaction constructTransaction = new ConstructTransaction(
+        0,
         ownerKey,
         tokenName,
         tokenSymbol,
@@ -108,18 +109,20 @@ public class GettersTest {
         construct(topicListener, constructTransaction);
 
         var transferTransaction = new TransferTransaction(
+            0,
             supplyManagerKey,
             to,
             value
         );
 
         var secondTransferTransaction = new TransferTransaction(
+            0,
             supplyManagerKey,
             to,
             value
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, to);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, to);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
@@ -141,8 +144,9 @@ public class GettersTest {
     public void getAllowanceTest() throws InvalidProtocolBufferException, SQLException {
         construct(topicListener, constructTransaction);
 
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, spender);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, spender);
         var approveTransaction = new ApproveAllowanceTransaction(
+            0,
             supplyManagerKey,
             spender,
             value
@@ -159,6 +163,7 @@ public class GettersTest {
 
         // increase allowance and check again
         var increaseAllowanceTransaction = new IncreaseAllowanceTransaction(
+            0,
             supplyManagerKey,
             spender,
             value
@@ -214,8 +219,8 @@ public class GettersTest {
         Assertions.assertEquals(Address.ZERO, state.getProposedOwner());
 
         // Propose owner then check again
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, proposedOwner);
-        var proposeOwnerTransaction = new ProposeOwnerTransaction(ownerKey, proposedOwner);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, proposedOwner);
+        var proposeOwnerTransaction = new ProposeOwnerTransaction(0, ownerKey, proposedOwner);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(proposeOwnerTransaction.toByteArray()));
@@ -235,8 +240,8 @@ public class GettersTest {
         Assertions.assertFalse(state.isFrozen(addr));
 
         // Freeze addr then check again
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, proposedOwner);
-        var freezeTransaction = new FreezeTransaction(ownerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, proposedOwner);
+        var freezeTransaction = new FreezeTransaction(0, ownerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
@@ -245,7 +250,7 @@ public class GettersTest {
         Assertions.assertTrue(state.isFrozen(addr));
 
         // Unfreeze addr then check again
-        var unfreezeTransaction = new UnfreezeTransaction(ownerKey, addr);
+        var unfreezeTransaction = new UnfreezeTransaction(0, ownerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
 
@@ -264,7 +269,7 @@ public class GettersTest {
         Assertions.assertFalse(state.isKycPassed(addr));
 
         // Set Kyc passed for addr then check again
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
@@ -283,7 +288,7 @@ public class GettersTest {
         Assertions.assertFalse(state.checkTransferAllowed(addr));
 
         // Set Kyc passed for addr then check again
-        var setKycTransaction = new SetKycPassedTransaction(ownerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
@@ -291,7 +296,7 @@ public class GettersTest {
         Assertions.assertTrue(state.checkTransferAllowed(addr));
 
         // Freeze addr then check again
-        var freezeTransaction = new FreezeTransaction(ownerKey, addr);
+        var freezeTransaction = new FreezeTransaction(0, ownerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 

@@ -1,13 +1,14 @@
 package com.hedera.hashgraph.stablecoin.app;
 
+import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
 
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,8 +16,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.annotation.Nullable;
 
 public final class State {
     final Map<Ed25519PublicKey, BigInteger> balances = new HashMap<>();
@@ -29,7 +28,7 @@ public final class State {
 
     final Map<Tuple3, BigInteger> externalAllowances = new HashMap<>();
 
-    final Map<TransactionId, TransactionReceipt> transactionReceipts = new TreeMap<>();
+    final Map<TransactionId, TransactionReceipt> transactionReceipts = new TreeMap<>(Comparator.comparing(transactionId -> transactionId.validStart));
 
     /**
      * Used to lock write access to state during state snapshot
@@ -298,7 +297,7 @@ public final class State {
         while (receipts.hasNext()) {
             var receipt = receipts.next();
 
-            if (!receipt.getKey().isExpired(now)) {
+            if (!receipt.getValue().isExpired(now)) {
                 break;
             }
 

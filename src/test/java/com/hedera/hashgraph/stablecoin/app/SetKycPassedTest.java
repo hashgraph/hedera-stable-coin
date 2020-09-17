@@ -37,6 +37,7 @@ public class SetKycPassedTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -50,6 +51,7 @@ public class SetKycPassedTest {
 
         // prepare test transaction
         var setKycPassedTransaction = new SetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
@@ -72,6 +74,7 @@ public class SetKycPassedTest {
 
         // unset and check for caller == complianceManager instead this time
         var unsetKycPassedTransaction = new UnsetKycPassedTransaction(
+            0,
             callerKey,
             addr
         );
@@ -82,6 +85,7 @@ public class SetKycPassedTest {
         Assertions.assertFalse(state.isKycPassed(addr));
 
         var setKycPassedTransaction2 = new SetKycPassedTransaction(
+            0,
             assetManagerKey,
             addr
         );

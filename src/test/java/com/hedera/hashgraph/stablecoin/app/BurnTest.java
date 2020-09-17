@@ -33,6 +33,7 @@ public class BurnTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -46,6 +47,7 @@ public class BurnTest {
 
         // prepare test transaction
         var burnTransaction = new BurnTransaction(
+            0,
             callerKey,
             value
         );

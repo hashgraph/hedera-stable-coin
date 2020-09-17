@@ -9,27 +9,32 @@ CREATE TABLE address_transaction
 CREATE TABLE "transaction"
 (
     -- nanoseconds since the epoch
-    "timestamp" INT8 PRIMARY KEY,
+    "timestamp"            INT8 PRIMARY KEY,
 
     -- pass/fail of the transaction
     -- values come from <Status.java> in src/
-    "status"    INT2  NOT NULL,
+    "status"               INT2  NOT NULL,
 
     -- kind of transaction
     -- values come from the proto field IDs in <TransactionBody.proto>
-    "kind"      INT2  NOT NULL,
+    "kind"                 INT2  NOT NULL,
 
     -- address of the caller
-    "caller"    BYTEA NOT NULL,
+    "caller"               BYTEA NOT NULL,
+
+    -- operator account num (hedera)
+    "operator_account_num" INT8  NOT NULL,
 
     -- valid start time for the transaction
     -- nanos since epoch
-    "valid_start"  INT8 NOT NULL
+    "valid_start_nanos"    INT8  NOT NULL
 );
 
-CREATE INDEX ON "transaction" ( "caller", "valid_start" );
-CREATE INDEX ON "transaction" ( "status" );
-CREATE INDEX ON "transaction" ( "kind" );
+CREATE INDEX ON "transaction" ("operator_account_num", "valid_start_nanos");
+
+CREATE INDEX ON "transaction" ("status");
+
+CREATE INDEX ON "transaction" ("kind");
 
 -- void constructor(String tokenName, String tokenSymbol, Int
 --      tokenDecimal, Int totalSupply, Address supplyManager, Address

@@ -84,13 +84,14 @@ public final class Generator {
 
         // Set KYC passed for all generated accounts, and transfer 100000 units to that account from the supplyManager.
         for (var account : accounts) {
-            writeTransactionToFile(new SetKycPassedTransaction(operatorKey, new Address(account)));
-            writeTransactionToFile(new TransferTransaction(supplyManager, new Address(account), BigInteger.valueOf(100000)));
+            writeTransactionToFile(new SetKycPassedTransaction(operatorId.account, operatorKey, new Address(account)));
+            writeTransactionToFile(new TransferTransaction(operatorId.account, supplyManager, new Address(account), BigInteger.valueOf(100000)));
         }
     }
 
     void constructor() throws IOException {
         writeTransactionToFile(new ConstructTransaction(
+            operatorId.account,
             operatorKey,
             tokenName,
             tokenSymbol,
@@ -114,6 +115,7 @@ public final class Generator {
                 continue;
             }
             writeTransactionToFile(new TransferTransaction(
+                operatorId.account,
                 from,
                 new Address(to),
                 BigInteger.valueOf(random.nextInt(100))

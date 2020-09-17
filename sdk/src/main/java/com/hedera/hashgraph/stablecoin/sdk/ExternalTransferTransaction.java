@@ -7,13 +7,14 @@ import java.math.BigInteger;
 
 public final class ExternalTransferTransaction extends Transaction {
     public ExternalTransferTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey caller,
         Address from, // within *this* network
         String networkURI, // pointer to the network
         byte[] to, // within the external network
         BigInteger amount // how much is being transferred
     ) {
-        super(caller, TransactionBody.newBuilder()
+        super(operatorAccountNum, caller, TransactionBody.newBuilder()
             .setExternalTransfer(ExternalTransferTransactionHelper.create(from.publicKey.toBytes(), networkURI, to, amount)));
     }
 }

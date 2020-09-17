@@ -7,10 +7,11 @@ import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 
 public final class ChangeComplianceManagerTransaction extends Transaction {
     public ChangeComplianceManagerTransaction(
+        long operatorAccountNum,
         Ed25519PrivateKey caller,
         Address address
     ) {
-        super(caller, TransactionBody.newBuilder()
+        super(operatorAccountNum, caller, TransactionBody.newBuilder()
             .setChangeComplianceManager(ChangeComplianceManagerTransactionData.newBuilder()
                 .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
     }

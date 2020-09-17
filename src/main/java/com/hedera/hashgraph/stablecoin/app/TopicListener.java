@@ -2,6 +2,8 @@ package com.hedera.hashgraph.stablecoin.app;
 
 import com.google.errorprone.annotations.Var;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.account.AccountId;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.sdk.mirror.MirrorClient;
@@ -36,13 +38,12 @@ import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody.DataCase;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.TransactionId;
-
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -98,6 +99,11 @@ public final class TopicListener {
         this.transactionRepository = transactionRepository;
     }
 
+    private static boolean verifySignature(Ed25519PublicKey publicKey, byte[] message, byte[] signature) {
+        // NOTE: The Hedera SDK v1 does not directly expose the verify method
+        return Ed25519.verify(signature, 0, publicKey.toBytes(), 0, message, 0, message.length);
+    }
+
     public synchronized void stopListening() {
         if (handle != null) {
             handle.unsubscribe();
@@ -145,15 +151,16 @@ public final class TopicListener {
             });
     }
 
-    private static boolean verifySignature(Ed25519PublicKey publicKey, byte[] message, byte[] signature) {
-        // NOTE: The Hedera SDK v1 does not directly expose the verify method
-        return Ed25519.verify(signature, 0, publicKey.toBytes(), 0, message, 0, message.length);
-    }
-
     void handleTransaction(Instant consensusTimestamp, Transaction transaction) throws InvalidProtocolBufferException, SQLException {
         var transactionBodyBytes = transaction.getBody();
         var transactionBody = TransactionBody.parseFrom(transactionBodyBytes);
-        var transactionId = TransactionId.parse(transactionBody.getTransactionId());
+
+        var transactionId = TransactionId.withValidStart(
+            new AccountId(transactionBody.getOperatorAccountNum()),
+            Instant.ofEpochSecond(0, transactionBody.getValidStartNanos())
+        );
+
+        var caller = new Address(transactionBody.getCaller());
 
         @SuppressWarnings("unchecked")
         var transactionHandler = (TransactionHandler<Object>) transactionHandlers.get(transactionBody.getDataCase());
@@ -171,17 +178,13 @@ public final class TopicListener {
         try {
             // check that transaction ID and its caller property were set
 
-            if (transactionId == null) {
-                throw new StableCoinPreCheckException(Status.TRANSACTION_ID_NOT_SET);
-            }
-
-            if (transactionId.address.isZero()) {
+            if (caller.isZero()) {
                 throw new StableCoinPreCheckException(Status.CALLER_NOT_SET);
             }
 
             // check that the transaction ID is not expired
 
-            if (transactionId.isExpired(consensusTimestamp)) {
+            if (ChronoUnit.MINUTES.between(transactionId.validStart, consensusTimestamp) > 2) {
                 throw new StableCoinPreCheckException(Status.TRANSACTION_EXPIRED);
             }
 
@@ -192,7 +195,6 @@ public final class TopicListener {
                 throw new StableCoinPreCheckException(Status.TRANSACTION_DUPLICATE);
             }
 
-            var caller = transactionId.address;
             var signature = transaction.getSignature().toByteArray();
 
             generateReceipt = true;
@@ -218,7 +220,7 @@ public final class TopicListener {
         if (generateReceipt) {
             // record the transaction receipt
             state.addTransactionReceipt(transactionId, new TransactionReceipt(
-                consensusTimestamp, transactionId, transactionStatus));
+                consensusTimestamp, caller, transactionId, transactionStatus));
         }
 
         // persist the transaction to our database if there is a configured
@@ -226,6 +228,7 @@ public final class TopicListener {
         if (transactionRepository != null) {
             transactionRepository.bindTransaction(
                 consensusTimestamp,
+                caller,
                 transactionId,
                 transactionStatus,
                 transactionBody.getDataCase(),
@@ -235,7 +238,7 @@ public final class TopicListener {
 
         if (transactionStatus.equals(Status.OK)) {
             // emit any events for the transaction
-            emitter.emit(transactionBody.getDataCase(), state, transactionId, transactionArguments);
+            emitter.emit(transactionBody.getDataCase(), state, caller, transactionArguments);
         }
     }
 }
