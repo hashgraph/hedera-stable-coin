@@ -27,9 +27,11 @@ public class WipeTest {
         var callerKey = Ed25519PrivateKey.generate();
         var enforcementManagerKey = Ed25519PrivateKey.generate();
         var addrKey = Ed25519PrivateKey.generate();
+        var addr2Key = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);
         var enforcementManager = new Address(enforcementManagerKey);
         var addr = new Address(addrKey);
+        var addr2 = new Address(addr2Key);
         var value = BigInteger.ONE;
 
         // prepare state
@@ -98,7 +100,6 @@ public class WipeTest {
 
         // check for caller == complianceManager instead this time
         var totalSupply2 = state.getTotalSupply();
-        System.out.println(totalSupply + " " + totalSupply2);
         var balance2 = state.getBalanceOf(addr);
 
         // prepare test transaction
@@ -167,5 +168,37 @@ public class WipeTest {
 
         // Check that status is the correct failure type
         Assertions.assertEquals(Status.WIPE_VALUE_WOULD_RESULT_IN_NEGATIVE_BALANCE, getTransactionStatus.status);
+
+
+        // Try to wipe with caller != enforcementManager && caller != Owner, should fail
+        // prepare test transaction
+        var wipeTransactionAsAddr = new WipeTransaction(
+            addrKey,
+            addr2,
+            value
+        );
+
+        // Pre-Check
+
+        // i. Owner != 0x
+        Assertions.assertFalse(state.getOwner().isZero());
+
+        // ii. value >= 0
+        Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
+
+        // ii. caller = enforcementManager || caller = Owner
+        // can skip, handler won't hit this check
+
+        // iv. value <= Balances[addr]
+        // can skip, handler won't hit this check
+
+        // iv. value <= MAX_INT
+        // can skip, handler won't hit this check
+
+        // Update State
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(wipeTransactionAsAddr.toByteArray()));
+
+        // Check that status is the correct failure type
+        Assertions.assertEquals(Status.CALLER_NOT_AUTHORIZED, getTransactionStatus.status);
     }
 }

@@ -27,9 +27,11 @@ public class FreezeTest {
         var callerKey = Ed25519PrivateKey.generate();
         var complianceManagerKey = Ed25519PrivateKey.generate();
         var addrKey = Ed25519PrivateKey.generate();
+        var addr2Key = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);
         var complianceManager = new Address(complianceManagerKey);
         var addr = new Address(addrKey);
+        var addr2 = new Address(addr2Key);
 
         // prepare state
         var tokenName = "tokenName";
@@ -124,7 +126,7 @@ public class FreezeTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii.caller = complianceManager || caller = Owner
+        // ii. caller = complianceManager || caller = Owner
         Assertions.assertEquals(caller, state.getOwner());
 
         // iii.!isPrivilegedRole(addr)
@@ -136,5 +138,31 @@ public class FreezeTest {
 
         // Check that status is the correct failure type
         Assertions.assertEquals(Status.FREEZE_ADDRESS_IS_PRIVILEGED, getTransactionStatus.status);
+
+
+        // Try to freeze with caller != complianceManager && caller != Owner, should fail
+        // prepare test transaction
+        var freezeTransactionAsAddr = new FreezeTransaction(
+            addrKey,
+            addr2
+        );
+
+        // Pre-Check
+
+        // i. Owner != 0x
+        Assertions.assertFalse(state.getOwner().isZero());
+
+        // ii.caller = complianceManager || caller = Owner
+        Assertions.assertNotEquals(addr, state.getOwner());
+        Assertions.assertNotEquals(addr, state.getComplianceManager());
+
+        // iii.!isPrivilegedRole(addr)
+        // can skip, handler won't hit this check
+
+        // Update State and check status
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransactionAsAddr.toByteArray()));
+
+        // Check that status is the correct failure type
+        Assertions.assertEquals(Status.CALLER_NOT_AUTHORIZED, getTransactionStatus.status);
     }
 }
