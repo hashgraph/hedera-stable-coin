@@ -41,6 +41,7 @@ public class IncreaseAllowanceTest {
             tokenDecimal,
             totalSupply,
             caller,
+            caller,
             caller
         );
 

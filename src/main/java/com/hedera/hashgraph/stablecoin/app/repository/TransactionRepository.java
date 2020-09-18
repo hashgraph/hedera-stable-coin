@@ -20,7 +20,7 @@ import java.util.Set;
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION;
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.ADDRESS_TRANSACTION;
 
-public final class TransactionRepository {
+public class TransactionRepository {
     private final SqlConnectionManager connectionManager;
 
     private final Map<TransactionBody.DataCase, TransactionDataRepository<?>> transactionDataBatch;

@@ -4,12 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.ApproveAllowanceTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.TransferFromTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.TransferTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +12,7 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 
-public class TransferFromTest {
+public class ExternalTransferFromTest {
     State state = new State();
     TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
@@ -38,7 +33,6 @@ public class TransferFromTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
-            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -49,10 +43,10 @@ public class TransferFromTest {
             caller
         );
 
-        var setKycTransactionTo = new SetKycPassedTransaction(0, callerKey, to);
-        var setKycTransactionFrom = new SetKycPassedTransaction(0, callerKey, from);
-        var transferTransaction = new TransferTransaction(0, callerKey, from, value);
-        var approveAllowanceTransaction = new ApproveAllowanceTransaction(0, fromKey, caller, value);
+        var setKycTransactionTo = new SetKycPassedTransaction(callerKey, to);
+        var setKycTransactionFrom = new SetKycPassedTransaction(callerKey, from);
+        var transferTransaction = new TransferTransaction(callerKey, from, value);
+        var approveAllowanceTransaction = new ApproveAllowanceTransaction(fromKey, caller, value);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionTo.toByteArray()));
@@ -62,7 +56,6 @@ public class TransferFromTest {
 
         // prepare test transaction
         var transferFromTransaction = new TransferFromTransaction(
-            0,
             callerKey,
             from,
             to,

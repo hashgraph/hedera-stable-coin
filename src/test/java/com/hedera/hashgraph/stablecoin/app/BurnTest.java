@@ -40,6 +40,7 @@ public class BurnTest {
             tokenDecimal,
             totalSupply,
             supplyManager,
+            caller,
             caller
         );
 

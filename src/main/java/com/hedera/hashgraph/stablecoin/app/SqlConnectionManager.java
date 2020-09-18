@@ -31,6 +31,13 @@ public class SqlConnectionManager {
             env.get("HSC_DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
     }
 
+    // Blank SqlConnectionManager for testing
+    public SqlConnectionManager() {
+        url = "";
+        username = "";
+        password = "";
+    }
+
     public DSLContext dsl() throws SQLException {
         return DSL.using(getConnection(), SQLDialect.POSTGRES);
     }

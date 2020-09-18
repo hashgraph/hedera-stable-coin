@@ -3,6 +3,7 @@ package com.hedera.hashgraph.stablecoin.app;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.stablecoin.app.repository.GetTransactionStatus;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -18,7 +19,8 @@ import java.time.Instant;
 
 public class FreezeTest {
     State state = new State();
-    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
+    GetTransactionStatus getTransactionStatus = new GetTransactionStatus(new SqlConnectionManager());
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), getTransactionStatus);
 
     @Test
     public void freezeTest() throws InvalidProtocolBufferException, SQLException {
@@ -43,7 +45,8 @@ public class FreezeTest {
             tokenDecimal,
             totalSupply,
             caller,
-            complianceManager
+            complianceManager,
+            caller
         );
 
         var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
@@ -77,6 +80,7 @@ public class FreezeTest {
         // i. complianceManager = addr
         Assertions.assertTrue(state.isFrozen(addr));
 
+
         // unfreeze and check for caller == complianceManager instead this time
         var unfreezeTransaction = new UnfreezeTransaction(0, callerKey, addr);
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransaction.toByteArray()));
@@ -106,5 +110,31 @@ public class FreezeTest {
 
         // i. complianceManager = addr
         Assertions.assertTrue(state.isFrozen(addr));
+
+
+        // Try to freeze complianceManager, should fail
+        // prepare test transaction
+        var freezeTransactionForCM = new FreezeTransaction(
+            callerKey,
+            complianceManager
+        );
+
+        // Pre-Check
+
+        // i. Owner != 0x
+        Assertions.assertFalse(state.getOwner().isZero());
+
+        // ii.caller = complianceManager || caller = Owner
+        Assertions.assertEquals(caller, state.getOwner());
+
+        // iii.!isPrivilegedRole(addr)
+        // Should be true as we expect to fail
+        Assertions.assertTrue(state.isPrivilegedRole(complianceManager));
+
+        // Update State and check status
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransactionForCM.toByteArray()));
+
+        // Check that status is the correct failure type
+        Assertions.assertEquals(Status.FREEZE_ADDRESS_IS_PRIVILEGED, getTransactionStatus.status);
     }
 }

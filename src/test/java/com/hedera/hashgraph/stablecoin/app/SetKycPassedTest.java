@@ -44,7 +44,8 @@ public class SetKycPassedTest {
             tokenDecimal,
             totalSupply,
             caller,
-            assetManager
+            assetManager,
+            caller
         );
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));

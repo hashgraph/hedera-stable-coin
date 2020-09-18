@@ -41,6 +41,7 @@ public class MintTest {
             tokenDecimal,
             totalSupply,
             supplyManager,
+            caller,
             caller
         );
 

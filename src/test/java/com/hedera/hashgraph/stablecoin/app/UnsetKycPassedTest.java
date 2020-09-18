@@ -3,6 +3,7 @@ package com.hedera.hashgraph.stablecoin.app;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.stablecoin.app.repository.GetTransactionStatus;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -17,15 +18,16 @@ import java.time.Instant;
 
 public class UnsetKycPassedTest {
     State state = new State();
-    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
+    GetTransactionStatus getTransactionStatus = new GetTransactionStatus(new SqlConnectionManager());
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), getTransactionStatus);
 
     @Test
     public void unsetKycPassedTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = Ed25519PrivateKey.generate();
-        var assetManagerKey = Ed25519PrivateKey.generate();
+        var complianceManagerKey = Ed25519PrivateKey.generate();
         var addrKey = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);
-        var assetManager = new Address(assetManagerKey);
+        var complianceManager = new Address(complianceManagerKey);
         var addr = new Address(addrKey);
 
         // prepare state
@@ -35,23 +37,17 @@ public class UnsetKycPassedTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
-            0,
             callerKey,
             tokenName,
             tokenSymbol,
             tokenDecimal,
             totalSupply,
             caller,
-            assetManager
+            complianceManager,
+            caller
         );
 
         var setKycPassedTransaction = new SetKycPassedTransaction(
-            0,
-            callerKey,
-            addr
-        );
-
-        var setKycPassedTransaction2 = new SetKycPassedTransaction(
             0,
             callerKey,
             addr
@@ -67,9 +63,8 @@ public class UnsetKycPassedTest {
             addr
         );
 
-        var unsetKycPassedTransaction3 = new UnsetKycPassedTransaction(
-            0,
-            callerKey,
+        var unsetKycPassedTransaction2 = new UnsetKycPassedTransaction(
+            complianceManagerKey,
             addr
         );
 
@@ -92,19 +87,15 @@ public class UnsetKycPassedTest {
         // i. !KycPassed[addr]
         Assertions.assertFalse(state.isKycPassed(addr));
 
+
         // re-set and check for caller == complianceManager instead this time
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
+        var setKycPassedTransaction2 = new SetKycPassedTransaction(callerKey, addr);
+        // Update State
+        topicListener.handleTransaction(Instant.EPOCH.plusNanos(100), Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
+
+        System.out.println(getTransactionStatus.status);
 
         Assertions.assertTrue(state.isKycPassed(addr));
-
-        var unsetKycPassedTransaction2 = new SetKycPassedTransaction(
-            0,
-            assetManagerKey,
-            addr
-        );
-
-        // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction2.toByteArray()));
 
         // Pre-Check
 
@@ -112,17 +103,42 @@ public class UnsetKycPassedTest {
         Assertions.assertFalse(state.getOwner().isZero());
 
         // ii. caller = complianceManager || caller = Owner
-        Assertions.assertEquals(assetManager, state.getComplianceManager());
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
 
         // iii. !isPrivilegedRole(addr)
         Assertions.assertFalse(state.isPrivilegedRole(addr));
 
         // update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction3.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransaction2.toByteArray()));
 
         // Post-Check
 
         // i. !KycPassed[addr]
         Assertions.assertFalse(state.isKycPassed(addr));
+
+
+        // try to unset complianceManager, should fail
+        var unsetKycPassedTransactionForCM = new UnsetKycPassedTransaction(
+            callerKey,
+            complianceManager
+        );
+
+        // Pre-Check
+
+        // i. Owner != 0x
+        Assertions.assertFalse(state.getOwner().isZero());
+
+        // ii. caller = complianceManager || caller = Owner
+        Assertions.assertEquals(complianceManager, state.getComplianceManager());
+
+        // iii. !isPrivilegedRole(addr)
+        // Should be true as we expect to fail
+        Assertions.assertTrue(state.isPrivilegedRole(complianceManager));
+
+        // update State
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unsetKycPassedTransactionForCM.toByteArray()));
+
+        // Check that status is the correct failure type
+        Assertions.assertEquals(Status.UNSET_KYC_PASSED_ADDRESS_IS_PRIVILEGED, getTransactionStatus.status);
     }
 }

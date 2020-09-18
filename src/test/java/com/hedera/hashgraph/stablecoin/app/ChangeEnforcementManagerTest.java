@@ -7,7 +7,7 @@ import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.app.repository.GetTransactionStatus;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-import com.hedera.hashgraph.stablecoin.sdk.ChangeSupplyManagerTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.ChangeEnforcementManagerTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
@@ -17,13 +17,13 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 
-public class ChangeSupplyManagerTest {
+public class ChangeEnforcementManagerTest {
     State state = new State();
     GetTransactionStatus getTransactionStatus = new GetTransactionStatus(new SqlConnectionManager());
     TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), getTransactionStatus);
 
     @Test
-    public void changeSupplyManagerTest() throws InvalidProtocolBufferException, SQLException {
+    public void changeEnforcementManagerTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = Ed25519PrivateKey.generate();
         var addrKey = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);
@@ -36,7 +36,6 @@ public class ChangeSupplyManagerTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
-            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -47,14 +46,13 @@ public class ChangeSupplyManagerTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
+        var setKycTransaction = new SetKycPassedTransaction(callerKey, addr);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
-        var changeSupplyManagerTransaction = new ChangeSupplyManagerTransaction(
-            0,
+        var changeEnforcementManagerTransaction = new ChangeEnforcementManagerTransaction(
             callerKey,
             addr
         );
@@ -74,19 +72,19 @@ public class ChangeSupplyManagerTest {
         Assertions.assertTrue(state.checkTransferAllowed(addr));
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeSupplyManagerTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeEnforcementManagerTransaction.toByteArray()));
 
         // Post-Check
 
-        // i. SupplyManager = addr
-        Assertions.assertEquals(addr, state.getSupplyManager());
+        // i. enforcementManager = addr
+        Assertions.assertEquals(addr, state.getEnforcementManager());
 
 
         // try with empty address, should fail
         addr = Address.ZERO;
 
         // prepare test transaction
-        var changeSupplyManagerTransaction2 = new ChangeSupplyManagerTransaction(
+        var changeEnforcementManagerTransaction2 = new ChangeEnforcementManagerTransaction(
             callerKey,
             addr
         );
@@ -107,9 +105,9 @@ public class ChangeSupplyManagerTest {
         // skip this one as it will be skipped in the handler anyways and the Status returned will be asserted below
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeSupplyManagerTransaction2.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(changeEnforcementManagerTransaction2.toByteArray()));
 
         // Check that status is the correct failure type
-        Assertions.assertEquals(Status.CHANGE_SUPPLY_MANAGER_ADDRESS_NOT_SET, getTransactionStatus.status);
+        Assertions.assertEquals(Status.CHANGE_ENFORCEMENT_MANAGER_ADDRESS_NOT_SET, getTransactionStatus.status);
     }
 }

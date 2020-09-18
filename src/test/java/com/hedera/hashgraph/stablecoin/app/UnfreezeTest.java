@@ -3,6 +3,7 @@ package com.hedera.hashgraph.stablecoin.app;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.stablecoin.app.repository.GetTransactionStatus;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
@@ -18,7 +19,8 @@ import java.time.Instant;
 
 public class UnfreezeTest {
     State state = new State();
-    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
+    GetTransactionStatus getTransactionStatus = new GetTransactionStatus(new SqlConnectionManager());
+    TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), getTransactionStatus);
 
     @Test
     public void unfreezeTest() throws InvalidProtocolBufferException, SQLException {
@@ -43,7 +45,8 @@ public class UnfreezeTest {
             tokenDecimal,
             totalSupply,
             caller,
-            complianceManager
+            complianceManager,
+            caller
         );
 
         var setKycTransaction = new SetKycPassedTransaction(0, callerKey, addr);
@@ -76,6 +79,7 @@ public class UnfreezeTest {
         // i. complianceManager = addr
         Assertions.assertFalse(state.isFrozen(addr));
 
+
         // freeze and test for caller == complianceManager instead this time
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
 
@@ -101,5 +105,30 @@ public class UnfreezeTest {
 
         // i. complianceManager = addr
         Assertions.assertFalse(state.isFrozen(addr));
+
+
+        // Try to unfreeze with addr, should fail
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(freezeTransaction.toByteArray()));
+
+        // prepare test transaction
+        var unfreezeTransactionForCM = new UnfreezeTransaction(
+            addrKey,
+            complianceManager
+        );
+
+        // Pre-Check
+
+        // i. Owner != 0x
+        Assertions.assertFalse(state.getOwner().isZero());
+
+        // ii.caller = complianceManager || caller = Owner
+        // Assert not equals as we expect to fail
+        Assertions.assertNotEquals(addr, state.getOwner());
+
+        // Update State
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(unfreezeTransactionForCM.toByteArray()));
+
+        // Check that status is the correct failure type
+        Assertions.assertEquals(Status.CALLER_NOT_AUTHORIZED, getTransactionStatus.status);
     }
 }

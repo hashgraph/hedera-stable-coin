@@ -26,6 +26,7 @@ public class GettersTest {
     Ed25519PrivateKey ownerKey = Ed25519PrivateKey.generate();
     Ed25519PrivateKey supplyManagerKey = Ed25519PrivateKey.generate();
     Ed25519PrivateKey complianceManagerKey = Ed25519PrivateKey.generate();
+    Ed25519PrivateKey enforcementManagerKey = Ed25519PrivateKey.generate();
     Ed25519PrivateKey toKey = Ed25519PrivateKey.generate();
     Ed25519PrivateKey spenderKey = Ed25519PrivateKey.generate();
     Ed25519PrivateKey proposedOwnerKey = Ed25519PrivateKey.generate();
@@ -33,6 +34,7 @@ public class GettersTest {
     Address owner = new Address(ownerKey.publicKey);
     Address supplyManager = new Address(supplyManagerKey.publicKey);
     Address complianceManager = new Address(complianceManagerKey.publicKey);
+    Address enforcementManager = new Address(enforcementManagerKey.publicKey);
     Address to = new Address(toKey.publicKey);
     Address spender = new Address(spenderKey.publicKey);
     Address proposedOwner = new Address(proposedOwnerKey.publicKey);
@@ -53,7 +55,8 @@ public class GettersTest {
         tokenDecimal,
         totalSupply,
         supplyManager,
-        complianceManager
+        complianceManager,
+        enforcementManager
     );
 
     static void construct(TopicListener topicListener, ConstructTransaction constructTransaction) throws InvalidProtocolBufferException, SQLException {

@@ -41,7 +41,8 @@ public class ClaimOwnershipTest {
             tokenDecimal,
             totalSupply,
             owner,
-            owner
+            owner,
+            caller
         );
 
         var setKycTransaction = new SetKycPassedTransaction(0, ownerKey, caller);
