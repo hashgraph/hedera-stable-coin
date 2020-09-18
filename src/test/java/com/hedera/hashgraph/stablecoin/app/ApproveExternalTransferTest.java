@@ -4,7 +4,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
-import com.hedera.hashgraph.stablecoin.sdk.*;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.ApproveExternalTransferTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

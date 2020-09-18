@@ -72,7 +72,7 @@ public class ExternalTransferTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = SupplyManager || caller = Owner
+        // ii. caller = SupplyManager
         Assertions.assertEquals(caller, state.getSupplyManager());
 
         // iii. amount >= 0

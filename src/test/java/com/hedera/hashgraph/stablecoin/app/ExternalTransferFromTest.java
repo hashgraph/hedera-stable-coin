@@ -4,7 +4,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
-import com.hedera.hashgraph.stablecoin.sdk.*;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.ExternalTransferFromTransaction;
+import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +65,7 @@ public class ExternalTransferFromTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. caller = SupplyManager || caller = Owner
+        // ii. caller = SupplyManager
         Assertions.assertEquals(caller, state.getSupplyManager());
 
         // iii. amount >= 0
