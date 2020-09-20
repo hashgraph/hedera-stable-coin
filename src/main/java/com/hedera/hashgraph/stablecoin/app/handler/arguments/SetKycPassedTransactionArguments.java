@@ -7,7 +7,6 @@ public final class SetKycPassedTransactionArguments {
     public final Address address;
 
     public SetKycPassedTransactionArguments(TransactionBody body) {
-        assert body.hasSetKycPassed();
         var data = body.getSetKycPassed();
 
         address = new Address(data.getAddress());

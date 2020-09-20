@@ -15,7 +15,6 @@ public class ApproveExternalTransferTransactionArguments {
     public final BigInteger amount;
 
     public ApproveExternalTransferTransactionArguments(TransactionBody body) {
-        assert body.hasApproveExternalTransfer();
         var data = body.getApproveExternalTransfer();
 
         networkURI = data.getNetworkURI();

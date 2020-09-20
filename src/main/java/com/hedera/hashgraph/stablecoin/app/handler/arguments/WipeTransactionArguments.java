@@ -11,7 +11,6 @@ public final class WipeTransactionArguments {
     public final BigInteger value;
 
     public WipeTransactionArguments(TransactionBody body) {
-        assert body.hasWipe();
         var data = body.getWipe();
 
         address = new Address(data.getAddress());

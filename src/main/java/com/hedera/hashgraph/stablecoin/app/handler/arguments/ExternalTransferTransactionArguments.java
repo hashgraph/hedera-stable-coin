@@ -16,7 +16,6 @@ public class ExternalTransferTransactionArguments {
     public final BigInteger amount;
 
     public ExternalTransferTransactionArguments(TransactionBody body) {
-        assert body.hasExternalTransfer();
         var data = body.getExternalTransfer();
 
         from = new Address(data.getFrom());

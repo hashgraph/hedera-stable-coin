@@ -8,7 +8,6 @@ public final class BurnTransactionArguments {
     public final BigInteger value;
 
     public BurnTransactionArguments(TransactionBody body) {
-        assert body.hasBurn();
         var data = body.getBurn();
 
         value = new BigInteger(data.getValue().toByteArray());

@@ -11,7 +11,6 @@ public final class DecreaseAllowanceTransactionArguments {
     public final BigInteger value;
 
     public DecreaseAllowanceTransactionArguments(TransactionBody body) {
-        assert body.hasDecreaseAllowance();
         var data = body.getDecreaseAllowance();
 
         spender = new Address(data.getSpender());
