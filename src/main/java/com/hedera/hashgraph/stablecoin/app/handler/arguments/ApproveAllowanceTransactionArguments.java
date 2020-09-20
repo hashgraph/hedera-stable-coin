@@ -10,7 +10,6 @@ public class ApproveAllowanceTransactionArguments {
     public final BigInteger value;
 
     public ApproveAllowanceTransactionArguments(TransactionBody body) {
-        assert body.hasApprove();
         var data = body.getApprove();
 
         spender = new Address(data.getSpender());

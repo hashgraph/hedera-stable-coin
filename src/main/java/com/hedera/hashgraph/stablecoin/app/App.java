@@ -171,6 +171,9 @@ public class App {
         var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY"))
             .map(Ed25519PrivateKey::fromString);
 
+        var enforcementManagerKey = Optional.ofNullable(env.get("HSC_ENFORCEMENT_MANAGER_KEY"))
+            .map(Ed25519PrivateKey::fromString);
+
         // create the new topic ID
         var topicId = new ConsensusTopicCreateTransaction()
             .execute(hederaClient)
@@ -189,7 +192,8 @@ public class App {
             tokenDecimal,
             totalSupply,
             new Address(supplyManagerKey.orElse(operatorPrivateKey).publicKey),
-            new Address(complianceManagerKey.orElse(operatorPrivateKey).publicKey)
+            new Address(complianceManagerKey.orElse(operatorPrivateKey).publicKey),
+            new Address(enforcementManagerKey.orElse(operatorPrivateKey).publicKey)
         ).toByteArray();
 
         // and finally submit it

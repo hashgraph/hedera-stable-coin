@@ -11,7 +11,6 @@ public final class TransferTransactionArguments {
     public final BigInteger value;
 
     public TransferTransactionArguments(TransactionBody body) {
-        assert body.hasTransfer();
         var data = body.getTransfer();
 
         to = new Address(data.getTo());

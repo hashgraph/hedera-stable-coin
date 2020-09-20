@@ -49,6 +49,8 @@ public final class Generator {
 
     Ed25519PrivateKey complianceManager;
 
+    Ed25519PrivateKey enforcementManager;
+
     ArrayList<Ed25519PrivateKey> accounts = new ArrayList<>();
 
     public Generator() throws FileNotFoundException {
@@ -74,6 +76,7 @@ public final class Generator {
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
         supplyManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
         complianceManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_COMPLIANCE_MANAGER_KEY"));
+        enforcementManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_ENFORCEMENT_MANAGER_KEY"));
         count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
     }
 
@@ -98,7 +101,8 @@ public final class Generator {
             tokenDecimal,
             totalSupply,
             new Address(supplyManager),
-            new Address(complianceManager)
+            new Address(complianceManager),
+            new Address(enforcementManager)
         ));
     }
 

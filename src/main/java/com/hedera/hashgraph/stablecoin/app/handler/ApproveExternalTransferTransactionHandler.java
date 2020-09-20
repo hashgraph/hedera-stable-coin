@@ -23,7 +23,7 @@ public final class ApproveExternalTransferTransactionHandler extends Transaction
         // iii. CheckTransferAllowed(caller)
         ensureCallerTransferAllowed(state, caller);
 
-        // iv. value <= MAX_INT
+        // iv. amount <= MAX_INT
         ensureLessThanMaxInt(args.amount, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 

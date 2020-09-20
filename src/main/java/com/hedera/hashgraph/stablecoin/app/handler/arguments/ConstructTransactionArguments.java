@@ -21,7 +21,6 @@ public final class ConstructTransactionArguments {
     public final Address enforcementManager;
 
     public ConstructTransactionArguments(TransactionBody body) {
-        assert body.hasConstruct();
         var data = body.getConstruct();
 
         tokenName = data.getTokenName();

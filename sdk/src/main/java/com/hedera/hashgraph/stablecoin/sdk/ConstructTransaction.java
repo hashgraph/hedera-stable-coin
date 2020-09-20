@@ -16,7 +16,8 @@ public final class ConstructTransaction extends Transaction {
         int tokenDecimal,
         BigInteger totalSupply,
         Address supplyManager,
-        Address complianceManager
+        Address complianceManager,
+        Address enforcementManager
     ) {
         super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setConstruct(ConstructTransactionData.newBuilder()
@@ -26,6 +27,6 @@ public final class ConstructTransaction extends Transaction {
                 .setTotalSupply(ByteString.copyFrom(totalSupply.toByteArray()))
                 .setSupplyManager(ByteString.copyFrom(supplyManager.publicKey.toBytes()))
                 .setComplianceManager(ByteString.copyFrom(complianceManager.publicKey.toBytes()))
-                .setEnforcementManager(ByteString.copyFrom(complianceManager.publicKey.toBytes()))));
+                .setEnforcementManager(ByteString.copyFrom(enforcementManager.publicKey.toBytes()))));
     }
 }

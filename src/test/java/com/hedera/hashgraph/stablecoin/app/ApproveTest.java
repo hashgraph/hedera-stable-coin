@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.security.PrivateKey;
 import java.sql.SQLException;
 import java.time.Instant;
 
@@ -41,6 +40,7 @@ public class ApproveTest {
             tokenSymbol,
             tokenDecimal,
             totalSupply,
+            caller,
             caller,
             caller
         );

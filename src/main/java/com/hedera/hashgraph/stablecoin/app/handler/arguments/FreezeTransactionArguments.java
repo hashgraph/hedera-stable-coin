@@ -7,7 +7,6 @@ public final class FreezeTransactionArguments {
     public final Address address;
 
     public FreezeTransactionArguments(TransactionBody body) {
-        assert body.hasFreeze();
         var data = body.getFreeze();
 
         address = new Address(data.getAddress());

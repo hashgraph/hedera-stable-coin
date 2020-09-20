@@ -5,9 +5,8 @@ import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.stablecoin.proto.Transaction;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
+import com.hedera.hashgraph.stablecoin.sdk.ApproveExternalTransferTransaction;
 import com.hedera.hashgraph.stablecoin.sdk.ConstructTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.SetKycPassedTransaction;
-import com.hedera.hashgraph.stablecoin.sdk.TransferTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,17 +14,17 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Instant;
 
-public class TransferTest {
+public class ApproveExternalTransferTest {
     State state = new State();
     TopicListener topicListener = new TopicListener(state, null, new ConsensusTopicId(0), null);
 
     @Test
-    public void transferTest() throws InvalidProtocolBufferException, SQLException {
+    public void approveExternalTransferTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = Ed25519PrivateKey.generate();
-        var toKey = Ed25519PrivateKey.generate();
-        var caller = new Address(callerKey);
-        var to = new Address(toKey);
-        var value = BigInteger.ONE;
+        var caller = new Address(callerKey.publicKey);
+        var to = "StableCoin".getBytes();
+        var network = "www.stablecoin.com";
+        var amount = BigInteger.ONE;
 
         // prepare state
         var tokenName = "tokenName";
@@ -45,17 +44,15 @@ public class TransferTest {
             caller
         );
 
-        var setKycTransaction = new SetKycPassedTransaction(0, callerKey, to);
-
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransaction.toByteArray()));
 
         // prepare test transaction
-        var transferTransaction = new TransferTransaction(
+        var approveExternalTransferTransaction = new ApproveExternalTransferTransaction(
             0,
             callerKey,
+            network,
             to,
-            value
+            amount
         );
 
         // Pre-Check
@@ -63,31 +60,21 @@ public class TransferTest {
         // i. Owner != 0x
         Assertions.assertFalse(state.getOwner().isZero());
 
-        // ii. value >= 0
-        Assertions.assertTrue(value.compareTo(BigInteger.ZERO) >= 0);
+        // ii. amount >= 0
+        Assertions.assertTrue(amount.compareTo(BigInteger.ZERO) >= 0);
 
-        // iii. Balances[caller] >= value
-        Assertions.assertTrue(state.getBalanceOf(caller).compareTo(value) >= 0);
-
-        // iv. CheckTransferAllowed(caller)
+        // iii. CheckTransferAllowed(caller)
         Assertions.assertTrue(state.checkTransferAllowed(caller));
 
-        // v. CheckTransferAllowed(to)
-        Assertions.assertTrue(state.checkTransferAllowed(to));
-
-        // Prepare for Post-check
-        var callerBalance = state.getBalanceOf(caller);
-        var toBalance = state.getBalanceOf(to);
+        // iv. amount <= MAX_INT
+        Assertions.assertTrue(amount.compareTo(BigInteger.TWO.pow(256)) < 0);
 
         // Update State
-        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(transferTransaction.toByteArray()));
+        topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(approveExternalTransferTransaction.toByteArray()));
 
         // Post-Check
 
-        // i.Balances[caller]’ = Balances[caller] - value
-        Assertions.assertEquals(state.getBalanceOf(caller), callerBalance.subtract(value));
-
-        // ii.Balances[to]' = Balances[to] + value
-        Assertions.assertEquals(state.getBalanceOf(to), toBalance.add(value));
+        // i. Allowances[caller][spender] = value
+        Assertions.assertEquals(amount, state.getExternalAllowance(caller, network, to));
     }
 }

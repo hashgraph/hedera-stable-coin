@@ -7,7 +7,6 @@ public final class ChangeComplianceManagerTransactionArguments {
     public final Address address;
 
     public ChangeComplianceManagerTransactionArguments(TransactionBody body) {
-        assert body.hasChangeComplianceManager();
         var data = body.getChangeComplianceManager();
 
         address = new Address(data.getAddress());

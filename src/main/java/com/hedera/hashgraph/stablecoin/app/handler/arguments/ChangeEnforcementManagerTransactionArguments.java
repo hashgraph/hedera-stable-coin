@@ -7,7 +7,6 @@ public class ChangeEnforcementManagerTransactionArguments {
     public final Address address;
 
     public ChangeEnforcementManagerTransactionArguments(TransactionBody body) {
-        assert body.hasChangeEnforcementManager();
         var data = body.getChangeEnforcementManager();
 
         address = new Address(data.getAddress());
