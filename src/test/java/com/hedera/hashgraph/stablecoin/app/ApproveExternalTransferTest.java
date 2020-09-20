@@ -33,6 +33,7 @@ public class ApproveExternalTransferTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -47,6 +48,7 @@ public class ApproveExternalTransferTest {
 
         // prepare test transaction
         var approveExternalTransferTransaction = new ApproveExternalTransferTransaction(
+            0,
             callerKey,
             network,
             to,

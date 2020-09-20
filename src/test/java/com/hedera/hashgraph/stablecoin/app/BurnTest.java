@@ -93,6 +93,7 @@ public class BurnTest {
         // Try to burn with caller != SupplyManager && caller != Owner
         // prepare test transaction
         var burnTransactionAsAddr = new BurnTransaction(
+            0,
             addrKey,
             value
         );
@@ -128,6 +129,7 @@ public class BurnTest {
         // prepare test transaction
         value = new BigInteger("10020");
         var burnTransaction2 = new BurnTransaction(
+            0,
             callerKey,
             value
         );

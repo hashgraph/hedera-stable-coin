@@ -121,6 +121,7 @@ public class ConstructorTest {
 
         // Prepare Transaction
         var constructTransaction2 = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -170,6 +171,7 @@ public class ConstructorTest {
 
         // Prepare Transaction
         var constructTransaction3 = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -219,6 +221,7 @@ public class ConstructorTest {
 
         // Prepare Transaction
         var constructTransaction4 = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,

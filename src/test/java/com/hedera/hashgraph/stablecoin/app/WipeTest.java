@@ -104,6 +104,7 @@ public class WipeTest {
 
         // prepare test transaction
         var wipeTransaction2 = new WipeTransaction(
+            0,
             enforcementManagerKey,
             addr,
             value
@@ -141,6 +142,7 @@ public class WipeTest {
         // check for value > Balances[addr], should fail
         // prepare test transaction
         var wipeTransaction3 = new WipeTransaction(
+            0,
             enforcementManagerKey,
             addr,
             value
@@ -173,6 +175,7 @@ public class WipeTest {
         // Try to wipe with caller != enforcementManager && caller != Owner, should fail
         // prepare test transaction
         var wipeTransactionAsAddr = new WipeTransaction(
+            0,
             addrKey,
             addr2,
             value

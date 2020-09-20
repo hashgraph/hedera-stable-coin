@@ -87,6 +87,7 @@ public class ProposeOwnerTest {
 
         // prepare test transaction
         var proposeOwnerTransaction2 = new ProposeOwnerTransaction(
+            0,
             callerKey,
             addr
         );

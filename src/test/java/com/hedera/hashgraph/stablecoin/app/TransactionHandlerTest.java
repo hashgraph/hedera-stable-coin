@@ -38,6 +38,7 @@ public class TransactionHandlerTest {
 
         // Test for TokenDecimal < 0
         var constructTransactionFail = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -56,6 +57,7 @@ public class TransactionHandlerTest {
 
         // Test for Owner = 0x
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -72,7 +74,7 @@ public class TransactionHandlerTest {
         state.setOwner(Address.ZERO);
 
         // Make any transaction in order to test ensureOwnerSet()
-        var setKycTransactionTo = new SetKycPassedTransaction(callerKey, addr);
+        var setKycTransactionTo = new SetKycPassedTransaction(0, callerKey, addr);
 
         // Should fail with Status.OWNER_NOT_SET
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionTo.toByteArray()));
@@ -85,7 +87,7 @@ public class TransactionHandlerTest {
         state.setOwner(caller);
 
         // Test for value >= MAX_INT
-        var approveAllowance = new ApproveAllowanceTransaction(callerKey, caller, BigInteger.TWO.pow(256).add(BigInteger.ONE));
+        var approveAllowance = new ApproveAllowanceTransaction(0, callerKey, caller, BigInteger.TWO.pow(256).add(BigInteger.ONE));
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(approveAllowance.toByteArray()));
 

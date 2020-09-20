@@ -112,6 +112,7 @@ public class UnfreezeTest {
 
         // prepare test transaction
         var unfreezeTransactionForCM = new UnfreezeTransaction(
+            0,
             addrKey,
             complianceManager
         );

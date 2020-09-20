@@ -38,6 +38,7 @@ public class ExternalTransferTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -48,9 +49,9 @@ public class ExternalTransferTest {
             caller
         );
 
-        var setKycTransactionTo = new SetKycPassedTransaction(callerKey, from);
-        var transfer = new TransferTransaction(callerKey, from, amount);
-        var approveExternalTransfer = new ApproveExternalTransferTransaction(fromKey, network, to, amount);
+        var setKycTransactionTo = new SetKycPassedTransaction(0, callerKey, from);
+        var transfer = new TransferTransaction(0, callerKey, from, amount);
+        var approveExternalTransfer = new ApproveExternalTransferTransaction(0, fromKey, network, to, amount);
 
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(constructTransaction.toByteArray()));
         topicListener.handleTransaction(Instant.EPOCH, Transaction.parseFrom(setKycTransactionTo.toByteArray()));
@@ -60,6 +61,7 @@ public class ExternalTransferTest {
 
         // prepare test transaction
         var externalTransferFromTransaction = new ExternalTransferTransaction(
+            0,
             callerKey,
             from,
             network,

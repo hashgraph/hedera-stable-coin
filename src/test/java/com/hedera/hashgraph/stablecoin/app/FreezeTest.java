@@ -117,6 +117,7 @@ public class FreezeTest {
         // Try to freeze complianceManager, should fail
         // prepare test transaction
         var freezeTransactionForCM = new FreezeTransaction(
+            0,
             callerKey,
             complianceManager
         );
@@ -143,6 +144,7 @@ public class FreezeTest {
         // Try to freeze with caller != complianceManager && caller != Owner, should fail
         // prepare test transaction
         var freezeTransactionAsAddr = new FreezeTransaction(
+            0,
             addrKey,
             addr2
         );

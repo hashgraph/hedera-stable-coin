@@ -87,6 +87,7 @@ public class ChangeComplianceManagerTest {
 
         // prepare test transaction
         var changecomplianceManagerTransaction2 = new ChangeComplianceManagerTransaction(
+            0,
             callerKey,
             addr
         );

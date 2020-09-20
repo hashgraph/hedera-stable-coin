@@ -37,6 +37,7 @@ public class UnsetKycPassedTest {
         var totalSupply = new BigInteger("10000");
 
         var constructTransaction = new ConstructTransaction(
+            0,
             callerKey,
             tokenName,
             tokenSymbol,
@@ -64,6 +65,7 @@ public class UnsetKycPassedTest {
         );
 
         var unsetKycPassedTransaction2 = new UnsetKycPassedTransaction(
+            0,
             complianceManagerKey,
             addr
         );
@@ -89,7 +91,7 @@ public class UnsetKycPassedTest {
 
 
         // re-set and check for caller == complianceManager instead this time
-        var setKycPassedTransaction2 = new SetKycPassedTransaction(callerKey, addr);
+        var setKycPassedTransaction2 = new SetKycPassedTransaction(0, callerKey, addr);
         // Update State
         topicListener.handleTransaction(Instant.EPOCH.plusNanos(100), Transaction.parseFrom(setKycPassedTransaction2.toByteArray()));
 
@@ -119,6 +121,7 @@ public class UnsetKycPassedTest {
 
         // try to unset complianceManager, should fail
         var unsetKycPassedTransactionForCM = new UnsetKycPassedTransaction(
+            0,
             callerKey,
             complianceManager
         );

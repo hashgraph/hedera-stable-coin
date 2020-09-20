@@ -87,6 +87,7 @@ public class ChangeSupplyManagerTest {
 
         // prepare test transaction
         var changeSupplyManagerTransaction2 = new ChangeSupplyManagerTransaction(
+            0,
             callerKey,
             addr
         );
