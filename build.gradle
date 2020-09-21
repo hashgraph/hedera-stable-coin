@@ -215,7 +215,7 @@ tasks.withType(Test) {
 }
 
 jacocoTestReport {
-	// make sure to use any/all test coverage data for the report
+	// make sure to use any/all test coverage data for  the report
 	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
 
 	// remove generated files from report
@@ -231,9 +231,35 @@ jacocoTestReport {
 		xml.destination file("$buildDir/reports/jacoco/report.xml")
 		html.enabled true
 		html.destination file("${buildDir}/reports/jacocoHtml")
-		csv.enabled false
+		csv.enabled true
+		csv.destination file("${buildDir}/reports/jacoco/report.csv")
 	}
 
 	// make sure we run all tests before this report is made
 	dependsOn tasks.withType(Test)
+}
+
+task printJacoco {
+	def csvFile = file("${buildDir}/reports/jacoco/report.csv")
+	InputStream inputFile = new FileInputStream(csvFile)
+	String[] lines = inputFile.text.split('\n')
+	List<String[]> rows = lines.collect {it.split(',')}
+
+	printf("\nCode Coverage:\n\n")
+
+	for (row in rows) {
+		if (row.contains("com.hedera.hashgraph.stablecoin.app.handler") ||
+			row.contains("com.hedera.hashgraph.stablecoin.app.handler.arguments") ||
+			row.contains("State") ||
+			row.contains("TopicListener")
+		) {
+			printf(row[2] + ":  Instructions: " + (row[4].toInteger() / (row[3].toInteger() + row[4].toInteger())) * 100 + "%%, Branches: ")
+			if (row[5].toInteger() + row[6].toInteger() == 0) {
+				printf("100%%")
+			} else {
+				printf((row[6].toInteger() / (row[5].toInteger() + row[6].toInteger()) * 100).toString() + "%%")
+			}
+			printf("\n")
+		}
+	}
 }
