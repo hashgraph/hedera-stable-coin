@@ -209,6 +209,9 @@ tasks.withType(Test) {
 		exceptionFormat = 'full'
 		events "passed", "skipped", "failed", "standardOut", "standardError"
 	}
+
+	// run coverage after the test
+	finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
