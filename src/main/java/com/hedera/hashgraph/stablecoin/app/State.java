@@ -264,7 +264,12 @@ public final class State {
      * Returns `false` if the ID already existed.
      */
     public void addTransactionReceipt(TransactionId transactionId, TransactionReceipt transactionReceipt) {
-        transactionReceipts.putIfAbsent(transactionId, transactionReceipt);
+        try {
+            lock();
+            transactionReceipts.putIfAbsent(transactionId, transactionReceipt);
+        } finally {
+            unlock();
+        }
     }
 
     /**
