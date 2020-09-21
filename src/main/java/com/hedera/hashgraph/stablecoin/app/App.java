@@ -138,6 +138,7 @@ public class App {
 
     MirrorClient createMirrorHederaClient() {
         return new MirrorClient("hcs.testnet.mirrornode.hedera.com:5600");
+        // return new MirrorClient("testnet.api.kabuto.sh:50211");
     }
 
     PgPool createPgPool() {
