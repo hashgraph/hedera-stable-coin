@@ -66,9 +66,6 @@ public class App {
     // listener to the Hedera topic
     final TopicListener topicListener = new TopicListener(contractState, mirrorHederaClient, topicId, transactionRepository);
 
-    // verticle providing the read-only contract state API
-    final ApiVerticle apiVerticle = new ApiVerticle(contractState, pgPool);
-
     // on an interval, we commit our state
     final CommitInterval commitInterval = new CommitInterval(
         env,
@@ -231,10 +228,11 @@ public class App {
 
     void deployStateVerticle() {
         DeploymentOptions deploymentOptions = new DeploymentOptions()
+            .setInstances(8)
             // the port for this API should be configurable
             .setConfig(new JsonObject().put("HTTP_PORT", 9000));
 
-        vertx.deployVerticle(apiVerticle, deploymentOptions);
+        vertx.deployVerticle(() -> new ApiVerticle(contractState, pgPool, transactionRepository), deploymentOptions);
     }
 
     void runBenchmark(String inputFile) throws IOException, SQLException {

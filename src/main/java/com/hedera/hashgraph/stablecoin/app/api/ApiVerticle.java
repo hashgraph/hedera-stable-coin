@@ -1,6 +1,7 @@
 package com.hedera.hashgraph.stablecoin.app.api;
 
 import com.hedera.hashgraph.stablecoin.app.State;
+import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.Router;
@@ -15,9 +16,12 @@ public class ApiVerticle extends AbstractVerticle {
 
     private final PgPool pgPool;
 
-    public ApiVerticle(State state, PgPool pgPool) {
+    private final TransactionRepository transactionRepository;
+
+    public ApiVerticle(State state, PgPool pgPool, TransactionRepository transactionRepository) {
         this.state = state;
         this.pgPool = pgPool;
+        this.transactionRepository = transactionRepository;
     }
 
     private static void failureHandler(RoutingContext routingContext) {
@@ -47,9 +51,9 @@ public class ApiVerticle extends AbstractVerticle {
 
         router.get("/").handler(new TokenHandler(state));
         router.get("/event").handler(new EventHandler());
-        router.get("/transaction").handler(new TransactionHandler(pgPool));
+        router.get("/transaction").handler(new TransactionHandler(pgPool, transactionRepository));
         router.get("/:address").handler(new AddressHandler(state));
-        router.get("/:address/transaction").handler(new AddressTransactionHandler(pgPool));
+        router.get("/:address/transaction").handler(new AddressTransactionHandler(pgPool, transactionRepository));
         router.get("/transaction/:operatorAccountNum/:validStartNanos/receipt").handler(new TransactionReceiptHandler(state));
         router.get("/:address/allowance/:of").handler(new AllowanceHandler(state));
         router.get("/:address/balance").handler(new BalanceHandler(state));

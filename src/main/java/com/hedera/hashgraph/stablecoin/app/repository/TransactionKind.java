@@ -43,6 +43,33 @@ public enum TransactionKind {
     }
 
     @SuppressWarnings("NullAway")
+    public String getName() {
+        return switch (this) {
+            case CONSTRUCT -> "construct";
+            case APPROVE_ALLOWANCE -> "approveAllowance";
+            case MINT -> "mint";
+            case BURN -> "burn";
+            case TRANSFER -> "transfer";
+            case TRANSFER_FROM -> "transferFrom";
+            case PROPOSE_OWNER -> "proposeOwner";
+            case CLAIM_OWNERSHIP -> "claimOwnership";
+            case CHANGE_SUPPLY_MANAGER -> "changeSupplyManager";
+            case CHANGE_COMPLIANCE_MANAGER -> "changeComplianceManager";
+            case FREEZE -> "freeze";
+            case UNFREEZE -> "unfreeze";
+            case WIPE -> "wipe";
+            case SET_KYC_PASSED -> "setKycPassed";
+            case UNSET_KYC_PASSED -> "unsetKycPassed";
+            case INCREASE_ALLOWANCE -> "increaseAllowance";
+            case DECREASE_ALLOWANCE -> "decreaseAllowance";
+            case CHANGE_ENFORCEMENT_MANAGER -> "changeEnforcementManager";
+            case APPROVE_EXTERNAL_TRANSFER -> "approveExternalTransfer";
+            case EXTERNAL_TRANSFER -> "externalTransfer";
+            case EXTERNAL_TRANSFER_FROM -> "externalTransferFrom";
+        };
+    }
+
+    @SuppressWarnings("NullAway")
     public TransactionKind valueOf(int value) {
         return possibleValues.get(value);
     }

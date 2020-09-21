@@ -1,9 +1,11 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
+import com.hedera.hashgraph.stablecoin.app.handler.arguments.ApproveExternalTransferTransactionArguments;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.BurnTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.math.BigInteger;
@@ -14,6 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_BURN;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class BurnTransactionDataRepository extends TransactionDataRepository<BurnTransactionArguments> {
     BurnTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -28,6 +32,13 @@ public final class BurnTransactionDataRepository extends TransactionDataReposito
     @Override
     public Collection<Address> getAddressList(BurnTransactionArguments arguments) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public JsonObject toTransactionData(BurnTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("value", arguments.value.toString())
+        ));
     }
 
     @Override

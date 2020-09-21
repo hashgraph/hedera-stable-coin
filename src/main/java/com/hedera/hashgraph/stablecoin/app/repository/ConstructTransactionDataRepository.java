@@ -3,7 +3,7 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ConstructTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_CONSTRUCT;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class ConstructTransactionDataRepository extends TransactionDataRepository<ConstructTransactionArguments> {
     ConstructTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -27,6 +29,19 @@ public final class ConstructTransactionDataRepository extends TransactionDataRep
     @Override
     public Collection<Address> getAddressList(ConstructTransactionArguments arguments) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public JsonObject toTransactionData(ConstructTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("tokenName", arguments.tokenName),
+            entry("tokenSymbol", arguments.tokenSymbol),
+            entry("totalSupply", arguments.totalSupply.toString()),
+            entry("supplyManager", arguments.supplyManager.toString()),
+            entry("complianceManager", arguments.complianceManager.toString()),
+            entry("enforcementManager", arguments.enforcementManager.toString()),
+            entry("tokenDecimal", arguments.tokenDecimal)
+        ));
     }
 
     @Override

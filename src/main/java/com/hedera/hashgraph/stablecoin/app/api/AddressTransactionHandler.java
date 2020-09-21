@@ -3,6 +3,8 @@ package com.hedera.hashgraph.stablecoin.app.api;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.CharStreams;
 import com.hedera.hashgraph.stablecoin.app.Status;
+import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
+import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +12,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
@@ -23,17 +24,37 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AddressTransactionHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
+    private final TransactionRepository transactionRepository;
+
     private final String sql = CharStreams.toString(new InputStreamReader(Objects.requireNonNull(
         TransactionHandler.class.getClassLoader().getResourceAsStream("sql/latest-50-transactions-for-address.sql")), UTF_8));
 
     @SuppressWarnings("CheckedExceptionNotThrown")
-    AddressTransactionHandler(PgPool pgPool) throws IOException {
+    AddressTransactionHandler(PgPool pgPool, TransactionRepository transactionRepository) throws IOException {
         this.pgPool = pgPool;
+        this.transactionRepository = transactionRepository;
+    }
+
+    private void finish(RoutingContext routingContext, List<TransactionResponseItem> transactions) {
+        var response = new TransactionResponse();
+        response.transactions = transactions;
+
+        routingContext.response()
+            .putHeader("content-type", "application/json")
+            .end(Json.encodeToBuffer(response));
     }
 
     @Override
     public void handle(RoutingContext routingContext) {
         var address = routingContext.request().getParam("address");
+
+        var pending = transactionRepository.getPendingTransactionsFor(
+            Address.fromString(address), 50);
+
+        if (pending.size() >= 50) {
+            finish(routingContext, pending);
+            return;
+        }
 
         pgPool.preparedQuery(sql).execute(Tuple.of(address), ar -> {
             if (ar.failed()) {
@@ -57,12 +78,9 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
                     transactions.add(item);
                 }
 
-                var response = new TransactionResponse();
-                response.transactions = transactions;
+                transactions.addAll(0, pending);
 
-                routingContext.response()
-                    .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(response));
+                finish(routingContext, transactions);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -71,18 +89,5 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
 
     private static class TransactionResponse {
         public List<TransactionResponseItem> transactions = new ArrayList<>();
-    }
-
-    private static class TransactionResponseItem {
-        public Instant consensusAt = Instant.EPOCH;
-
-        public String caller = "";
-
-        public Status status = Status.OK;
-
-        public String transaction = "";
-
-        @Nullable
-        public JsonObject data = null;
     }
 }

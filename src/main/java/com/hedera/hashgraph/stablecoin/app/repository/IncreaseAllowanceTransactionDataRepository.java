@@ -3,7 +3,7 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.IncreaseAllowanceTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_INCREASE_ALLOWANCE;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class IncreaseAllowanceTransactionDataRepository extends TransactionDataRepository<IncreaseAllowanceTransactionArguments> {
     IncreaseAllowanceTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -27,6 +29,14 @@ public final class IncreaseAllowanceTransactionDataRepository extends Transactio
     @Override
     public Collection<Address> getAddressList(IncreaseAllowanceTransactionArguments arguments) {
         return Collections.singletonList(arguments.spender);
+    }
+
+    @Override
+    public JsonObject toTransactionData(IncreaseAllowanceTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("spender", arguments.spender.toString()),
+            entry("value", arguments.value.toString())
+        ));
     }
 
     @Override

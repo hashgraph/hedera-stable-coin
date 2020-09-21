@@ -3,13 +3,13 @@ package com.hedera.hashgraph.stablecoin.app.api;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.CharStreams;
 import com.hedera.hashgraph.stablecoin.app.Status;
+import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
@@ -22,16 +22,35 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class TransactionHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
+    private final TransactionRepository transactionRepository;
+
     private final String sql = CharStreams.toString(new InputStreamReader(Objects.requireNonNull(
         TransactionHandler.class.getClassLoader().getResourceAsStream("sql/latest-50-transactions.sql")), UTF_8));
 
     @SuppressWarnings("CheckedExceptionNotThrown")
-    TransactionHandler(PgPool pgPool) throws IOException {
+    TransactionHandler(PgPool pgPool, TransactionRepository transactionRepository) throws IOException {
         this.pgPool = pgPool;
+        this.transactionRepository = transactionRepository;
+    }
+
+    private void finish(RoutingContext routingContext, List<TransactionResponseItem> transactions) {
+        var response = new TransactionResponse();
+        response.transactions = transactions;
+
+        routingContext.response()
+            .putHeader("content-type", "application/json")
+            .end(Json.encodeToBuffer(response));
     }
 
     @Override
     public void handle(RoutingContext routingContext) {
+        var pending = transactionRepository.getPendingTransactions(50);
+
+        if (pending.size() >= 50) {
+            finish(routingContext, pending);
+            return;
+        }
+
         pgPool.preparedQuery(sql).execute(ar -> {
             if (ar.failed()) {
                 routingContext.fail(ar.cause());
@@ -53,29 +72,13 @@ public class TransactionHandler implements Handler<RoutingContext> {
                 transactions.add(item);
             }
 
-            var response = new TransactionResponse();
-            response.transactions = transactions;
+            transactions.addAll(0, pending);
 
-            routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(Json.encodeToBuffer(response));
+            finish(routingContext, transactions);
         });
     }
 
     private static class TransactionResponse {
         public List<TransactionResponseItem> transactions = new ArrayList<>();
-    }
-
-    private static class TransactionResponseItem {
-        public Instant consensusAt = Instant.EPOCH;
-
-        public String caller = "";
-
-        public Status status = Status.OK;
-
-        public String transaction = "";
-
-        @Nullable
-        public JsonObject data = null;
     }
 }

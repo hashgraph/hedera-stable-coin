@@ -3,7 +3,7 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.UnsetKycPassedTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_UNSET_KYC_PASSED;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class UnsetKycPassedTransactionDataRepository extends TransactionDataRepository<UnsetKycPassedTransactionArguments> {
     UnsetKycPassedTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -27,6 +29,13 @@ public final class UnsetKycPassedTransactionDataRepository extends TransactionDa
     @Override
     public Collection<Address> getAddressList(UnsetKycPassedTransactionArguments arguments) {
         return Collections.singletonList(arguments.address);
+    }
+
+    @Override
+    public JsonObject toTransactionData(UnsetKycPassedTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("address", arguments.address.toString())
+        ));
     }
 
     @Override

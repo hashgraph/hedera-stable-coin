@@ -3,21 +3,25 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.Status;
+import com.hedera.hashgraph.stablecoin.app.api.TransactionResponseItem;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION;
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.ADDRESS_TRANSACTION;
+import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION;
 
 public class TransactionRepository {
     private final SqlConnectionManager connectionManager;
@@ -25,6 +29,10 @@ public class TransactionRepository {
     private final Map<TransactionBody.DataCase, TransactionDataRepository<?>> transactionDataBatch;
 
     private final Set<TransactionBody.DataCase> transactionsWithData = new HashSet<>();
+
+    private final List<TransactionResponseItem> pendingTransactions = new ArrayList<>();
+
+    private final Map<Address, List<TransactionResponseItem>> pendingTransactionsByAddress = new HashMap<>();
 
     @Nullable
     private BatchBindStep transactionBatch;
@@ -56,6 +64,14 @@ public class TransactionRepository {
             Map.entry(TransactionBody.DataCase.EXTERNALTRANSFER, new ExternalTransferTransactionDataRepository(connectionManager)),
             Map.entry(TransactionBody.DataCase.EXTERNALTRANSFERFROM, new ExternalTransferFromTransactionDataRepository(connectionManager))
         );
+    }
+
+    private static List<TransactionResponseItem> boundUnmodifiableList(List<TransactionResponseItem> list, int limit) {
+        if (list.size() <= limit) {
+            return Collections.unmodifiableList(list);
+        }
+
+        return Collections.unmodifiableList(list.subList(0, limit));
     }
 
     private BatchBindStep newBatch() throws SQLException {
@@ -123,9 +139,14 @@ public class TransactionRepository {
         addressBatch = addressBatch.bind(transactionTimestamp, caller.toBytes());
 
         if (repository != null) {
+            var pendingTransaction = repository.toTransactionResponseItem(
+                consensusTimestamp, status, caller, arguments);
+
+            pendingTransactions.add(pendingTransaction);
             repository.bindTransaction(consensusTimestamp, arguments);
 
             for (var address : repository.getAddressList(arguments)) {
+                pendingTransactionsByAddress.computeIfAbsent(address, k -> new ArrayList<>()).add(pendingTransaction);
                 addressBatch = addressBatch.bind(transactionTimestamp, address.toBytes());
             }
 
@@ -153,5 +174,21 @@ public class TransactionRepository {
         }
 
         transactionsWithData.clear();
+        pendingTransactions.clear();
+        pendingTransactionsByAddress.clear();
+    }
+
+    public List<TransactionResponseItem> getPendingTransactions(int limit) {
+        return boundUnmodifiableList(pendingTransactions, limit);
+    }
+
+    public List<TransactionResponseItem> getPendingTransactionsFor(Address address, int limit) {
+        var pendingTransactions = pendingTransactionsByAddress.get(address);
+
+        if (pendingTransactions == null) {
+            return Collections.emptyList();
+        }
+
+        return boundUnmodifiableList(pendingTransactions, limit);
     }
 }

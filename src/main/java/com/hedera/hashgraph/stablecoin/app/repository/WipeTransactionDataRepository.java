@@ -3,7 +3,7 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.WipeTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_WIPE;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class WipeTransactionDataRepository extends TransactionDataRepository<WipeTransactionArguments> {
     WipeTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -27,6 +29,14 @@ public final class WipeTransactionDataRepository extends TransactionDataReposito
     @Override
     public Collection<Address> getAddressList(WipeTransactionArguments arguments) {
         return Collections.singletonList(arguments.address);
+    }
+
+    @Override
+    public JsonObject toTransactionData(WipeTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("address", arguments.address.toString()),
+            entry("value", arguments.value.toString())
+        ));
     }
 
     @Override
@@ -45,7 +55,7 @@ public final class WipeTransactionDataRepository extends TransactionDataReposito
         return batch.bind(
             ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
             arguments.address.toBytes(),
-            arguments.value.toByteArray()
+            arguments.value
         );
     }
 }

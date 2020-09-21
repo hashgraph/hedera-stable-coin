@@ -1,8 +1,11 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
+import com.hedera.hashgraph.stablecoin.app.Status;
+import com.hedera.hashgraph.stablecoin.app.api.TransactionResponseItem;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;
@@ -23,6 +26,12 @@ public abstract class TransactionDataRepository<ArgumentsT> {
     public abstract BatchBindStep newBatch() throws SQLException;
 
     public abstract TransactionKind getTransactionKind();
+
+    public TransactionResponseItem toTransactionResponseItem(Instant consensusTimestamp, Status status, Address caller, ArgumentsT arguments) {
+        return new TransactionResponseItem(consensusTimestamp, status, getTransactionKind().getName(), caller, toTransactionData(arguments));
+    }
+
+    public abstract JsonObject toTransactionData(ArgumentsT arguments);
 
     public abstract Collection<Address> getAddressList(ArgumentsT arguments);
 

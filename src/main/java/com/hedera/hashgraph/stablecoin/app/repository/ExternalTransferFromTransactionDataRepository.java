@@ -3,7 +3,7 @@ package com.hedera.hashgraph.stablecoin.app.repository;
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.ExternalTransferFromTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_EXTERNAL_TRANSFER_FROM;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class ExternalTransferFromTransactionDataRepository extends TransactionDataRepository<ExternalTransferFromTransactionArguments> {
@@ -28,6 +30,16 @@ public final class ExternalTransferFromTransactionDataRepository extends Transac
     @Override
     public Collection<Address> getAddressList(ExternalTransferFromTransactionArguments arguments) {
         return Collections.singletonList(arguments.to);
+    }
+
+    @Override
+    public JsonObject toTransactionData(ExternalTransferFromTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("network", arguments.networkURI),
+            entry("to", arguments.to.toString()),
+            entry("from", arguments.from.toStringUtf8()),
+            entry("value", arguments.amount.toString())
+        ));
     }
 
     @Override

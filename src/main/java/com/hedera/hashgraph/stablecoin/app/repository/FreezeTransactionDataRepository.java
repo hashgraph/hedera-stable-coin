@@ -1,9 +1,11 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
+import com.hedera.hashgraph.stablecoin.app.handler.arguments.ChangeSupplyManagerTransactionArguments;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.FreezeTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
+import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 
 import java.sql.SQLException;
@@ -13,6 +15,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_FREEZE;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class FreezeTransactionDataRepository extends TransactionDataRepository<FreezeTransactionArguments> {
     FreezeTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -27,6 +31,13 @@ public final class FreezeTransactionDataRepository extends TransactionDataReposi
     @Override
     public Collection<Address> getAddressList(FreezeTransactionArguments arguments) {
         return Collections.singletonList(arguments.address);
+    }
+
+    @Override
+    public JsonObject toTransactionData(FreezeTransactionArguments arguments) {
+        return new JsonObject(ofEntries(
+            entry("address", arguments.address.toString())
+        ));
     }
 
     @Override
