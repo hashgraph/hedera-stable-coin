@@ -6,7 +6,6 @@ import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
-import org.jooq.Batch;
 import org.jooq.BatchBindStep;
 
 import javax.annotation.Nullable;

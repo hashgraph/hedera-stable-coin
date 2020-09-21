@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_EXTERNAL_TRANSFER_FROM;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class ExternalTransferFromTransactionDataRepository extends TransactionDataRepository<ExternalTransferFromTransactionArguments> {
     ExternalTransferFromTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -46,7 +47,7 @@ public final class ExternalTransferFromTransactionDataRepository extends Transac
     public BatchBindStep bindArguments(BatchBindStep batch, Instant consensusTimestamp, ExternalTransferFromTransactionArguments arguments) {
         return batch.bind(
             ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
-            arguments.from.toStringUtf8().getBytes(),
+            arguments.from.toStringUtf8().getBytes(UTF_8),
             arguments.networkURI,
             arguments.to.toBytes(),
             arguments.amount

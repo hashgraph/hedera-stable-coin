@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class TransactionHandler implements Handler<RoutingContext> {
     private final String sql = CharStreams.toString(new InputStreamReader(Objects.requireNonNull(
         TransactionHandler.class.getClassLoader().getResourceAsStream("sql/latest-50-transactions.sql")), UTF_8));
 
+    @SuppressWarnings("CheckedExceptionNotThrown")
     TransactionHandler(PgPool pgPool) throws IOException {
         this.pgPool = pgPool;
     }
@@ -73,6 +75,7 @@ public class TransactionHandler implements Handler<RoutingContext> {
 
         public String transaction = "";
 
+        @Nullable
         public JsonObject data = null;
     }
 }

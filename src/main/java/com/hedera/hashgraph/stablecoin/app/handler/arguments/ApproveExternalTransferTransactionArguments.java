@@ -2,10 +2,8 @@ package com.hedera.hashgraph.stablecoin.app.handler.arguments;
 
 import com.google.protobuf.ByteString;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class ApproveExternalTransferTransactionArguments {
     public final String networkURI;

@@ -3,7 +3,6 @@ package com.hedera.hashgraph.stablecoin.app.api;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.CharStreams;
 import com.hedera.hashgraph.stablecoin.app.Status;
-import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -11,6 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
@@ -26,6 +26,7 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
     private final String sql = CharStreams.toString(new InputStreamReader(Objects.requireNonNull(
         TransactionHandler.class.getClassLoader().getResourceAsStream("sql/latest-50-transactions-for-address.sql")), UTF_8));
 
+    @SuppressWarnings("CheckedExceptionNotThrown")
     AddressTransactionHandler(PgPool pgPool) throws IOException {
         this.pgPool = pgPool;
     }
@@ -81,6 +82,7 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
 
         public String transaction = "";
 
+        @Nullable
         public JsonObject data = null;
     }
 }

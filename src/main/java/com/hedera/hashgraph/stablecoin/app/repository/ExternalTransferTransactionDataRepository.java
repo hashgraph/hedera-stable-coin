@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.hedera.hashgraph.stablecoin.app.db.Tables.TRANSACTION_EXTERNAL_TRANSFER;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class ExternalTransferTransactionDataRepository extends TransactionDataRepository<ExternalTransferTransactionArguments> {
     ExternalTransferTransactionDataRepository(SqlConnectionManager connectionManager) {
@@ -48,7 +49,7 @@ public final class ExternalTransferTransactionDataRepository extends Transaction
             ChronoUnit.NANOS.between(Instant.EPOCH, consensusTimestamp),
             arguments.from.toBytes(),
             arguments.networkURI,
-            arguments.to.toStringUtf8().getBytes(),
+            arguments.to.toStringUtf8().getBytes(UTF_8),
             arguments.amount
         );
     }

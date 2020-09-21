@@ -6,24 +6,26 @@ import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.proto.TransactionBody;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 
-import java.sql.SQLException;
 import java.time.Instant;
 
 public class GetTransactionStatus extends TransactionRepository {
     public Status status;
 
+    @SuppressWarnings("NullAway")
     public GetTransactionStatus(SqlConnectionManager connectionManager) {
         super(connectionManager);
     }
 
-    public synchronized <ArgumentsT> void bindTransaction(
+    @Override public synchronized <ArgumentsT> void bindTransaction(
         Instant consensusTimestamp,
         Address caller,
         TransactionId transactionId,
         Status status,
         TransactionBody.DataCase dataCase,
         ArgumentsT arguments
-    ) throws SQLException {
+    ) {
+        if (status != null) {
             this.status = status;
+        }
     }
 }
