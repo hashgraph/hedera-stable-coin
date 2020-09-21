@@ -1,10 +1,8 @@
 package com.hedera.hashgraph.stablecoin.app.repository;
 
 import com.hedera.hashgraph.stablecoin.app.SqlConnectionManager;
-import com.hedera.hashgraph.stablecoin.app.handler.arguments.ApproveExternalTransferTransactionArguments;
 import com.hedera.hashgraph.stablecoin.app.handler.arguments.BurnTransactionArguments;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
-
 import io.vertx.core.json.JsonObject;
 import org.jooq.BatchBindStep;
 

@@ -35,7 +35,7 @@ public class AddressTransactionHandler implements Handler<RoutingContext> {
         this.transactionRepository = transactionRepository;
     }
 
-    private void finish(RoutingContext routingContext, List<TransactionResponseItem> transactions) {
+    private static void finish(RoutingContext routingContext, List<TransactionResponseItem> transactions) {
         var response = new TransactionResponse();
         response.transactions = transactions;
 

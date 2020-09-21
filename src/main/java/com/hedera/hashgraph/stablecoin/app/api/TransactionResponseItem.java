@@ -4,6 +4,7 @@ import com.hedera.hashgraph.stablecoin.app.Status;
 import com.hedera.hashgraph.stablecoin.sdk.Address;
 import io.vertx.core.json.JsonObject;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 
 public class TransactionResponseItem {
@@ -15,6 +16,7 @@ public class TransactionResponseItem {
 
     public String transaction = "";
 
+    @Nullable
     public JsonObject data = null;
 
     public TransactionResponseItem() {
