@@ -1,4 +1,5 @@
 import groovy.xml.MarkupBuilder
+import org.gradle.api.tasks.testing.Test
 import org.jooq.codegen.GenerationTool
 
 import javax.xml.bind.JAXB
@@ -214,16 +215,43 @@ tasks.withType(Test) {
 	finalizedBy jacocoTestReport
 }
 
+task printJacoco {
+	doLast {
+		def csvFile = file("${buildDir}/reports/jacoco/report.csv")
+		InputStream inputFile = new FileInputStream(csvFile)
+		String[] lines = inputFile.text.split('\n')
+		List<String[]> rows = lines.collect { it.split(',') }
+
+		printf("\nCode Coverage:\n\n")
+
+		for (row in rows) {
+			if (row.contains("com.hedera.hashgraph.stablecoin.app.handler") ||
+				row.contains("com.hedera.hashgraph.stablecoin.app.handler.arguments") ||
+				row.contains("State") ||
+				row.contains("TopicListener")
+			) {
+				printf(row[2] + ":  Instructions: " + (row[4].toInteger() / (row[3].toInteger() + row[4].toInteger())) * 100 + "%%, Branches: ")
+				if (row[5].toInteger() + row[6].toInteger() == 0) {
+					printf("100%%")
+				} else {
+					printf((row[6].toInteger() / (row[5].toInteger() + row[6].toInteger()) * 100).toString() + "%%")
+				}
+				printf("\n")
+			}
+		}
+	}
+}
+
 jacocoTestReport {
 	// make sure to use any/all test coverage data for  the report
 	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
 
 	// remove generated files from report
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/proto/**', '**/db/**'])
-        }))
-    }
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['**/proto/**', '**/db/**'])
+		}))
+	}
 
 	// configure it so only xml is generated for the report
 	reports {
@@ -237,29 +265,6 @@ jacocoTestReport {
 
 	// make sure we run all tests before this report is made
 	dependsOn tasks.withType(Test)
-}
 
-task printJacoco {
-	def csvFile = file("${buildDir}/reports/jacoco/report.csv")
-	InputStream inputFile = new FileInputStream(csvFile)
-	String[] lines = inputFile.text.split('\n')
-	List<String[]> rows = lines.collect {it.split(',')}
-
-	printf("\nCode Coverage:\n\n")
-
-	for (row in rows) {
-		if (row.contains("com.hedera.hashgraph.stablecoin.app.handler") ||
-			row.contains("com.hedera.hashgraph.stablecoin.app.handler.arguments") ||
-			row.contains("State") ||
-			row.contains("TopicListener")
-		) {
-			printf(row[2] + ":  Instructions: " + (row[4].toInteger() / (row[3].toInteger() + row[4].toInteger())) * 100 + "%%, Branches: ")
-			if (row[5].toInteger() + row[6].toInteger() == 0) {
-				printf("100%%")
-			} else {
-				printf((row[6].toInteger() / (row[5].toInteger() + row[6].toInteger()) * 100).toString() + "%%")
-			}
-			printf("\n")
-		}
-	}
+	finalizedBy printJacoco
 }
