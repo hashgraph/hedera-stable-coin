@@ -28,9 +28,6 @@ public final class IncreaseAllowanceTransactionHandler extends TransactionHandle
 
         // v. Allowances[caller][spender] + value <= MAX_INT
         ensureLessThanMaxInt(state.getAllowance(caller, args.spender).add(args.value), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
-
-        // vi. value <= MAX_INT
-        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

@@ -26,8 +26,11 @@ public final class ExternalTransferFromTransactionHandler extends TransactionHan
         // iv. CheckTransferAllowed(to)
         ensureTransferAllowed(state, args.to, Status.EXTERNAL_TRANSFER_NOT_ALLOWED);
 
-        // v. value <= MAX_INT
-        ensureLessThanMaxInt(args.amount, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
+        // v. Balances[to] + value <= MAX_INT
+        ensureLessThanMaxInt(state.getBalanceOf(args.to).add(args.amount), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
+
+        // v. TotalSupply + value <= MAX_INT
+        ensureLessThanMaxInt(state.getTotalSupply().add(args.amount), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

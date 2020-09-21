@@ -33,8 +33,11 @@ public final class MintTransactionHandler extends TransactionHandler<MintTransac
             Status.MINT_INSUFFICIENT_TOTAL_SUPPLY
         );
 
-        // vi. value <= MAX_INT
-        ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
+        // vi. TotalSupply + value <= MAX_INT
+        ensureLessThanMaxInt(state.getTotalSupply().add(args.value), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
+
+        // vii. Balances[SupplyManager] + value <= MAX_INT
+        ensureLessThanMaxInt(state.getBalanceOf(state.getSupplyManager()).add(args.value), Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 
     @Override

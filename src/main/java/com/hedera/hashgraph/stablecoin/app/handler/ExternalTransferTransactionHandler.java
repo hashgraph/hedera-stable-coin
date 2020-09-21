@@ -31,9 +31,15 @@ public final class ExternalTransferTransactionHandler extends TransactionHandler
         // v. value <= MAX_INT
         ensureLessThanMaxInt(args.amount, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
 
-        // vi. externalAllowanceOf(args.from, args.networkURI, args.to) >= value
+        // vi. externalAllowanceOf(args.from, args.networkURI, args.to) >= amount
         var allowance = state.getExternalAllowance(args.from, args.networkURI, args.to.toByteArray());
         ensureEqualOrGreater(allowance, args.amount, Status.EXTERNAL_TRANSFER_NOT_ALLOWED);
+
+        // vii. Balances[from] >= amount
+        ensureEqualOrGreater(state.getBalanceOf(args.from), args.amount, Status.EXTERNAL_TRANSFER_INSUFFICIENT_FROM_BALANCE);
+
+        // viii. TotalSupply >= Balances[from]
+        ensureEqualOrGreater(state.getTotalSupply(), state.getBalanceOf(args.from), Status.EXTERNAL_TRANSFER_INSUFFICIENT_TOTAL_SUPPLY);
     }
 
     @Override

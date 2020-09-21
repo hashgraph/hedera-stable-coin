@@ -26,7 +26,10 @@ public final class WipeTransactionHandler extends TransactionHandler<WipeTransac
         // iv. value <= Balances[addr]
         ensure(args.value.compareTo(state.getBalanceOf(args.address)) <= 0, Status.WIPE_VALUE_WOULD_RESULT_IN_NEGATIVE_BALANCE);
 
-        // v. value <= MAX_INT
+        // v. Balances[addr] <= TotalSupply
+        ensure(state.getBalanceOf(args.address).compareTo(state.getTotalSupply()) <= 0, Status.WIPE_VALUE_INSUFFICIENT_TOTAL_SUPPLY);
+
+        // vi. value <= MAX_INT
         ensureLessThanMaxInt(args.value, Status.NUMBER_VALUES_LIMITED_TO_256_BITS);
     }
 

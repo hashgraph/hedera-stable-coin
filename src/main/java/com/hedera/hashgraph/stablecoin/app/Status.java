@@ -80,7 +80,7 @@ public enum Status {
     MINT_VALUE_LESS_THAN_ZERO(14),
 
     /**
-     * Mint transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
+     * Mint transaction called when `SupplyManager`'s balance exceeds `TotalSupply`.
      */
     MINT_INSUFFICIENT_TOTAL_SUPPLY(15),
 
@@ -95,7 +95,7 @@ public enum Status {
     BURN_INSUFFICIENT_SUPPLY_MANAGER_BALANCE(17),
 
     /**
-     * Burn transaction called when `TotalSupply` exceeds `SupplyManager`'s balance.
+     * Burn transaction called when `SupplyManager`'s balance exceeds `TotalSupply`.
      */
     BURN_INSUFFICIENT_TOTAL_SUPPLY(18),
 
@@ -244,6 +244,21 @@ public enum Status {
 
     /** this transaction has expired, transactions are only valid for 2 minutes */
     TRANSACTION_EXPIRED(49),
+
+    /**
+     * ExternalTransfer transaction called when amount exceeds `from`'s balance.
+     */
+    EXTERNAL_TRANSFER_INSUFFICIENT_FROM_BALANCE(50),
+
+    /**
+     * ExternalTransfer transaction called when `from`'s balance exceeds `TotalSupply`.
+     */
+    EXTERNAL_TRANSFER_INSUFFICIENT_TOTAL_SUPPLY(51),
+
+    /**
+     * Mint transaction called when `address`'s balance exceeds `TotalSupply`.
+     */
+    WIPE_VALUE_INSUFFICIENT_TOTAL_SUPPLY(52),
 
     ;
 
