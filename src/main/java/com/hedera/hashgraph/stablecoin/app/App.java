@@ -160,6 +160,7 @@ public class App {
         var tokenDecimal = Integer.parseInt(requireEnv("HSC_TOKEN_DECIMAL"));
         var totalSupply = new BigInteger(requireEnv("HSC_TOTAL_SUPPLY"));
 
+        System.out.println(env.get("HSC_OWNER_KEY"));
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
             .map(Ed25519PrivateKey::fromString);
 
@@ -227,12 +228,14 @@ public class App {
     }
 
     void deployStateVerticle() {
+        var httpPort = Optional.ofNullable(env.get("HSC_STATE_PORT")).map(Integer::parseInt).orElse(9000);
         DeploymentOptions deploymentOptions = new DeploymentOptions()
             .setInstances(8)
             // the port for this API should be configurable
-            .setConfig(new JsonObject().put("HTTP_PORT", 9000));
+            .setConfig(new JsonObject().put("HTTP_PORT", httpPort));
 
         vertx.deployVerticle(() -> new ApiVerticle(contractState, pgPool, transactionRepository), deploymentOptions);
+        System.out.println("Listening on port : " + httpPort);
     }
 
     void runBenchmark(String inputFile) throws IOException, SQLException {

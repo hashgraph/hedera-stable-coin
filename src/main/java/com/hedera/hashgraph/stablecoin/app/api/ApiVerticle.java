@@ -10,6 +10,9 @@ import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.pgclient.PgPool;
 
 import java.io.IOException;
+import java.util.Optional;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class ApiVerticle extends AbstractVerticle {
     private final State state;
@@ -44,6 +47,7 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> promise) throws IOException {
+        final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
 
@@ -58,9 +62,11 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/:address/allowance/:of").handler(new AllowanceHandler(state));
         router.get("/:address/balance").handler(new BalanceHandler(state));
 
+        var httpPort = Optional.ofNullable(env.get("HSC_STATE_PORT")).map(Integer::parseInt).orElse(9000);
+
         server
             .requestHandler(router)
-            .listen(config().getInteger("http.port", 9000), result -> {
+            .listen(config().getInteger("http.port", httpPort), result -> {
                 if (result.succeeded()) {
                     promise.complete();
                 } else {
