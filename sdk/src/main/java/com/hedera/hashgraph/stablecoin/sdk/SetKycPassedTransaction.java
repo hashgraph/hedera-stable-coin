@@ -13,6 +13,6 @@ public final class SetKycPassedTransaction extends Transaction {
     ) {
         super(operatorAccountNum, owner, TransactionBody.newBuilder()
             .setSetKycPassed(SetKycPassedTransactionData.newBuilder()
-                .setAddress(ByteString.copyFrom(address.publicKey.toBytes()))));
+                .setAddress(ByteString.copyFrom(address.toBytes()))));
     }
 }
