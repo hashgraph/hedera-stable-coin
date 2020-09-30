@@ -1,0 +1,3 @@
+[submodule "hedera-stable-coin-formal-model"]
+	path = hedera-stable-coin-formal-model
+	url = git@github.com:hashgraph/hedera-stable-coin-formal-model.git
