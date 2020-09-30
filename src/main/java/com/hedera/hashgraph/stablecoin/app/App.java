@@ -8,6 +8,7 @@ import com.hedera.hashgraph.sdk.consensus.ConsensusMessageSubmitTransaction;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicCreateTransaction;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
 import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
+import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PublicKey;
 import com.hedera.hashgraph.sdk.mirror.MirrorClient;
 import com.hedera.hashgraph.stablecoin.app.api.ApiVerticle;
 import com.hedera.hashgraph.stablecoin.app.repository.TransactionRepository;
@@ -165,13 +166,13 @@ public class App {
             .map(Ed25519PrivateKey::fromString);
 
         var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
-            .map(Ed25519PrivateKey::fromString);
+            .map(Ed25519PublicKey::fromString);
 
         var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY"))
-            .map(Ed25519PrivateKey::fromString);
+            .map(Ed25519PublicKey::fromString);
 
         var enforcementManagerKey = Optional.ofNullable(env.get("HSC_ENFORCEMENT_MANAGER_KEY"))
-            .map(Ed25519PrivateKey::fromString);
+            .map(Ed25519PublicKey::fromString);
 
         // create the new topic ID
         var topicId = new ConsensusTopicCreateTransaction()
@@ -190,9 +191,9 @@ public class App {
             tokenSymbol,
             tokenDecimal,
             totalSupply,
-            new Address(supplyManagerKey.orElse(operatorPrivateKey).publicKey),
-            new Address(complianceManagerKey.orElse(operatorPrivateKey).publicKey),
-            new Address(enforcementManagerKey.orElse(operatorPrivateKey).publicKey)
+            new Address(supplyManagerKey.orElse(operatorPrivateKey.publicKey)),
+            new Address(complianceManagerKey.orElse(operatorPrivateKey.publicKey)),
+            new Address(enforcementManagerKey.orElse(operatorPrivateKey.publicKey))
         ).toByteArray();
 
         // and finally submit it
@@ -211,7 +212,7 @@ public class App {
     }
 
     ConsensusTopicId getOrCreateContractInstance() throws InterruptedException, HederaStatusException {
-        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).map(ConsensusTopicId::fromString);
+        @Var var maybeTopicId = Optional.ofNullable(env.get("HSC_TOPIC_ID")).filter(topic -> ! topic.isEmpty()).map(ConsensusTopicId::fromString);
 
         if (maybeTopicId.isPresent()) {
             return maybeTopicId.get();
