@@ -76,9 +76,9 @@ public final class Generator {
         tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
         tokenDecimal = Integer.parseInt(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
-        supplyManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
-        complianceManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_COMPLIANCE_MANAGER_KEY"));
-        enforcementManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_ENFORCEMENT_MANAGER_KEY"));
+        supplyManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_SUPPLY_MANAGER_KEY"));
+        complianceManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_COMPLIANCE_MANAGER_KEY"));
+        enforcementManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_ENFORCEMENT_MANAGER_KEY"));
         transactionCount = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
         initialAccountsCount = Integer.parseInt(loadEnvironmentVariable("HSC_INITIAL_ACCOUNTS_COUNT"));
     }
