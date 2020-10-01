@@ -161,7 +161,6 @@ public class App {
         var tokenDecimal = Integer.parseInt(requireEnv("HSC_TOKEN_DECIMAL"));
         var totalSupply = new BigInteger(requireEnv("HSC_TOTAL_SUPPLY"));
 
-        System.out.println(env.get("HSC_OWNER_KEY"));
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
             .map(Ed25519PrivateKey::fromString);
 
