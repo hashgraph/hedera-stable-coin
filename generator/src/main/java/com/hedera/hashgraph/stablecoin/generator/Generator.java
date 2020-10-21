@@ -27,7 +27,9 @@ public final class Generator {
 
     final List<com.hedera.hashgraph.stablecoin.sdk.Transaction> transactionsRead = new ArrayList<>();
 
-    public int count = 0;
+    public int transactionCount = 0;
+
+    public int initialAccountsCount = 0;
 
     File file;
 
@@ -74,14 +76,15 @@ public final class Generator {
         tokenSymbol = loadEnvironmentVariable("HSC_TOKEN_SYMBOL");
         tokenDecimal = Integer.parseInt(loadEnvironmentVariable("HSC_TOKEN_DECIMAL"));
         totalSupply = new BigInteger(loadEnvironmentVariable("HSC_TOTAL_SUPPLY"));
-        supplyManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_SUPPLY_MANAGER_KEY"));
-        complianceManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_COMPLIANCE_MANAGER_KEY"));
-        enforcementManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("HSC_ENFORCEMENT_MANAGER_KEY"));
-        count = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
+        supplyManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_SUPPLY_MANAGER_KEY"));
+        complianceManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_COMPLIANCE_MANAGER_KEY"));
+        enforcementManager = Ed25519PrivateKey.fromString(loadEnvironmentVariable("GENERATE_ENFORCEMENT_MANAGER_KEY"));
+        transactionCount = Integer.parseInt(loadEnvironmentVariable("HSC_TRANSACTION_COUNT"));
+        initialAccountsCount = Integer.parseInt(loadEnvironmentVariable("HSC_INITIAL_ACCOUNTS_COUNT"));
     }
 
     void generateAccounts() throws IOException {
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < initialAccountsCount; ++i) {
             accounts.add(Ed25519PrivateKey.generate());
         }
 
@@ -110,7 +113,7 @@ public final class Generator {
         // Write `HSC_TRANSACTION_COUNT` number of TransferTransactions to the file
         // These TransferTransactions will be random as to from which account, to which account, and amount will
         // be between [0, 100).
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0; i < transactionCount; ++i) {
             var from = accounts.get(random.nextInt(accounts.size()));
             var to = accounts.get(random.nextInt(accounts.size()));
 
@@ -137,7 +140,7 @@ public final class Generator {
         // Create and write the ConstructTransaction to file
         constructor();
 
-        // Generate 10 accounts
+        // Generate initialAccountsCount accounts
         generateAccounts();
 
         // Create and write transfers from a random account to another random account
