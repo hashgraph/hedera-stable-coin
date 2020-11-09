@@ -8,23 +8,28 @@
 
  - [TimescaleDB](https://www.timescale.com/)
 
+_see [install prerequisites](#install-prerequisites) at the end of this document for assistance if needed_
+
 ## Build
 
-Create the development database. Assumes that TimescaleDB is running on `localhost:5432`
-
-```
+```shell script
+# Create the development database. Assumes that TimescaleDB is running on `localhost:5432`
+sudo su -l postgres
 createdb -h localhost -U postgres stable_coin
-```
+# CTRL+D to exit postgres user shell
 
-Run database migrations.
+# Install git
+sudo apt install git
 
-```
+# Clone the repository
+git clone https://github.com/hashgraph/hedera-stable-coin.git
+
+cd hedera-stable-coin
+
+# Run database migrations.
 ./gradlew flywayMigrate
-```
 
-Assemble JAR.
-
-```
+# Assemble JAR.
 ./gradlew jooqGenerate build
 ```
 
@@ -175,6 +180,93 @@ http GET :9000/cf750f7c2adc1baf87b3de9df1c317a5f845c994d0b28a6ec4655e7fc59b75dc/
 }
 ```
 
+## Install prerequisites
+
+Note: These installation instructions are applicable to `Debian 4.19`, other operating systems may differ.
+
+### Java 14+
+
+```shell script
+# update and upgrade apt
+sudo apt upgrade
+sudo apt update
+
+# install curl and wget
+sudo apt -y install wget curl
+
+# download JDK14
+curl -O https://download.java.net/java/GA/jdk14/076bab302c7b4508975440c56f6cc26a/36/GPL/openjdk-14_linux-x64_bin.tar.gz
+
+# Extract
+tar xvf openjdk-14_linux-x64_bin.tar.gz
+
+# Move to /opt
+sudo mv jdk-14 /opt/
+
+# Setup environment
+sudo nano /etc/profile.d/jdk14.sh
+export JAVA_HOME=/opt/jdk-14
+export PATH=$PATH:$JAVA_HOME/bin
+# save file
+
+# Source profile
+source /etc/profile.d/jdk14.sh
+
+# Confirm java version
+echo $JAVA_HOME
+/opt/jdk-14
+
+java -version
+openjdk version "14" 2020-03-17
+OpenJDK Runtime Environment (build 14+36-1461)
+OpenJDK 64-Bit Server VM (build 14+36-1461, mixed mode, sharing)
+```
+
+# sudo apt -y install software-properties-common dirmngr apt-transport-https lsb-release ca-certificates
+
+### TimescaleDB
+
+(instructions from https://docs.timescale.com/latest/getting-started/installation/debian/installation-apt-debian)
+
+_Note: Assumes wget is installed_
+
+```shell script
+# `lsb_release -c -s` should return the correct codename of your OS
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -c -s)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+
+# Add timescale repository
+sudo sh -c "echo 'deb https://packagecloud.io/timescale/timescaledb/debian/ `lsb_release -c -s` main' > /etc/apt/sources.list.d/timescaledb.list"
+wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -
+sudo apt-get update
+
+# Now install appropriate package for PG version
+sudo apt-get install timescaledb-postgresql-12
+
+# Configure the database, respond "y" to prompts
+sudo timescaledb-tune
+
+# Restart PostgreSQL instance
+sudo service postgresql restart
+
+# Set password for postgres user
+sudo passwd postgres
+
+# Connect to the database
+sudo su -l postgres
+psql
+
+# psql (12.4 (Debian 12.4-1.pgdg100+1))
+# Type "help" for help.
+
+# Set postres user password to 'password'
+alter user postgres with password 'password';
+
+CTRL+D to exit psql
+
+CTRL+D again to return to your user shell
+```
 
 ## License
 
