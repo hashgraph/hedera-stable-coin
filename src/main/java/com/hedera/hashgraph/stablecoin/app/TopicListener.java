@@ -93,6 +93,7 @@ public final class TopicListener {
     private MirrorSubscriptionHandle handle;
 
     public TopicListener(State state, @Nullable MirrorClient mirrorClient, ConsensusTopicId topicId, @Nullable TransactionRepository transactionRepository) {
+        System.out.println("starting listener on mirror for topic " + topicId + " ...");
         this.state = state;
         this.mirrorClient = mirrorClient;
         this.topicId = topicId;
