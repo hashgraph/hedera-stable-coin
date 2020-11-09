@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -88,6 +87,35 @@ public class App {
             return;
         }
 
+        if (args.length == 1 && args[0].equals("--newkeys")) {
+            System.out.println("");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("Generating keys.");
+            System.out.println("----------------------------------------------------------------------");
+            Ed25519PrivateKey complianceManager = Ed25519PrivateKey.generate();
+            Ed25519PrivateKey supplyManager = Ed25519PrivateKey.generate();
+            Ed25519PrivateKey enforcementManager = Ed25519PrivateKey.generate();
+            Ed25519PrivateKey ownerKey = Ed25519PrivateKey.generate();
+            System.out.println("");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("These are the **public** keys you can paste into the environment files");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("HSC_COMPLIANCE_MANAGER_KEY=" + supplyManager.publicKey.toString());
+            System.out.println("HSC_SUPPLY_MANAGER_KEY=" + complianceManager.publicKey.toString());
+            System.out.println("HSC_ENFORCEMENT_MANAGER_KEY=" + enforcementManager.publicKey.toString());
+            System.out.println("");
+            System.out.println("Private key for the owner of the token");
+            System.out.println("HSC_OWNER_KEY=" + ownerKey.toString());
+            System.out.println("");
+            System.out.println("These are the **private** keys you will need to approve operations");
+            System.out.println("Compliance manager key=" + supplyManager.toString());
+            System.out.println("Supply manager key=" + complianceManager.toString());
+            System.out.println("Enforcement manager key=" + enforcementManager.toString());
+            System.out.println("");
+            System.out.println("----------------------------------------------------------------------");
+
+            System.exit(0);
+        }
         // try to read the latest state snapshot
         // this is to let us resume instead of reading from the beginning of history
         app.snapshotManager.tryReadLatest();
@@ -109,14 +137,23 @@ public class App {
     }
 
     Client createHederaClient() {
-        // we need an .env variable to allow switching network
-        var network = new HashMap<AccountId, String>();
-        network.put(new AccountId(3), "0.testnet.hedera.com:50211");
-        network.put(new AccountId(4), "1.testnet.hedera.com:50211");
-        network.put(new AccountId(5), "2.testnet.hedera.com:50211");
-        network.put(new AccountId(6), "3.testnet.hedera.com:50211");
-
-        var client = new Client(network);
+        @Var var client = Client.forTestnet();
+        @Var var network = requireEnv("HSC_NETWORK");
+        switch (network.toUpperCase()) {
+            case "MAINNET":
+                client = Client.forMainnet();
+                break;
+            case "TESTNET":
+                client = Client.forTestnet();
+                break;
+//            case "PREVIEWNET":
+//                client = Client.forPreviewnet();
+//                break;
+            default:
+                System.out.println("HSC_NETWORK environment variable not set to mainnet, testnet or previewnet, exiting");
+                System.exit(0);
+                break;
+        }
 
         // if an OPERATOR_ID and OPERATOR_KEY were provided, set them
         // on the client; this is only needed when we are creating a new
@@ -154,6 +191,7 @@ public class App {
         // we need to create a new topic, and send a construct message,
         // which establishes our operator as the owner
 
+        System.out.println("creating topic");
         var operatorId = AccountId.fromString(requireEnv("HSC_OPERATOR_ID"));
         var operatorPrivateKey = Ed25519PrivateKey.fromString(requireEnv("HSC_OPERATOR_KEY"));
         var tokenName = requireEnv("HSC_TOKEN_NAME");
@@ -182,6 +220,7 @@ public class App {
         System.out.println("created topic " + topicId);
 
         // now we need to create a <Construct> transaction
+        System.out.println("creating contract for token");
 
         var constructTransactionBytes = new ConstructTransaction(
             operatorId.account,
@@ -203,9 +242,15 @@ public class App {
             .execute(hederaClient)
             .getReceipt(hederaClient);
 
+        System.out.println("pausing 10s");
+
         // wait 10s because subscribe retries on the SDK v2 are not working
         // so we need to wait until the topic is fully established on the mirror node
-        Thread.sleep(10_000);
+        for (int i=0; i < 10; i++) {
+            System.out.print(".");
+            Thread.sleep(1_000);
+        }
+        System.out.println("");
 
         return topicId;
     }
