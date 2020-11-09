@@ -222,8 +222,6 @@ OpenJDK Runtime Environment (build 14+36-1461)
 OpenJDK 64-Bit Server VM (build 14+36-1461, mixed mode, sharing)
 ```
 
-# sudo apt -y install software-properties-common dirmngr apt-transport-https lsb-release ca-certificates
-
 ### TimescaleDB
 
 (instructions from https://docs.timescale.com/latest/getting-started/installation/debian/installation-apt-debian)
@@ -260,7 +258,7 @@ psql
 # psql (12.4 (Debian 12.4-1.pgdg100+1))
 # Type "help" for help.
 
-# Set postres user password to 'password'
+# Set postgres user password to 'password'
 alter user postgres with password 'password';
 
 CTRL+D to exit psql
