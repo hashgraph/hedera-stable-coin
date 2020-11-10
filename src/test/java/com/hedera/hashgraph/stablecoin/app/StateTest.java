@@ -65,13 +65,13 @@ public class StateTest {
 
         var callerKey = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);
-        @Var var supplyManager = caller;
-        @Var var complianceManager = caller;
-        @Var var enforcementManager = caller;
+//        @Var var supplyManager = caller;
+//        @Var var complianceManager = caller;
+//        @Var var enforcementManager = caller;
         var tokenName = "tokenName";
         var tokenSymbol = "tokenSymbol";
         var tokenDecimal = 2;
-        var totalSupply = new BigInteger("10000");
+        @Var var totalSupply = new BigInteger("10000");
 
         // Prepare Transaction
         var constructTransaction = new ConstructTransaction(

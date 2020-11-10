@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.time.Instant;
 
@@ -22,7 +23,7 @@ public class ExternalTransferFromTest {
     @Test
     public void transferFromTest() throws InvalidProtocolBufferException, SQLException {
         var callerKey = Ed25519PrivateKey.generate();
-        var from = "StableCoin".getBytes();;
+        var from = "StableCoin".getBytes(Charset.forName("UTF-8"));
         var network = "www.stablecoin.com";
         var toKey = Ed25519PrivateKey.generate();
         var caller = new Address(callerKey);

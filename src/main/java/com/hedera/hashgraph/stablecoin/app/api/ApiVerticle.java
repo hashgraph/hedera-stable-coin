@@ -47,7 +47,7 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> promise) throws IOException {
-        final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
+        Dotenv env = Dotenv.configure().ignoreIfMissing().load();
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
 

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.time.Instant;
 
@@ -26,7 +27,7 @@ public class ExternalTransferTest {
         var callerKey = Ed25519PrivateKey.generate();
         var fromKey = Ed25519PrivateKey.generate();
         var network = "www.stablecoin.com";
-        var to = "StableCoin".getBytes();
+        var to = "StableCoin".getBytes(Charset.forName("UTF-8"));
         var caller = new Address(callerKey);
         var from = new Address(fromKey);
         var amount = BigInteger.ONE;
