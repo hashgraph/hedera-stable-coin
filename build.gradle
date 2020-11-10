@@ -1,5 +1,4 @@
 import groovy.xml.MarkupBuilder
-import org.gradle.api.tasks.testing.Test
 import org.jooq.codegen.GenerationTool
 
 import javax.xml.bind.JAXB
