@@ -100,9 +100,9 @@ public class App {
             System.out.println("----------------------------------------------------------------------");
             System.out.println("These are the **public** keys you can paste into the environment files");
             System.out.println("----------------------------------------------------------------------");
-            System.out.println("HSC_COMPLIANCE_MANAGER_KEY=" + supplyManager.publicKey.toString());
-            System.out.println("HSC_SUPPLY_MANAGER_KEY=" + complianceManager.publicKey.toString());
-            System.out.println("HSC_ENFORCEMENT_MANAGER_KEY=" + enforcementManager.publicKey.toString());
+            System.out.println("HSC_COMPLIANCE_MANAGER_KEY_PUB=" + supplyManager.publicKey.toString());
+            System.out.println("HSC_SUPPLY_MANAGER_KEY_PUB=" + complianceManager.publicKey.toString());
+            System.out.println("HSC_ENFORCEMENT_MANAGER_KEY_PUB=" + enforcementManager.publicKey.toString());
             System.out.println("");
             System.out.println("Private key for the owner of the token");
             System.out.println("HSC_OWNER_KEY=" + ownerKey.toString());
@@ -202,13 +202,13 @@ public class App {
         var ownerKey = Optional.ofNullable(env.get("HSC_OWNER_KEY"))
             .map(Ed25519PrivateKey::fromString);
 
-        var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY"))
+        var supplyManagerKey = Optional.ofNullable(env.get("HSC_SUPPLY_MANAGER_KEY_PUB"))
             .map(Ed25519PublicKey::fromString);
 
-        var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY"))
+        var complianceManagerKey = Optional.ofNullable(env.get("HSC_COMPLIANCE_MANAGER_KEY_PUB"))
             .map(Ed25519PublicKey::fromString);
 
-        var enforcementManagerKey = Optional.ofNullable(env.get("HSC_ENFORCEMENT_MANAGER_KEY"))
+        var enforcementManagerKey = Optional.ofNullable(env.get("HSC_ENFORCEMENT_MANAGER_KEY_PUB"))
             .map(Ed25519PublicKey::fromString);
 
         // create the new topic ID

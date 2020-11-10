@@ -91,9 +91,9 @@ _Note: Running `java -jar build/libs/stable-coin-0.2.0.jar --newkeys` will gener
 **Remember to `uncomment` these variables.**
 
 - HSC_OWNER_KEY={Private Key 302___}
-- HSC_SUPPLY_MANAGER_KEY={Public Key 302___}
-- HSC_COMPLIANCE_MANAGER_KEY={Public Key 302___}
-- HSC_ENFORCEMENT_MANAGER_KEY={Public Key 302___}
+- HSC_SUPPLY_MANAGER_KEY_PUB={Public Key 302___}
+- HSC_COMPLIANCE_MANAGER_KEY_PUB={Public Key 302___}
+- HSC_ENFORCEMENT_MANAGER_KEY_PUB={Public Key 302___}
 
 #### Port the HTTP service will be served on
 
@@ -116,7 +116,7 @@ The token node will read the latest snapshot on launch to skip reading from the 
 #### Optional when running `generate`
 
 - GENERATE_OWNER_KEY={private keys 302___}
-- GENERATE_SUPPLY_MANAGER_KEY={private keys 302___}
+- HSC_SUPPLY_MANAGER_KEY_PUB={private keys 302___}
 - GENERATE_COMPLIANCE_MANAGER_KEY={private keys 302___}
 - GENERATE_ENFORCEMENT_MANAGER_KEY={private keys 302___}
 
