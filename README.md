@@ -26,6 +26,12 @@ git clone https://github.com/hashgraph/hedera-stable-coin.git
 
 cd hedera-stable-coin
 
+# Set environment variables
+export HSC_DATABASE_URL="postgresql://localhost:5432/"
+export HSC_POSTGRES_DB="stable_coin"
+export HSC_DATABASE_USERNAME="postgres"
+export HSC_DATABASE_PASSWORD="password"
+
 # Run database migrations.
 ./gradlew flywayMigrate
 
@@ -48,7 +54,8 @@ These variables must be set to your environment before starting the token node
 
 #### Database information for transaction and event logging
 
-- HSC_DATABASE_URL=postgresql://localhost:5432/stable_coin
+- HSC_DATABASE_URL=postgresql://localhost:5432/
+- HSC_POSTGRES_DB=stable_coin
 - HSC_DATABASE_USERNAME=postgres
 - HSC_DATABASE_PASSWORD=password
 

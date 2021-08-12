@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
+import org.flywaydb.core.Flyway;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,12 +82,6 @@ public class App {
     public static void main(String[] args) throws InterruptedException, IOException, SQLException, HederaStatusException {
         var app = new App();
 
-        // should add a real arg parser
-        if (args.length > 2 && args[1].equals("--bench")) {
-            app.runBenchmark(args[2]);
-            return;
-        }
-
         if (args.length == 1 && args[0].equals("--newkeys")) {
             System.out.println("");
             System.out.println("----------------------------------------------------------------------");
@@ -116,6 +111,29 @@ public class App {
 
             System.exit(0);
         }
+
+        System.out.println("applying database migrations");
+
+        String postgresUrl = app.requireEnv("HSC_DATABASE_URL");
+        String postgresDatabase = app.requireEnv("HSC_POSTGRES_DB");
+        String postgresUser = app.requireEnv("HSC_DATABASE_USERNAME");
+        String postgresPassword = app.requireEnv("HSC_DATABASE_PASSWORD");
+
+        Flyway flyway = Flyway
+            .configure()
+            .dataSource("jdbc:".concat(postgresUrl).concat(postgresDatabase), postgresUser, postgresPassword)
+            .locations("classpath:migrations")
+            .connectRetries(20)
+            .load();
+        flyway.migrate();
+
+
+        // should add a real arg parser
+        if (args.length > 2 && args[1].equals("--bench")) {
+            app.runBenchmark(args[2]);
+            return;
+        }
+
         // try to read the latest state snapshot
         // this is to let us resume instead of reading from the beginning of history
         app.snapshotManager.tryReadLatest();
@@ -178,7 +196,7 @@ public class App {
 
     PgPool createPgPool() {
         return PgPool.pool(
-            PgConnectOptions.fromUri(requireEnv("HSC_DATABASE_URL"))
+            PgConnectOptions.fromUri(requireEnv("HSC_DATABASE_URL").concat(requireEnv("HSC_POSTGRES_DB")))
                 .setUser(requireEnv("HSC_DATABASE_USERNAME"))
                 .setPassword(requireEnv("HSC_DATABASE_PASSWORD")),
             new PoolOptions()

@@ -14,6 +14,8 @@ import java.util.Objects;
 public class SqlConnectionManager {
     private final String url;
 
+    private final String database;
+
     private final String username;
 
     private final String password;
@@ -23,6 +25,8 @@ public class SqlConnectionManager {
 
     public SqlConnectionManager(Dotenv env) {
         url = Objects.requireNonNull(env.get("HSC_DATABASE_URL"), "missing environment variable DATABASE_URL");
+
+        database = Objects.requireNonNull(env.get("HSC_POSTGRES_DB"), "missing environment variable HSC_POSTGRES_DB");
 
         username = Objects.requireNonNull(
             env.get("HSC_DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
@@ -34,6 +38,7 @@ public class SqlConnectionManager {
     // Blank SqlConnectionManager for testing
     public SqlConnectionManager() {
         url = "";
+        database = "";
         username = "";
         password = "";
     }
@@ -51,6 +56,6 @@ public class SqlConnectionManager {
     }
 
     private Connection newConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:" + url, username, password);
+        return DriverManager.getConnection("jdbc:" + url + database, username, password);
     }
 }

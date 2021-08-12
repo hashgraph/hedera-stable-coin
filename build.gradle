@@ -103,6 +103,9 @@ dependencies {
 	implementation project(":proto")
 	implementation project(":sdk")
 
+	// flyway
+	compile "org.flywaydb:flyway-core:7.11.2"
+
 	// jOOQ
 	implementation 'org.jooq:jooq:3.13.4'
 	implementation 'org.jooq:jooq-meta:3.13.4'
@@ -133,9 +136,15 @@ protobuf {
 }
 
 flyway {
-	url = 'jdbc:postgresql://localhost:5432/stable_coin'
-	user = 'postgres'
-	password = 'password'
+
+	def dbURL = System.getenv("HSC_DATABASE_URL") ?: "postgresql://localhost:5432/"
+	def dbSCHEMA = System.getenv("HSC_POSTGRES_DB") ?: "stable_coin"
+	def dbUSER = System.getenv("HSC_DATABASE_USERNAME")
+	def dbPASS = System.getenv("HSC_DATABASE_PASSWORD")
+
+	url = "jdbc:${dbURL}${dbSCHEMA}"
+	user = "${dbUSER}"
+	password = "${dbPASS}"
 	locations = ['filesystem:src/main/resources/migrations']
 }
 
@@ -143,13 +152,18 @@ task jooqGenerate {
 	doLast() {
 		def writer = new StringWriter()
 
+		def dbURL = System.getenv("HSC_DATABASE_URL") ?: "postgresql://localhost:5432/"
+		def dbSCHEMA = System.getenv("HSC_POSTGRES_DB") ?: "stable_coin"
+		def dbUSER = System.getenv("HSC_DATABASE_USERNAME")
+		def dbPASS = System.getenv("HSC_DATABASE_PASSWORD")
+
 		new MarkupBuilder(writer)
 			.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd') {
 				jdbc {
 					driver('org.postgresql.Driver')
-					url('jdbc:postgresql://localhost:5432/stable_coin')
-					user('postgres')
-					password('password')
+					url("jdbc:${dbURL}${dbSCHEMA}")
+					user("${dbUSER}")
+					password("${dbPASS}")
 				}
 				generator {
 					name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
